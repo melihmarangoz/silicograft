@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cell geometry test</title>
+  <style>
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #0e1317; color: #e8edf1; font: 13px system-ui, sans-serif; }
+    canvas { display: block; }
+    #labels { position: absolute; inset: 0; pointer-events: none; }
+    .label { position: absolute; transform: translate(-50%, -50%); text-align: center; text-shadow: 0 1px 4px #000; white-space: nowrap; }
+    .label small { display: block; color: #aab8c3; }
+    .hint { position: absolute; bottom: 12px; left: 16px; color: #9aabb7; pointer-events: none; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="hucre_geometri.js"></script>
+</head>
+<body>
+  <div id="labels"></div><div class="hint">Drag to orbit · scroll to zoom</div>
+  <script>
+    const { OrbitControls } = THREE;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color('#0e1317');
+    const camera = new THREE.PerspectiveCamera(35, innerWidth / innerHeight, 0.1, 2000);
+    camera.position.set(0, 110, 400);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    document.body.prepend(renderer.domElement);
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    scene.add(new THREE.HemisphereLight(0xd8ebff, 0x403849, 2.2));
+    const key = new THREE.DirectionalLight(0xffffff, 3);
+    key.position.set(-100, 160, 180); scene.add(key);
+    const rim = new THREE.DirectionalLight(0x9abfff, 1.6);
+    rim.position.set(50, 40, -150); scene.add(rim);
+
+    const cells = hucreGeometrileri(THREE, { varyant: 2, tohum: 1 });
+    const colors = { msc: '#e3ad4a', fibroblast: '#e07a8a', kondrosit: '#6fb0e8', osteoblast: '#a46ad8', osteosit: '#c9b3ea' };
+    const nucleusMaterial = new THREE.MeshStandardMaterial({ color: '#3d2f6b', roughness: 0.5 });
+    const labelLayer = document.querySelector('#labels');
+    const labels = [];
+    const counts = {};
+    const triangles = geometry => (geometry.index ? geometry.index.count : geometry.attributes.position.count) / 3;
+    Object.entries(cells).forEach(([name, variants], column) => {
+      const bodyMaterial = new THREE.MeshPhysicalMaterial({ color: colors[name], roughness: 0.45, transmission: 0.55, thickness: 6, ior: 1.37, side: THREE.DoubleSide });
+      variants.forEach((cell, row) => {
+        const group = new THREE.Group();
+        group.position.set((column - 2) * 90, (0.5 - row) * 100, 0);
+        group.add(new THREE.Mesh(cell.govde, bodyMaterial));
+        group.add(new THREE.Mesh(cell.cekirdek, nucleusMaterial));
+        if (cell.kapsul) group.add(new THREE.Mesh(cell.kapsul, new THREE.MeshPhysicalMaterial({ color: colors[name], transparent: true, opacity: 0.12, roughness: 0.35, side: THREE.DoubleSide, depthWrite: false })));
+        scene.add(group);
+        const label = document.createElement('div');
+        label.className = 'label';
+        label.innerHTML = `${name}<small>variant ${row} · ${triangles(cell.govde)} triangles</small>`;
+        labelLayer.appendChild(label);
+        labels.push({ element: label, position: group.position.clone().add(new THREE.Vector3(0, -36, 0)) });
+        if (row === 0) counts[name] = triangles(cell.govde);
+      });
+    });
+    console.log(JSON.stringify({ hucre_test: counts }));
+    function resize() {
+      camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight);
+    }
+    addEventListener('resize', resize);
+    function animate() {
+      controls.update();
+      for (const label of labels) {
+        const p = label.position.clone().project(camera);
+        label.element.style.left = `${(p.x * 0.5 + 0.5) * innerWidth}px`;
+        label.element.style.top = `${(-p.y * 0.5 + 0.5) * innerHeight}px`;
+        label.element.style.display = p.z > 1 ? 'none' : '';
+      }
+      renderer.render(scene, camera);
+      requestAnimationFrame(animate);
+    }
+    animate();
+  </script>
+</body>
+</html>

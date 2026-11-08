@@ -1,0 +1,23 @@
+Hazir: /home/ubuntu/kosular/bagsiz_orijinal_t12345  (isaret: orijinal)
+2026-10-26 19:20:50 BASLADI bagsiz_orijinal_t12345
+Hazir: /home/ubuntu/kosular/bagsiz_claes_t12345  (isaret: claes)
+2026-10-26 19:20:58 BASLADI bagsiz_claes_t12345
+Hazir: /home/ubuntu/kosular/bagsiz_orijinal_t2  (isaret: orijinal)
+2026-10-26 19:21:06 BASLADI bagsiz_orijinal_t2
+Hazir: /home/ubuntu/kosular/bagsiz_claes_t2  (isaret: claes)
+2026-10-26 19:21:15 BASLADI bagsiz_claes_t2
+Hazir: /home/ubuntu/kosular/bagsiz_orijinal_t3  (isaret: orijinal)
+2026-10-26 19:23:47 BASLADI bagsiz_orijinal_t3
+Hazir: /home/ubuntu/kosular/bagsiz_claes_t3  (isaret: claes)
+2026-10-26 19:23:58 BASLADI bagsiz_claes_t3
+Hazir: /home/ubuntu/kosular/bagli_orijinal_t12345  (isaret: orijinal)
+2026-10-26 19:24:10 BASLADI bagli_orijinal_t12345
+2026-10-26 21:29:06 BITTI bagsiz_orijinal_t12345 cikis=0
+2026-10-26 21:30:02 BITTI bagsiz_claes_t12345 cikis=0
+2026-10-26 21:30:05 BITTI bagsiz_orijinal_t2 cikis=0
+2026-10-26 21:30:31 BITTI bagsiz_claes_t2 cikis=0
+2026-10-26 21:30:39 HEPSI BITTI
+2026-10-26 21:32:27 BITTI bagsiz_orijinal_t3 cikis=0
+2026-10-26 21:32:37 BITTI bagsiz_claes_t3 cikis=0
+2026-10-26 21:35:04 BITTI bagli_orijinal_t12345 cikis=0
+2026-10-26 21:35:10 EK KOSULAR BITTI

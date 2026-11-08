@@ -1,0 +1,196 @@
+[
+  {
+    "stage": 1,
+    "file": "stage-1.jpg",
+    "day": 0,
+    "run": "gunluk_2026-11-07/bagsiz_orijinal_t12345: current geometry, plate not bonded to the callus (unbonded, new); original stimulus sign; seed 12345; 360 days",
+    "what": "The run's CalculiX mesh cut through the bone axis: two sheep tibia ends (cortex and marrow), the 30 mm gap filled with callus elements, and the steel plate, loaded with 823 N and a 9.78 N·m bending moment.",
+    "legend": [
+      {
+        "label": "intact cortical bone",
+        "colour_hex": "#596475"
+      },
+      {
+        "label": "marrow",
+        "colour_hex": "#253142"
+      },
+      {
+        "label": "callus region (empty, granulation tissue)",
+        "colour_hex": "#0f1c37"
+      },
+      {
+        "label": "steel plate",
+        "colour_hex": "#364868"
+      },
+      {
+        "label": "loads: 823 N axial (single arrow), 9.78 N·m bending moment about y (double arrow)",
+        "colour_hex": "#bddcf7"
+      }
+    ],
+    "key": "Section x = 0 (the plane through the bone axis that cuts the plate), 60 x 60 mm, 0.05 mm per pixel. Single arrow: 823 N axial compression, applied at the proximal end (above the frame). Double arrow: 9 777 N·mm moment vector about +y (right-hand rule), so the bending acts out of this plane. The distal end (below the frame) is clamped. The six screws (r 1.75 mm) sit 25 to 55 mm beyond the gap ends, outside this shared frame.",
+    "alt": "Section of a sheep tibia: two bone ends, a 30 mm gap, a steel plate at right, load arrows."
+  },
+  {
+    "stage": 2,
+    "file": "stage-2.jpg",
+    "day": 9,
+    "run": "gunluk_2026-11-07/bagsiz_orijinal_t12345: current geometry, plate not bonded to the callus (unbonded, new); original stimulus sign; seed 12345; 360 days",
+    "what": "Lattice plane x = 0 on day 9: stem cells have spread about half a millimetre from the cut bone ends, their outer surfaces and the marrow into the gap, and the first few have turned into bone.",
+    "legend": [
+      {
+        "label": "stem cells (MSC)",
+        "colour_hex": "#2e749b"
+      },
+      {
+        "label": "new bone",
+        "colour_hex": "#e7f0f9"
+      },
+      {
+        "label": "empty callus (granulation tissue)",
+        "colour_hex": "#0f1c37"
+      },
+      {
+        "label": "intact cortical bone",
+        "colour_hex": "#596475"
+      },
+      {
+        "label": "marrow",
+        "colour_hex": "#253142"
+      },
+      {
+        "label": "steel plate",
+        "colour_hex": "#364868"
+      }
+    ],
+    "key": "Section x = 0 (the plane through the bone axis that cuts the plate), 60 x 60 mm, 0.05 mm per pixel. One lattice point is one 0.1 mm cell. Points in this plane on day 9: 3 294 stem cells, 61 bone. The thin stripes inside each marrow cavity are the initial stem-cell seeding on every third lattice plane (Initialize_lattice.cpp), not an imaging artefact.",
+    "alt": "Day 9: a thin blue fringe of stem cells lines both bone ends at the edge of the gap."
+  },
+  {
+    "stage": 3,
+    "file": "stage-3.jpg",
+    "day": 357,
+    "run": "gunluk_2026-11-07/bagsiz_orijinal_t12345: current geometry, plate not bonded to the callus (unbonded, new); original stimulus sign; seed 12345; 360 days",
+    "what": "The same plane on day 357: stem cells fill bands at both bone ends and along the plate, and new bone grows in patches against the plate, with a little cartilage and fibrous tissue. The middle of the gap stays empty: no union.",
+    "legend": [
+      {
+        "label": "new bone",
+        "colour_hex": "#e7f0f9"
+      },
+      {
+        "label": "cartilage",
+        "colour_hex": "#6bcbf7"
+      },
+      {
+        "label": "fibrous tissue",
+        "colour_hex": "#8181af"
+      },
+      {
+        "label": "stem cells (MSC)",
+        "colour_hex": "#2e749b"
+      },
+      {
+        "label": "empty callus (granulation tissue)",
+        "colour_hex": "#0f1c37"
+      },
+      {
+        "label": "intact cortical bone",
+        "colour_hex": "#596475"
+      },
+      {
+        "label": "marrow",
+        "colour_hex": "#253142"
+      },
+      {
+        "label": "steel plate",
+        "colour_hex": "#364868"
+      }
+    ],
+    "key": "Section x = 0 (the plane through the bone axis that cuts the plate), 60 x 60 mm, 0.05 mm per pixel. Day 357 is the day of the last CalculiX solve of this 360-day run, and stages 4 to 6 use that solve. Points in this plane: 27 477 stem cells, 1 602 bone, 202 cartilage, 318 fibrous (0.01 mm² each). Cartilage and fibrous tissue stay rare when the plate is not bonded to the callus.",
+    "alt": "Day 357: stem cells line the bone ends and the plate; new bone patches grow along the plate."
+  },
+  {
+    "stage": 4,
+    "file": "stage-4.jpg",
+    "day": 357,
+    "run": "gunluk_2026-11-07/bagsiz_orijinal_t12345: current geometry, plate not bonded to the callus (unbonded, new); original stimulus sign; seed 12345; 360 days",
+    "what": "Young's modulus of every element in the day-357 CalculiX solve: each callus element mixes its lattice tissues (bone 17 000, cartilage 10, fibrous 2, anything else 0.2 MPa) and averages the last ten days.",
+    "legend": [
+      {
+        "label": "0.2 MPa (granulation tissue)",
+        "colour_hex": "#0f1c37"
+      },
+      {
+        "label": "about 60 MPa (middle of the log scale)",
+        "colour_hex": "#3483ad"
+      },
+      {
+        "label": "17 000 MPa (bone, and the intact cortex)",
+        "colour_hex": "#e7f0f9"
+      },
+      {
+        "label": "steel plate, 210 000 MPa (off the scale)",
+        "colour_hex": "#364868"
+      }
+    ],
+    "key": "Log scale from 0.2 to 17 000 MPa (dark navy to blue to near-white). The cortex is a fixed 17 000 MPa and the marrow 2 MPa. Callus elements in this section: 0.2 to 16 865 MPa, median 0.2 MPa. The program does not write E out: it was rebuilt from the daily lattices of days 348 to 357 with the rule of Update_model.cpp, and the same code reproduces the day-358 without_scaffold.inp for all 24 698 callus elements.",
+    "alt": "Stiffness map: bright, stiff bone ends and plate-side bone; the soft gap stays dark."
+  },
+  {
+    "stage": 5,
+    "file": "stage-5.jpg",
+    "day": 357,
+    "run": "gunluk_2026-11-07/bagsiz_orijinal_t12345: current geometry, plate not bonded to the callus (unbonded, new); original stimulus sign; seed 12345; 360 days",
+    "what": "Size of the minimum principal strain in every callus element of the same solve (mean of its four integration points, without_scaffold.dat), under 823 N and 9.78 N·m.",
+    "legend": [
+      {
+        "label": "0.001 % or less",
+        "colour_hex": "#0f1c37"
+      },
+      {
+        "label": "0.1 %",
+        "colour_hex": "#3483ad"
+      },
+      {
+        "label": "10 % or more",
+        "colour_hex": "#e7f0f9"
+      },
+      {
+        "label": "no strain output (bone ends, marrow)",
+        "colour_hex": "#071129"
+      },
+      {
+        "label": "steel plate",
+        "colour_hex": "#364868"
+      }
+    ],
+    "key": "Log scale of |minimum principal strain| from 0.001 % to 10 %. In this section: 0.0003 % to 1.8 %, median 0.63 %. Every value is compressive (negative). CalculiX prints strain only for the callus, so the bone ends and the marrow are drawn as outlines.",
+    "alt": "Strain map: the callus far from the plate strains most; bone along the plate barely strains."
+  },
+  {
+    "stage": 6,
+    "file": "stage-6.jpg",
+    "day": 357,
+    "run": "gunluk_2026-11-07/bagsiz_orijinal_t12345: current geometry, plate not bonded to the callus (unbonded, new); original stimulus sign; seed 12345; 360 days",
+    "what": "All 24 698 callus elements of the day-357 solve, placed by strain and pressure in the regions of Read_stimulus.cpp. The region decides what the element's stem cells turn into over the next three days, and whether its bone is resorbed.",
+    "legend": [
+      {
+        "label": "resorption (2 306 elements)",
+        "colour_hex": "#5c646f"
+      },
+      {
+        "label": "bone formation (21 763)",
+        "colour_hex": "#e7f0f9"
+      },
+      {
+        "label": "cartilage (98)",
+        "colour_hex": "#6bcbf7"
+      },
+      {
+        "label": "fibrous tissue (531)",
+        "colour_hex": "#8181af"
+      }
+    ],
+    "key": "x: |minimum principal strain|, log scale, 0.0001 % to 30 %. y: hydrostatic pressure HP = -(s1+s2+s3)/3 in MPa, compression positive, symmetric log scale (linear within ±0.0001 MPa). Thresholds of Read_stimulus.cpp, first match wins: resorption |HP| < 0.0016 MPa and |ε| < 0.04 %; bone |HP| < 0.15 MPa and |ε| < 5 %; cartilage HP < -0.15 MPa and |ε| < 15 %; fibrous otherwise. With the original sign the cartilage zone is hydrostatic tension, the opposite of Claes & Heigele (1999); the model keeps the sign of its source code. The classes match stimulus_358.bin of the run exactly.",
+    "alt": "Scatter of callus elements by strain and pressure; nearly all fall in the bone region, few in cartilage or fibrous."
+  }
+]

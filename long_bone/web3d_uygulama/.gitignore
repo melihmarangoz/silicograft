@@ -1,0 +1,5 @@
+# The full whole-callus package (~54 MB, araclar/hucre3b_paket.py) stays local. The repository carries only the
+# website's subset of tiles around the mid-sagittal plane (araclar/hucre3b_site_paket.py, about 15 MB), which
+# are committed under veri/*/parca/. Do not commit a full package over them.
+# packaged test page
+_test_paket.html

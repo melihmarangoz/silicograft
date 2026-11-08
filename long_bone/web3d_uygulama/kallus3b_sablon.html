@@ -1,0 +1,700 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SilicoGraft Callus View</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: a wide 3D stage with the time bar under it on the left, a narrow control panel on the right,
+   three small tissue charts below. The stage stays dark in every theme (like a micro-CT viewer), the page frame follows the theme. */
+:root {
+  --bg: #f3f4f1;
+  --panel: #ffffff;
+  --fg: #1c2226;
+  --muted: #5b656b;
+  --line: #d8ddda;
+  --accent: #9a5a14;
+  --accent-ink: #ffffff;
+  --run-a: #2c6c8c;
+  --run-b: #b0455a;
+  --run-c: #858b8f;
+  --ref: #3d8b45;
+  --stage: #0e1317;
+  --stage-ink: #dfe5e8;
+  --kemik: #efe2c4;
+  --kikirdak: #5aa0e0;
+  --fibroz: #e07a8a;
+  --msc: #d9a43a;
+  --font-ui: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-num: "IBM Plex Mono", ui-monospace, "Cascadia Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111619; --panel: #182024; --fg: #e4e8e9; --muted: #98a3a8; --line: #2a3338;
+    --accent: #e3a457; --accent-ink: #1a1206;
+    --run-a: #6fb4d8; --run-b: #e8869a; --run-c: #9aa1a5; --ref: #79c47f;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111619; --panel: #182024; --fg: #e4e8e9; --muted: #98a3a8; --line: #2a3338;
+  --accent: #e3a457; --accent-ink: #1a1206;
+  --run-a: #6fb4d8; --run-b: #e8869a; --run-c: #9aa1a5; --ref: #79c47f;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font-ui); font-size: 14px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 18px 32px;
+}
+.sayfa { max-width: 1320px; margin: 0 auto; display: grid; gap: 18px; }
+/* top bar: way back to the site (shown on the site only), title and description, full screen */
+.ust { display: flex; align-items: flex-start; gap: 10px 18px; flex-wrap: wrap; }
+.ust > div { flex: 1 1 32rem; min-width: 0; }
+.ust-dugme { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; font-size: 0.88rem; color: inherit; text-decoration: none; cursor: pointer; white-space: nowrap; }
+.ust-dugme:hover { border-color: var(--accent); }
+header h1 { font-size: 1.45rem; font-weight: 600; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+header p { margin: 4px 0 0; color: var(--muted); max-width: 70ch; }
+.duzen { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
+@media (max-width: 900px) { .duzen { grid-template-columns: minmax(0, 1fr); } #sahne { height: min(72vh, 660px); } }
+.sahne-kutu { display: grid; gap: 10px; min-width: 0; }
+#sahne { position: relative; height: max(380px, calc(100svh - var(--ust, 90px) - 136px)); min-height: 380px; border-radius: 10px; overflow: hidden; background: var(--stage); }
+#sahne canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+.gun-rozet { position: absolute; left: 14px; top: 12px; color: var(--stage-ink); pointer-events: none; font-family: var(--font-num); }
+.gun-rozet b { font-size: 1.9rem; font-weight: 500; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.gun-rozet span { display: block; font-size: 0.78rem; opacity: 0.75; letter-spacing: 0.04em; text-transform: uppercase; }
+.pane-etiket { position: absolute; bottom: 10px; color: var(--stage-ink); font-size: 0.78rem; pointer-events: none;
+  display: flex; align-items: center; gap: 6px; padding: 3px 8px; background: rgba(14,19,23,0.72); border-radius: 6px; white-space: nowrap; }
+.pane-etiket i { width: 10px; height: 3px; border-radius: 2px; display: inline-block; }
+[hidden] { display: none !important; }  /* class display rules must not override the hidden attribute */
+.yukleme { position: absolute; inset: 0; display: grid; place-items: center; color: var(--stage-ink); font-family: var(--font-num); font-size: 0.9rem; text-align: center; padding: 20px; }
+.zaman { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+.oynat { width: 40px; height: 40px; border-radius: 50%; border: none; background: var(--accent); color: var(--accent-ink); cursor: pointer; display: grid; place-items: center; }
+.oynat svg { width: 16px; height: 16px; fill: currentColor; }
+.cubuk { display: grid; gap: 2px; min-width: 0; }
+.cubuk input[type=range] { width: 100%; accent-color: var(--accent); margin: 0; }
+.isaretler { position: relative; height: 16px; font-family: var(--font-num); font-size: 0.7rem; color: var(--muted); }
+.isaretler span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+.hiz { font-family: var(--font-num); font-size: 0.8rem; color: var(--muted); display: flex; gap: 6px; align-items: center; }
+select, button { font: inherit; color: var(--fg); }
+select { background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 4px 6px; }
+.panel select { width: 100%; min-width: 0; }  /* a long run name must not widen the panel */
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; display: grid; gap: 16px; min-width: 0; }
+.grup { display: grid; gap: 8px; }
+.grup h2 { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 0; }
+.segment { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.segment button { background: transparent; border: none; padding: 7px 6px; cursor: pointer; font-size: 0.85rem; }
+.segment button[aria-pressed=true] { background: var(--accent); color: var(--accent-ink); }
+label.sec { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.9rem; }
+label.sec input { accent-color: var(--accent); width: 16px; height: 16px; margin: 0; }
+.renk { width: 12px; height: 12px; border-radius: 3px; display: inline-block; border: 1px solid rgba(0,0,0,0.15); }
+.kamera { display: flex; gap: 6px; flex-wrap: wrap; }
+.kamera button { background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 5px 9px; cursor: pointer; font-size: 0.82rem; }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+table.okuma { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+table.okuma th { text-align: left; font-weight: 500; color: var(--muted); padding: 3px 0; }
+table.okuma td { font-family: var(--font-num); text-align: right; padding: 3px 0 3px 8px; font-variant-numeric: tabular-nums; }
+table.okuma th.sag { text-align: right; padding-left: 8px; }
+table.okuma tr + tr td, table.okuma tr + tr th { border-top: 1px solid var(--line); }
+.not { color: var(--muted); font-size: 0.78rem; margin: 0; }
+.grafikler { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 760px) { .grafikler { grid-template-columns: minmax(0, 1fr); } }
+.grafik { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; min-width: 0; }
+.grafik h3 { margin: 0 0 4px; font-size: 0.85rem; font-weight: 600; }
+.grafik canvas { width: 100%; height: 170px; display: block; }
+.lejant { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 0.8rem; color: var(--muted); }
+.lejant span { display: inline-flex; align-items: center; gap: 6px; }
+.lejant i { width: 16px; height: 3px; border-radius: 2px; display: inline-block; }
+.notlar { color: var(--muted); font-size: 0.82rem; max-width: 95ch; display: grid; gap: 6px; }
+.notlar p { margin: 0; }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto; } }
+
+/* Phone layout (max-width 40rem, the site's phone breakpoint). The stage fills the screen under a compact top bar.
+   The time bar, the control panel, the legend, the charts and the notes sit in a bottom sheet: collapsed it shows a
+   handle and the time bar, open it takes 70 % of the height and scrolls. The phone layout script moves those
+   elements into the sheet while this query matches and back when it stops, so the desktop markup stays as it is.
+   Every tap target is at least 44 px. */
+@media (max-width: 40rem) {
+  html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
+  body { margin: 0; padding: 0; }
+  .sayfa { display: block; }
+  /* until the script has moved them, the sheet's elements stay out of the page */
+  .sayfa .zaman, .sayfa .panel, .sayfa > .lejant, .sayfa > .grafikler, .sayfa > .notlar { display: none; }
+  .ust { position: fixed; top: 0; left: 0; right: 0; z-index: 4; flex-wrap: nowrap; align-items: center; gap: 8px;
+    padding: 6px max(10px, env(safe-area-inset-right, 0px)) 6px max(10px, env(safe-area-inset-left, 0px));
+    background: var(--bg); border-bottom: 1px solid var(--line); }
+  .ust > div { flex: 1 1 auto; min-width: 0; }
+  header h1 { font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  header h1 .ad-marka, header p { display: none; }
+  .ust-dugme { min-height: 44px; display: inline-flex; align-items: center; padding: 0 12px; }
+  #sahne { position: fixed; left: 0; right: 0; top: var(--ust, 57px); bottom: var(--tabaka-kapali, 108px); height: auto; min-height: 0; border-radius: 0; }
+  .gun-rozet { left: 12px; top: 10px; }
+  .tabaka { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; display: flex; flex-direction: column;
+    height: var(--tabaka-kapali, 108px); max-height: calc(100% - var(--ust, 57px)); background: var(--panel); border-top: 1px solid var(--line);
+    border-radius: 14px 14px 0 0; box-shadow: 0 -8px 24px rgba(0,0,0,0.28); transition: height 0.24s ease; }
+  .tabaka.acik { height: 70vh; height: 70dvh; }
+  .tabaka.surukle { transition: none; }
+  .tabaka-tutamak { flex: none; height: 44px; width: 100%; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px;
+    background: transparent; border: 0; padding: 0 16px; cursor: grab; touch-action: none; color: var(--muted); font-size: 0.8rem;
+    font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; -webkit-tap-highlight-color: transparent; }
+  .tabaka-tutamak::before, .tabaka-tutamak::after { content: ""; height: 4px; border-radius: 2px; background: var(--line); }
+  .tabaka-tutamak::after { transition: transform 0.24s ease; }
+  .tabaka-tutamak svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; transition: transform 0.24s ease; }
+  .tabaka-tutamak span { display: inline-flex; align-items: center; gap: 6px; }
+  .tabaka.acik .tabaka-tutamak svg { transform: rotate(180deg); }
+  .tabaka .zaman { flex: none; border: 0; border-radius: 0; background: transparent; padding: 0 12px 10px; gap: 10px; }
+  .tabaka .oynat { width: 44px; height: 44px; }
+  .tabaka .cubuk input[type=range] { height: 44px; }
+  .tabaka .isaretler { margin-top: -8px; }
+  .tabaka .hiz-ad { display: none; }
+  .tabaka .hiz select { min-height: 44px; }
+  .tabaka-ic { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: grid; gap: 16px; align-content: start;
+    padding: 6px 12px 24px; border-top: 1px solid var(--line); }
+  .tabaka:not(.acik):not(.surukle) .tabaka-ic { visibility: hidden; }
+  .tabaka-giris { margin: 0; color: var(--muted); font-size: 0.86rem; }
+  .tabaka .panel { border: 0; border-radius: 0; padding: 0; background: transparent; gap: 18px; }
+  /* one run at a time on a phone (a pane would be 130 px wide): the side-by-side switch has nothing to do */
+  .tabaka .segment { display: none; }
+  .tabaka select { min-height: 44px; }
+  .tabaka label.sec { min-height: 44px; font-size: 0.95rem; }
+  .tabaka label.sec input { width: 20px; height: 20px; }
+  .tabaka .kamera { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .tabaka .kamera button { min-height: 44px; padding: 4px 6px; }
+  .tabaka table.okuma { font-size: 0.86rem; }
+  .tabaka .grafikler { grid-template-columns: minmax(0, 1fr); }
+  .tabaka .notlar { font-size: 0.84rem; }
+}
+</style>
+
+<div class="sayfa">
+  <header class="ust">
+    <a class="ust-dugme" id="siteye-don" href="../" hidden>← SilicoGraft</a>
+    <div>
+      <h1><span class="ad-marka">SilicoGraft </span>Callus View</h1>
+      <p>A 30 mm empty defect in a sheep tibia, 360 days of bone healing. A cell agent model (C++, Checa group) coupled to a CalculiX finite element solution, with Claes-Heigele mechanoregulation. Drag to rotate, scroll to zoom.</p>
+    </div>
+    <button class="ust-dugme" id="tam-ekran" type="button" title="Full screen (F)" hidden>Full screen</button>
+  </header>
+
+  <div class="duzen">
+    <section class="sahne-kutu" aria-label="3D scene">
+      <div id="sahne">
+        <canvas id="tuval"></canvas>
+        <div class="gun-rozet"><span id="ay-etiket">0.0 months</span><b id="gun-sayi">Day 0</b></div>
+        <div id="etiketler"></div>
+        <div class="yukleme" id="yukleme">Loading data…</div>
+      </div>
+      <div class="zaman">
+        <button class="oynat" id="oynat" aria-label="Play">
+          <svg id="ikon-oynat" viewBox="0 0 16 16"><path d="M4 2.5v11l9-5.5z"/></svg>
+          <svg id="ikon-dur" viewBox="0 0 16 16" hidden><path d="M3.5 2.5h3v11h-3zM9.5 2.5h3v11h-3z"/></svg>
+        </button>
+        <div class="cubuk">
+          <input id="gun" type="range" min="0" max="359" step="0.1" value="0" aria-label="Day">
+          <div class="isaretler" id="isaretler"></div>
+        </div>
+        <label class="hiz" for="hiz"><span class="hiz-ad">speed</span>
+          <select id="hiz">
+            <option value="10">10 days/s</option>
+            <option value="30" selected>30 days/s</option>
+            <option value="60">60 days/s</option>
+          </select>
+        </label>
+      </div>
+    </section>
+
+    <aside class="panel" aria-label="Controls">
+      <div class="grup">
+        <h2>View</h2>
+        <div class="segment" role="group" aria-label="Layout">
+          <button id="duzen-uc" aria-pressed="true">Side by side</button>
+          <button id="duzen-tek" aria-pressed="false">One run</button>
+        </div>
+        <select id="kosu-sec" aria-label="Run" disabled></select>
+      </div>
+      <div class="grup">
+        <h2>Tissues</h2>
+        <label class="sec"><input type="checkbox" id="g-kemik" checked><i class="renk" style="background:var(--kemik)"></i>New bone</label>
+        <label class="sec"><input type="checkbox" id="g-kikirdak" checked><i class="renk" style="background:var(--kikirdak)"></i>Cartilage</label>
+        <label class="sec"><input type="checkbox" id="g-fibroz" checked><i class="renk" style="background:var(--fibroz)"></i>Fibrous tissue</label>
+        <label class="sec"><input type="checkbox" id="g-msc" checked><i class="renk" style="background:var(--msc)"></i>Stem cell (MSC)</label>
+      </div>
+      <div class="grup">
+        <h2>Section and context</h2>
+        <label class="sec"><input type="checkbox" id="g-kesit" checked>Frontal half section</label>
+        <label class="sec"><input type="checkbox" id="g-baglam" checked>Intact bone, marrow, plate</label>
+        <label class="sec"><input type="checkbox" id="g-kallus" checked>Callus outline</label>
+      </div>
+      <div class="grup">
+        <h2>Camera</h2>
+        <div class="kamera">
+          <button data-kamera="yan">Section face</button>
+          <button data-kamera="plak">Plate side</button>
+          <button data-kamera="ust">From above</button>
+        </div>
+      </div>
+      <div class="grup">
+        <h2 id="okuma-baslik">Day 0, volume (mm³)</h2>
+        <table class="okuma" id="okuma"></table>
+        <p class="not">Volumes from the full-resolution 0.1 mm lattice, for the whole callus.</p>
+      </div>
+    </aside>
+  </div>
+
+  <div class="lejant" id="lejant" aria-label="Chart legend"></div>
+  <div class="grafikler">
+    <div class="grafik"><h3>New bone (mm³)</h3><canvas id="c-kemik"></canvas></div>
+    <div class="grafik"><h3>Cartilage (mm³)</h3><canvas id="c-kikirdak"></canvas></div>
+    <div class="grafik"><h3>Fibrous tissue (mm³)</h3><canvas id="c-fibroz"></canvas></div>
+  </div>
+
+  <section class="notlar">
+    <p><b>Runs.</b> All three ran with the same random seed (12345). The "unbonded plate" does not bond the callus to the plate, as in the model of Perier-Metz et al. (2022, Acta Biomater 145:329). The "bonded plate" is the assumption of our first attempt and produces artificial compression at the plate edge. The "original stimulus" is the authors' code (cartilage at HP &lt; −0.15 MPa), the "Claes-Heigele stimulus" forms cartilage under hydrostatic compression.</p>
+    <p><b>Display.</b> In the 3D scene the lattice is reduced to 0.4 mm voxels: when at least 8 of a voxel's 64 lattice points hold one cell type, the voxel takes that type's colour (bone first). The lattice was saved every 10 days, and the days in between are shown as a smooth transition. The volumes in the charts and the table are daily and at full resolution. The green mark is the paper's experimental value at month 3 (about 170 mm³, range 110-230), the orange mark is the same paper's simulation (about 150 mm³). Both were read from the paper's figure.</p>
+  </section>
+</div>
+
+<!-- phone layout: the bottom sheet; the phone layout script moves the time bar into #tabaka-zaman and the panel,
+     legend, charts and notes into #tabaka-ic while the phone query matches -->
+<div class="tabaka" id="tabaka" hidden>
+  <button type="button" class="tabaka-tutamak" id="tabaka-tutamak" aria-expanded="false" aria-controls="tabaka-ic"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 10l4.5-4.5 4.5 4.5"/></svg>Controls</span></button>
+  <div id="tabaka-zaman"></div>
+  <div class="tabaka-ic" id="tabaka-ic">
+    <p class="tabaka-giris">A 30 mm defect in a sheep tibia, 360 days of bone healing. One finger rotates, two fingers zoom and pan.</p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+const ISTATISTIK = __ISTATISTIK__;
+const KOSULAR = [
+  { id: "bagsiz_orijinal_t12345", ad: "Unbonded plate · original stimulus", kisa: "Unbonded · original", renk: "--run-a", kesik: false },
+  { id: "bagsiz_claes_t12345", ad: "Unbonded plate · Claes-Heigele stimulus", kisa: "Unbonded · Claes-Heigele", renk: "--run-b", kesik: false },
+  { id: "bagli_orijinal_t12345", ad: "Bonded plate · original stimulus", kisa: "Bonded · original", renk: "--run-c", kesik: true },
+];
+const tok = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+const durum = { gun: 0, oynuyor: false, hiz: 30, duzen: "uc", secili: 0, kesit: true, baglam: true, kallus: true,
+  gorunur: { kemik: true, kikirdak: true, fibroz: true, msc: true } };
+const $ = (id) => document.getElementById(id);
+let gerek = true, sonZaman = 0, yavasSayac = 0;
+function ciz() { gerek = true; }
+const tuval = $("tuval"), sahneKutu = $("sahne");
+
+// ---------- three.js setup
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ canvas: tuval, antialias: true, powerPreference: "high-performance" });
+} catch (e) { $("yukleme").textContent = "WebGL could not start in this browser."; throw e; }
+if (!renderer.capabilities.isWebGL2) { $("yukleme").textContent = "This page needs WebGL2. Open it in a current Chrome, Edge, Firefox or Safari."; throw new Error("no webgl2"); }
+renderer.setClearColor(0x0e1317, 1);
+renderer.localClippingEnabled = true;
+let pikselOrani = Math.min(window.devicePixelRatio || 1, 1.5);
+renderer.setPixelRatio(pikselOrani);
+
+const kamera = new THREE.PerspectiveCamera(30, 1, 1, 2000);
+const kontrol = new THREE.OrbitControls(kamera, tuval);
+kontrol.enableDamping = true; kontrol.dampingFactor = 0.12; kontrol.target.set(0, 0, 2);
+kontrol.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };  // touch: one finger rotates, two pinch-zoom and pan (the r147 default, stated)
+const KAMERALAR = { yan: [118, 14, 34], plak: [10, 10, 125], ust: [2, 120, 22] };
+function kameraKur(ad) { const p = KAMERALAR[ad]; kamera.position.set(p[0], p[1], p[2]); kontrol.target.set(0, 0, 2); kontrol.update(); ciz(); }
+kameraKur("yan");
+
+const kesitDuzlemi = new THREE.Plane(new THREE.Vector3(-1, 0, 0), 0);  // keeps x <= 0
+
+// Shared voxel uniforms (every run's material shares the same objects)
+const U = {
+  uF0: { value: 0 }, uT: { value: 0 }, uNF: { value: 37 }, uTexW: { value: 4096 },
+  uVis: { value: new THREE.Vector4(1, 1, 1, 1) },     // MSC, bone, cartilage, fibrous
+  uBoy: { value: new THREE.Vector4(0.42, 0.94, 0.94, 0.94) },
+  uClip: { value: 0 }, uVox: { value: 0.4 },
+  uRenk: { value: [new THREE.Color("#d9a43a"), new THREE.Color("#efe2c4"), new THREE.Color("#5aa0e0"), new THREE.Color("#e07a8a")] },
+};
+const VS = `
+uniform highp sampler2D uCodes;
+uniform int uF0; uniform float uT; uniform int uNF; uniform int uTexW;
+uniform vec4 uVis; uniform vec4 uBoy; uniform float uClip; uniform float uVox; uniform vec3 uRenk[4];
+attribute vec3 aPos;
+varying vec3 vRenk; varying vec3 vVP;
+int kodAl(int f) {
+  int idx = gl_InstanceID * uNF + f;
+  return int(texelFetch(uCodes, ivec2(idx % uTexW, idx / uTexW), 0).r * 255.0 + 0.5);
+}
+void main() {
+  int c0 = kodAl(uF0);
+  int c1 = kodAl(min(uF0 + 1, uNF - 1));
+  float t = smoothstep(0.0, 1.0, uT);
+  float s0 = c0 > 0 ? uVis[c0 - 1] * uBoy[c0 - 1] : 0.0;
+  float s1 = c1 > 0 ? uVis[c1 - 1] * uBoy[c1 - 1] : 0.0;
+  float s = mix(s0, s1, t);
+  vec3 r0 = c0 > 0 ? uRenk[c0 - 1] : (c1 > 0 ? uRenk[c1 - 1] : vec3(0.0));
+  vec3 r1 = c1 > 0 ? uRenk[c1 - 1] : r0;
+  vRenk = mix(r0, r1, t);
+  // lattice (x, y, z) -> scene (x, z - 20, y); block centre
+  vec3 k = vec3(-18.05, -18.05, -0.05) + (aPos + 0.5) * uVox;
+  vec3 w = vec3(k.x, k.z - 20.0, k.y);
+  if (w.x > uClip) s = 0.0;
+  if (s < 0.01) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); return; }
+  vec4 mv = modelViewMatrix * vec4(w + position * uVox * s, 1.0);
+  vVP = mv.xyz;
+  gl_Position = projectionMatrix * mv;
+}`;
+const FS = `
+varying vec3 vRenk; varying vec3 vVP;
+void main() {
+  vec3 n = normalize(cross(dFdx(vVP), dFdy(vVP)));  // flat face normal: the cube is drawn with 8 corners
+  float a = max(dot(n, normalize(vec3(0.45, 0.75, 0.55))), 0.0);
+  float b = max(dot(n, normalize(vec3(-0.6, -0.1, 0.5))), 0.0);
+  gl_FragColor = vec4(vRenk * (0.34 + 0.62 * a + 0.2 * b), 1.0);
+}`;
+
+// ---------- static context (each scene gets its own copy)
+function baglamOlustur() {
+  const g = new THREE.Group();
+  // double sided: the inner faces of the bone and plate cut by the half section show too
+  const kemikM = new THREE.MeshLambertMaterial({ color: 0x9c958a, side: THREE.DoubleSide, clippingPlanes: [] });
+  const ilikM = new THREE.MeshLambertMaterial({ color: 0x6e3434, side: THREE.DoubleSide, clippingPlanes: [] });
+  const celikM = new THREE.MeshLambertMaterial({ color: 0x5d6873, side: THREE.DoubleSide, clippingPlanes: [] });
+  const elips = (rx, ry, delik) => {
+    const s = new THREE.Shape(); s.absellipse(0, 0, rx, ry, 0, Math.PI * 2, false);
+    if (delik) { const h = new THREE.Path(); h.absellipse(0, 0, delik[0], delik[1], 0, Math.PI * 2, true); s.holes.push(h); }
+    return s;
+  };
+  const tup = (shape, z0, z1, m) => {  // lattice z range -> scene y
+    const geo = new THREE.ExtrudeGeometry(shape, { depth: z1 - z0, bevelEnabled: false, curveSegments: 48 });
+    geo.rotateX(Math.PI / 2);                // shape y -> scene z, extrusion -> -y
+    const me = new THREE.Mesh(geo, m); me.position.y = z1 - 20; return me;
+  };
+  for (const [z0, z1] of [[-62, 5], [35, 102]]) {  // long enough to cover the 155 mm plate and the screws
+    g.add(tup(elips(7.5, 8.5, [3.75, 4.4]), z0, z1, kemikM));
+    g.add(tup(elips(3.75, 4.4), z0, z1, ilikM));
+  }
+  const plak = new THREE.Mesh(new THREE.BoxGeometry(13.5, 155, 5.6), celikM);
+  plak.position.set(0, 0, 9.0 + 2.8); g.add(plak);
+  for (const z of [-50, -35, -20, 60, 75, 90]) {
+    const v = new THREE.Mesh(new THREE.CylinderGeometry(1.75, 1.75, 24.1, 20), celikM);
+    v.rotation.x = Math.PI / 2; v.position.set(0, z - 20, 2.55); g.add(v);
+  }
+  g.userData.malzemeler = [kemikM, ilikM, celikM];
+  return g;
+}
+function kallusOlustur() {
+  const R = (81 + 400) / 18, xc = 18 - R, pts = [];
+  for (let i = 0; i <= 40; i++) { const z = i; pts.push(new THREE.Vector2(xc + Math.sqrt(R * R - (z - 20) ** 2), z - 20)); }
+  const m = new THREE.MeshBasicMaterial({ color: 0x9fb4c0, transparent: true, opacity: 0.07, side: THREE.DoubleSide, depthWrite: false, clippingPlanes: [] });
+  const me = new THREE.Mesh(new THREE.LatheGeometry(pts, 96), m);
+  const kenar = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.LatheGeometry(pts.filter((_, i) => i % 5 === 0), 24), 1),
+    new THREE.LineBasicMaterial({ color: 0x9fb4c0, transparent: true, opacity: 0.16, clippingPlanes: [] }));
+  const g = new THREE.Group(); g.add(me, kenar); g.userData.malzemeler = [m, kenar.material]; return g;
+}
+
+const sahneler = KOSULAR.map(() => {
+  const s = new THREE.Scene();
+  s.add(new THREE.HemisphereLight(0xdfe8ee, 0x30281f, 0.75));
+  const d = new THREE.DirectionalLight(0xffffff, 0.75); d.position.set(60, 90, 70); s.add(d);
+  const b = baglamOlustur(), k = kallusOlustur(); s.add(b, k);
+  return { sahne: s, baglam: b, kallus: k, mesh: null, gunler: null };
+});
+
+// ---------- data
+async function veriAl(id) {
+  // the data is published as base64 text (it holds a gzipped binary file)
+  const r = await fetch(`data/${id}.b64.txt`);
+  if (!r.ok) throw new Error(`${id}: ${r.status}`);
+  const ikili = atob((await r.text()).trim());
+  let buf = new Uint8Array(ikili.length);
+  for (let i = 0; i < ikili.length; i++) buf[i] = ikili.charCodeAt(i);
+  if (buf[0] === 0x1f && buf[1] === 0x8b) {
+    if (!("DecompressionStream" in window)) throw new Error("This browser cannot unpack the compressed data. Use a current browser.");
+    const ds = new Blob([buf]).stream().pipeThrough(new DecompressionStream("gzip"));
+    buf = new Uint8Array(await new Response(ds).arrayBuffer());
+  }
+  const dv = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
+  if (String.fromCharCode(...buf.slice(0, 4)) !== "MBV1") throw new Error("unknown data format");
+  const nf = dv.getUint16(10, true), nv = dv.getUint32(12, true), vox = dv.getFloat32(16, true);
+  let o = 20;
+  const gunler = []; for (let i = 0; i < nf; i++) gunler.push(dv.getUint16(o + 2 * i, true)); o += 2 * nf;
+  const konum = buf.subarray(o, o + nv * 3); o += nv * 3;
+  const kod = buf.subarray(o, o + nv * nf);
+  return { nf, nv, vox, gunler, konum, kod };
+}
+function vokselMesh(v) {
+  // cube with 8 corners (36 indices, outward-facing counter-clockwise triangles); the normal is computed in the fragment shader
+  const geo = new THREE.InstancedBufferGeometry();
+  geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array([-.5,-.5,-.5, .5,-.5,-.5, .5,.5,-.5, -.5,.5,-.5, -.5,-.5,.5, .5,-.5,.5, .5,.5,.5, -.5,.5,.5]), 3));
+  geo.setIndex([0,2,1,0,3,2, 4,5,6,4,6,7, 0,1,5,0,5,4, 3,7,6,3,6,2, 0,4,7,0,7,3, 1,2,6,1,6,5]);
+  geo.setAttribute("aPos", new THREE.InstancedBufferAttribute(new Float32Array(v.konum), 3));
+  geo.instanceCount = v.nv;
+  const W = 4096, H = Math.ceil(v.nv * v.nf / W);
+  const veri = new Uint8Array(W * H); veri.set(v.kod);
+  const tex = new THREE.DataTexture(veri, W, H, THREE.RedFormat, THREE.UnsignedByteType);
+  tex.unpackAlignment = 1; tex.magFilter = tex.minFilter = THREE.NearestFilter; tex.generateMipmaps = false; tex.needsUpdate = true;
+  const mat = new THREE.ShaderMaterial({ vertexShader: VS, fragmentShader: FS,
+    uniforms: { ...U, uCodes: { value: tex } } });
+  const me = new THREE.Mesh(geo, mat); me.frustumCulled = false;
+  return me;
+}
+
+// ---------- time and visibility
+let GUNLER = [0];
+function kareBul(d) {
+  let i = 0; while (i < GUNLER.length - 2 && GUNLER[i + 1] <= d) i++;
+  const t = (d - GUNLER[i]) / (GUNLER[i + 1] - GUNLER[i]);
+  return [i, Math.min(1, Math.max(0, t))];
+}
+function zamanUygula() {
+  const [f, t] = kareBul(durum.gun);
+  U.uF0.value = f; U.uT.value = t;
+  const g = Math.floor(durum.gun);
+  $("gun-sayi").textContent = `Day ${g}`;
+  $("ay-etiket").textContent = `${(durum.gun / 30.4).toFixed(1)} months`;
+  if (document.activeElement !== $("gun")) $("gun").value = durum.gun;
+  okumaGuncelle(g);
+  grafikleriCiz();
+}
+function gorunurlukUygula() {
+  const v = durum.gorunur;
+  U.uVis.value.set(+v.msc, +v.kemik, +v.kikirdak, +v.fibroz);
+  U.uClip.value = durum.kesit ? 0 : 1e4;
+  for (const s of sahneler) {
+    s.baglam.visible = durum.baglam; s.kallus.visible = durum.kallus;
+    for (const m of [...s.baglam.userData.malzemeler, ...s.kallus.userData.malzemeler]) m.clippingPlanes = durum.kesit ? [kesitDuzlemi] : [];
+  }
+  ciz();
+}
+
+// ---------- draw loop (draws only when something changed)
+kontrol.addEventListener("change", ciz);
+function boyutla() {
+  const w = sahneKutu.clientWidth, h = sahneKutu.clientHeight;
+  renderer.setSize(w, h, false); etiketleriYerlestir(); kosuSecDurumu(); ciz();
+}
+new ResizeObserver(boyutla).observe(sahneKutu);
+// a stage narrower than 620 px (a phone) shows one run even in the side-by-side layout, so the run select stays usable there
+const darSahne = () => sahneKutu.clientWidth < 620;
+function gorunenler() { return (durum.duzen === "uc" && !darSahne()) ? [0, 1, 2] : [durum.secili]; }
+function kosuSecDurumu() { $("kosu-sec").disabled = durum.duzen === "uc" && !darSahne(); }
+function etiketleriYerlestir() {
+  const g = gorunenler(), w = sahneKutu.clientWidth, el = $("etiketler");
+  el.innerHTML = "";
+  g.forEach((k, i) => {
+    const d = document.createElement("div"); d.className = "pane-etiket";
+    d.style.left = `${(i + 0.5) * w / g.length}px`; d.style.transform = "translateX(-50%)";
+    d.innerHTML = `<i style="background:${tok(KOSULAR[k].renk)}"></i>${KOSULAR[k].ad}`;
+    el.appendChild(d);
+  });
+}
+function render() {
+  const w = sahneKutu.clientWidth, h = sahneKutu.clientHeight, g = gorunenler(), pw = w / g.length;
+  renderer.setScissorTest(true);
+  g.forEach((k, i) => {
+    const s = sahneler[k];
+    renderer.setViewport(i * pw, 0, pw, h); renderer.setScissor(i * pw, 0, pw, h);
+    kamera.aspect = pw / h;
+    // in a narrow pane the callus's ~44 mm width must fit: widen the vertical angle to match the horizontal view
+    kamera.fov = Math.max(30, 2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(15)) * 0.75 / kamera.aspect) * 180 / Math.PI);
+    kamera.updateProjectionMatrix();
+    renderer.render(s.sahne, kamera);
+  });
+}
+function dongu(ts) {
+  requestAnimationFrame(dongu);
+  const dt = sonZaman ? Math.min(0.1, (ts - sonZaman) / 1000) : 0; sonZaman = ts;
+  if (durum.oynuyor) {
+    durum.gun += dt * durum.hiz;
+    if (durum.gun >= 359) { durum.gun = 359; oynatAyarla(false); }
+    zamanUygula(); gerek = true;
+    // lower the resolution by itself on a slow machine
+    if (dt > 0.045) { if (++yavasSayac > 20 && pikselOrani > 0.75) { pikselOrani = Math.max(0.75, pikselOrani - 0.25); renderer.setPixelRatio(pikselOrani); boyutla(); yavasSayac = 0; } }
+    else yavasSayac = Math.max(0, yavasSayac - 1);
+  }
+  if (kontrol.update()) gerek = true;
+  if (!gerek) return;
+  gerek = false; render();
+}
+
+// ---------- readout table and charts
+function okumaGuncelle(g) {
+  $("okuma-baslik").textContent = `Day ${g}, volume (mm³)`;
+  const satir = KOSULAR.map((k) => {
+    const s = ISTATISTIK[k.id], i = Math.min(g, s.kemik.length - 1);
+    const f = (x) => x.toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    return `<tr><th><i class="renk" style="background:${tok(k.renk)};width:9px;height:9px"></i> ${k.kisa.replace(" · ", "<br>")}</th><td>${f(s.kemik[i])}</td><td>${f(s.kikirdak[i])}</td><td>${f(s.fibroz[i])}</td></tr>`;
+  });
+  $("okuma").innerHTML = `<tr><th></th><th class="sag">bone</th><th class="sag">cartilage</th><th class="sag">fibrous</th></tr>` + satir.join("");
+}
+function lejantKur() {
+  $("lejant").innerHTML = KOSULAR.map((k) => `<span><i style="background:${tok(k.renk)}${k.kesik ? ";background:repeating-linear-gradient(90deg," + tok(k.renk) + " 0 4px,transparent 4px 7px)" : ""}"></i>${k.ad}</span>`).join("")
+    + `<span><i style="background:${tok("--ref")};height:8px;width:8px;border-radius:2px"></i>Perier-Metz 2022, month 3 (experiment)</span>`;
+}
+function grafikCiz(id, alan) {
+  const c = $(id), dpr = window.devicePixelRatio || 1, w = c.clientWidth, h = c.clientHeight;
+  if (c.width !== Math.round(w * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); }
+  const x = c.getContext("2d"); x.setTransform(dpr, 0, 0, dpr, 0, 0); x.clearRect(0, 0, w, h);
+  let ymax = 0; for (const k of KOSULAR) ymax = Math.max(ymax, ...ISTATISTIK[k.id][alan]);
+  if (alan === "kemik") ymax = Math.max(ymax, 230);
+  const adim = [10, 20, 50, 100, 200, 250, 500, 1000, 2000].find((s) => ymax / s <= 5) || 5000;
+  ymax = Math.ceil(ymax / adim) * adim || 1;
+  const L = 44, R = 16, T = 8, B = 20, X = (d) => L + (w - L - R) * d / 359, Y = (v) => T + (h - T - B) * (1 - v / ymax);
+  x.font = "11px " + tok("--font-num"); x.fillStyle = tok("--muted"); x.strokeStyle = tok("--line"); x.lineWidth = 1;
+  for (let v = 0; v <= ymax; v += adim) { x.beginPath(); x.moveTo(L, Y(v) + 0.5); x.lineTo(w - R, Y(v) + 0.5); x.stroke(); x.textAlign = "right"; x.fillText(v.toLocaleString("en-US"), L - 6, Y(v) + 4); }
+  x.textAlign = "center"; for (const d of [0, 90, 180, 270, 359]) x.fillText(d, X(d), h - 5);
+  for (const k of KOSULAR) {
+    const s = ISTATISTIK[k.id][alan];
+    x.strokeStyle = tok(k.renk); x.lineWidth = 1.8; x.setLineDash(k.kesik ? [5, 4] : []);
+    x.beginPath(); s.forEach((v, i) => (i ? x.lineTo(X(i), Y(v)) : x.moveTo(X(i), Y(v)))); x.stroke();
+  }
+  x.setLineDash([]);
+  if (alan === "kemik") {
+    x.strokeStyle = tok("--ref"); x.fillStyle = tok("--ref"); x.lineWidth = 1.5;
+    x.beginPath(); x.moveTo(X(90), Y(110)); x.lineTo(X(90), Y(230)); x.stroke();
+    x.fillRect(X(90) - 4, Y(170) - 4, 8, 8);
+    x.fillStyle = tok("--accent"); x.beginPath(); x.arc(X(90) + 9, Y(150), 3.5, 0, Math.PI * 2); x.fill();
+  }
+  x.strokeStyle = tok("--fg"); x.globalAlpha = 0.5; x.lineWidth = 1;
+  x.beginPath(); x.moveTo(X(durum.gun) + 0.5, T); x.lineTo(X(durum.gun) + 0.5, h - B); x.stroke(); x.globalAlpha = 1;
+}
+let grafikZaman = 0;
+function grafikleriCiz(zorla) {
+  const n = performance.now(); if (!zorla && n - grafikZaman < 40) return; grafikZaman = n;
+  grafikCiz("c-kemik", "kemik"); grafikCiz("c-kikirdak", "kikirdak"); grafikCiz("c-fibroz", "fibroz");
+}
+new ResizeObserver(() => grafikleriCiz(true)).observe(document.querySelector(".grafikler"));
+
+// ---------- controls
+function oynatAyarla(v) {
+  durum.oynuyor = v; $("ikon-oynat").toggleAttribute("hidden", v); $("ikon-dur").toggleAttribute("hidden", !v);  // SVG elements have no .hidden property
+  $("oynat").setAttribute("aria-label", v ? "Pause" : "Play");
+  if (v && durum.gun >= 359) durum.gun = 0;
+  sonZaman = 0;
+}
+$("oynat").addEventListener("click", () => oynatAyarla(!durum.oynuyor));
+$("gun").addEventListener("input", (e) => { durum.gun = +e.target.value; zamanUygula(); ciz(); });
+$("hiz").addEventListener("change", (e) => { durum.hiz = +e.target.value; });
+document.addEventListener("keydown", (e) => {
+  if (e.code === "Space" && !["INPUT", "SELECT", "BUTTON"].includes(document.activeElement.tagName)) { e.preventDefault(); oynatAyarla(!durum.oynuyor); }
+});
+function duzenAyarla(d) {
+  durum.duzen = d; $("duzen-uc").setAttribute("aria-pressed", d === "uc"); $("duzen-tek").setAttribute("aria-pressed", d === "tek");
+  kosuSecDurumu(); etiketleriYerlestir(); ciz();
+}
+$("duzen-uc").addEventListener("click", () => duzenAyarla("uc"));
+$("duzen-tek").addEventListener("click", () => duzenAyarla("tek"));
+$("kosu-sec").innerHTML = KOSULAR.map((k, i) => `<option value="${i}">${k.ad}</option>`).join("");
+$("kosu-sec").addEventListener("change", (e) => { durum.secili = +e.target.value; etiketleriYerlestir(); ciz(); });
+for (const [id, k] of [["g-kemik", "kemik"], ["g-kikirdak", "kikirdak"], ["g-fibroz", "fibroz"], ["g-msc", "msc"]])
+  $(id).addEventListener("change", (e) => { durum.gorunur[k] = e.target.checked; gorunurlukUygula(); });
+$("g-kesit").addEventListener("change", (e) => { durum.kesit = e.target.checked; gorunurlukUygula(); });
+$("g-baglam").addEventListener("change", (e) => { durum.baglam = e.target.checked; gorunurlukUygula(); });
+$("g-kallus").addEventListener("change", (e) => { durum.kallus = e.target.checked; gorunurlukUygula(); });
+document.querySelectorAll("[data-kamera]").forEach((b) => b.addEventListener("click", () => kameraKur(b.dataset.kamera)));
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { lejantKur(); etiketleriYerlestir(); okumaGuncelle(Math.floor(durum.gun)); grafikleriCiz(true); });
+new MutationObserver(() => { lejantKur(); etiketleriYerlestir(); okumaGuncelle(Math.floor(durum.gun)); grafikleriCiz(true); })
+  .observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+// time bar ticks
+// (kisa: the phone layout's short labels, five full ones do not fit a phone's slider)
+function isaretleriYaz(kisa) {
+  $("isaretler").innerHTML = [[0, "0"], [90, "month 3"], [180, "month 6"], [270, "month 9"], [359, "month 12"]]
+    .map(([d, t]) => `<span style="left:${d / 359 * 100}%${d === 359 ? ";transform:translateX(-100%)" : ""}">${kisa ? t.replace("month ", "") : t}</span>`).join("");  // the last tick ends at the bar's end
+}
+isaretleriYaz(false);
+
+// ---------- top bar
+// on the project site the viewer lives at /viewer/; show the way back there only
+if (/\/viewer\/(index\.html)?$/.test(location.pathname)) $("siteye-don").hidden = false;
+// the stage takes the window height left under the top bar
+const ust = document.querySelector(".ust");
+new ResizeObserver(() => document.documentElement.style.setProperty("--ust", ust.getBoundingClientRect().height + "px")).observe(ust);
+// full screen: offered only where the browser allows it (not in iPhone Safari or a frame without permission)
+if (document.fullscreenEnabled) {
+  $("tam-ekran").hidden = false;
+  $("tam-ekran").addEventListener("click", () => {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else document.documentElement.requestFullscreen().catch(() => {});
+  });
+  document.addEventListener("fullscreenchange", () => {
+    $("tam-ekran").textContent = document.fullscreenElement ? "Exit full screen" : "Full screen";
+  });
+  document.addEventListener("keydown", (e) => {
+    if ((e.key === "f" || e.key === "F") && !e.ctrlKey && !e.metaKey && !e.altKey && !["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement.tagName)) $("tam-ekran").click();
+  });
+}
+
+// ---------- phone layout (max-width 40rem, see the CSS): the time bar, the panel, the legend, the charts and the notes
+// move into the bottom sheet while the query matches and back after a comment marker each when it stops matching.
+// Collapsed, the sheet shows its handle and the time bar; a tap on the handle or a drag opens it to 70 % of the height.
+const telefon = matchMedia("(max-width: 40rem)");
+const tabaka = $("tabaka"), tutamak = $("tabaka-tutamak"), tabakaIc = $("tabaka-ic");
+const TASINAN = [[".zaman", "tabaka-zaman"], [".panel", "tabaka-ic"], ["#lejant", "tabaka-ic"], [".grafikler", "tabaka-ic"], [".notlar", "tabaka-ic"]].map(([s, h]) => {
+  const el = document.querySelector(s), yer = document.createComment(` phone layout: ${s} is in the sheet `);
+  el.before(yer); return { el, yer, hedef: $(h) };
+});
+// collapsed height: the handle, the time bar and the sheet's top border
+const tabakaKapali = () => tutamak.offsetHeight + $("tabaka-zaman").offsetHeight + tabaka.clientTop;
+function tabakaKapaliYaz() {
+  if (telefon.matches) document.documentElement.style.setProperty("--tabaka-kapali", `${tabakaKapali()}px`);
+}
+function tabakaAc(ac) {
+  tabaka.classList.toggle("acik", ac); tutamak.setAttribute("aria-expanded", ac);
+  if (!ac) tabakaIc.scrollTop = 0;
+}
+function yerlesim() {
+  const t = telefon.matches;
+  for (const T of TASINAN) { if (t) T.hedef.append(T.el); else if (T.yer.nextSibling !== T.el) T.yer.after(T.el); }
+  tabaka.hidden = !t; isaretleriYaz(t);
+  if (!t) { tabakaAc(false); document.documentElement.style.removeProperty("--tabaka-kapali"); }
+  tabakaKapaliYaz(); grafikleriCiz(true);
+}
+telefon.addEventListener("change", yerlesim);
+new ResizeObserver(tabakaKapaliYaz).observe($("tabaka-zaman"));
+// the handle: a tap toggles, a drag follows the finger and snaps open or shut at half way
+let cekme = null, cekildi = false;
+tutamak.addEventListener("pointerdown", (e) => {
+  if (e.button !== 0) return;
+  cekme = { y: e.clientY, h: tabaka.getBoundingClientRect().height, oynadi: false }; cekildi = false;
+  tutamak.setPointerCapture(e.pointerId);
+});
+tutamak.addEventListener("pointermove", (e) => {
+  if (!cekme) return;
+  const dy = cekme.y - e.clientY;
+  if (!cekme.oynadi && Math.abs(dy) < 6) return;
+  cekme.oynadi = true; tabaka.classList.add("surukle");
+  const kapali = tabakaKapali(), ust = innerHeight * 0.85;
+  tabaka.style.height = `${Math.max(kapali, Math.min(ust, cekme.h + dy))}px`;
+});
+function cekmeBitti() {
+  const C = cekme; cekme = null;
+  if (!C || !C.oynadi) return;
+  const h = tabaka.getBoundingClientRect().height, kapali = tabakaKapali();
+  tabaka.classList.remove("surukle"); tabaka.style.height = "";
+  tabakaAc(h > (kapali + innerHeight * 0.7) / 2);
+  cekildi = true;   // the click that may follow the drag must not toggle again
+}
+tutamak.addEventListener("pointerup", cekmeBitti);
+tutamak.addEventListener("pointercancel", cekmeBitti);
+tutamak.addEventListener("click", () => { if (cekildi) { cekildi = false; return; } tabakaAc(!tabaka.classList.contains("acik")); });
+yerlesim();
+
+// ---------- start
+lejantKur(); okumaGuncelle(0); boyutla(); gorunurlukUygula(); zamanUygula(); requestAnimationFrame(dongu);
+(async () => {
+  try {
+    for (let i = 0; i < KOSULAR.length; i++) {
+      $("yukleme").textContent = `Loading data… (${i + 1}/${KOSULAR.length})`;
+      const v = await veriAl(KOSULAR[i].id);
+      GUNLER = v.gunler; U.uNF.value = v.nf; U.uVox.value = v.vox;
+      const me = vokselMesh(v); sahneler[i].sahne.add(me); sahneler[i].mesh = me;
+      zamanUygula(); ciz();
+    }
+    $("yukleme").hidden = true;
+    durum.gun = 0; zamanUygula(); oynatAyarla(true);
+  } catch (e) {
+    $("yukleme").textContent = `Could not load the data: ${e.message}`;
+  }
+})();
+</script>

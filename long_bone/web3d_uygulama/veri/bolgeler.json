@@ -1,0 +1,6 @@
+[
+  {"ad": "korteks_ucu", "baslik": "Cortex tip", "aciklama": "The corner of the proximal bone end away from the plate: the tip of the intact cortex and the periosteal side outside it. New bone forms here first.", "i0": 178, "j0": 76, "k0": 346, "nx": 5, "ny": 28, "nz": 28},
+  {"ad": "ilik_ucu", "baslik": "Marrow canal opening", "aciklama": "Where the proximal marrow canal opens into the defect, in the middle of the bone. Stem cells enter the defect from here.", "i0": 178, "j0": 166, "k0": 336, "nx": 5, "ny": 28, "nz": 28},
+  {"ad": "plak_alti", "baslik": "Under the plate", "aciklama": "The bone-facing side of the plate, in the proximal half of the defect. After one year this is the thickest part of the band of bone and cartilage along the plate. The plate is at the window edge labelled plate side.", "i0": 178, "j0": 244, "k0": 279, "nx": 5, "ny": 28, "nz": 28},
+  {"ad": "goc_cephesi", "baslik": "Migration front", "aciklama": "On the bone axis, from the proximal end toward the middle of the defect. Stem cells reach it only in the second half of the year. The very centre of the defect stays empty for the whole year.", "i0": 178, "j0": 166, "k0": 286, "nx": 5, "ny": 28, "nz": 28}
+]

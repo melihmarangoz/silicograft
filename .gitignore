@@ -1,0 +1,29 @@
+# Build and run outputs
+mechanobio
+*.o
+*.raw
+*.frd
+*.dat
+*.sta
+spooles.out
+__pycache__/
+.venv/
+
+# Paper full texts are never committed
+*.pdf
+
+# Local tooling
+.claude/skills/hallmark
+.hallmark/shots/
+.hallmark/before/
+.hallmark/deal_r0.jpg
+.hallmark/preflight.json
+
+# Film: renders, snapshots and regenerable data stay local
+# (film/assets/data/*.bin come from long_bone/araclar/film_export.py and film_export_roi.py;
+#  film/assets/data/cells/*.bin are decoded from long_bone/web3d_uygulama/veri, see its README)
+film/renders/
+film/.hyperframes/
+film/assets/data_old_*/
+film/assets/data/**/*.bin
+film/node_modules/

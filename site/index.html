@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SilicoGraft: bone graft healing, simulated in silico</title>
+<meta name="description" content="SilicoGraft is an open simulation of bone graft healing: agent-based cells coupled with finite-element mechanics, run day by day for 360 days.">
+<meta property="og:title" content="SilicoGraft">
+<meta property="og:description" content="Bone graft healing, simulated in silico.">
+<meta property="og:image" content="assets/og-image.jpg">
+<link rel="preload" href="assets/fonts/mona-sans-core.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="styles.css">
+<script>document.documentElement.classList.add('js');</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="mast">
+  <nav class="container mast__bar" aria-label="Main">
+    <ul class="mast__links mast__links--start">
+      <li><a href="#model">The model</a></li>
+      <li><a href="#run">Watch a run</a></li>
+    </ul>
+    <a class="mast__mark" href="#main">SilicoGraft</a>
+    <ul class="mast__links mast__links--end">
+      <li><a href="#request">Request a run</a></li>
+      <li class="mast__keep"><a href="cells/">Cells</a></li>
+      <li><a href="#about">About</a></li>
+    </ul>
+    <button class="mast__menu" type="button" aria-expanded="false" aria-controls="menu">Menu</button>
+  </nav>
+  <!-- Phones (under 40rem, with JS): the links above give way to the Menu button, which opens this full-screen
+       list as a modal dialog (story.js). Without JS the phone bar keeps Cells and About. -->
+  <dialog class="menu" id="menu" aria-label="Menu">
+    <div class="container menu__bar">
+      <span class="mast__mark" aria-hidden="true">SilicoGraft</span>
+      <button class="menu__close" type="button">Close</button>
+    </div>
+    <nav class="container" aria-label="Sections">
+      <ul class="menu__links">
+        <li><a href="#model">The model</a></li>
+        <li><a href="#run">Watch a run</a></li>
+        <li><a href="#request">Request a run</a></li>
+        <li><a href="cells/">Cells</a></li>
+        <li><a href="#about">About</a></li>
+      </ul>
+    </nav>
+  </dialog>
+</header>
+
+<main id="main">
+  <section class="hero" aria-labelledby="hero-title">
+    <figure class="hero__canvas" data-slot="hero-video" data-alt="The cell viewer at day 205: stem cells and new bone under the plate, in a box picked on the callus map" data-video-av1="assets/film/hero-av1.mp4" data-video-src="assets/film/hero.mp4" data-video-portrait="assets/film/hero-portrait.mp4">
+      <picture>
+        <source type="image/avif" srcset="assets/film/hero-portrait-poster.avif" media="(max-width: 40rem) and (orientation: portrait)" width="720" height="1440" data-portrait>
+        <source type="image/webp" srcset="assets/film/hero-portrait-poster.webp" media="(max-width: 40rem) and (orientation: portrait)" width="720" height="1440" data-portrait>
+        <source srcset="assets/film/hero-portrait-poster.jpg" media="(max-width: 40rem) and (orientation: portrait)" width="720" height="1440" data-portrait>
+        <source type="image/avif" srcset="assets/hero-still-1200.avif 1200w, assets/hero-still-1920.avif 1920w" sizes="100vw">
+        <source type="image/webp" srcset="assets/hero-still-1200.webp 1200w, assets/hero-still-1920.webp 1920w" sizes="100vw">
+        <img src="assets/hero-still.jpg" srcset="assets/hero-still-1200.jpg 1200w, assets/hero-still.jpg 1920w" sizes="100vw" width="1920" height="1080" alt="The cell viewer at day 205: stem cells and new bone under the plate, in a box picked on the callus map" fetchpriority="high">
+      </picture>
+    </figure>
+    <div class="hero__scrim" aria-hidden="true"></div>
+    <div class="container hero__body">
+      <div class="hero__text settle">
+        <h1 id="hero-title">Bone grafts, healed in silico first.</h1>
+        <p class="lead">Cells, tissue and strain, simulated over 360 days with open tools.</p>
+        <div class="hero__actions">
+          <a class="btn btn--primary" href="#run">Watch a run</a>
+          <a class="btn btn--secondary" href="#request">Request a run</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="model" aria-labelledby="model-title">
+    <div class="container">
+      <div class="head">
+        <h2 id="model-title">Cells, tissue, strain, and back.</h2>
+        <p class="lead">Every three days the mechanics decide what the stem cells become.</p>
+      </div>
+    </div>
+      <!-- SG-Bone model loop in seven stages, one short clip per range of the film (film/STAGES.md). The clips and
+           their posters are cut from the render by tools/film_clips.sh. Facts checked against long_bone/src (header.h,
+           main.cpp, Update_model.cpp, Read_stimulus.cpp, Cell_differentiation.cpp), long_bone/docs/makale_karsilastirma.md
+           and film/STAGES.md. Without JS this is a plain list and every clip shows its poster. With JS, story.js pins
+           the stages to the full screen: scrolling moves from stage to stage in place (the clip slides left, the next
+           comes in from the right), and after stage 7 the page scrolls on. -->
+      <ol class="stages container" data-clips>
+        <li class="stage" id="stage-1">
+          <div class="stage__text" data-n="1">
+            <p class="stage__day">Day 0</p>
+            <h3>A gap in the tibia</h3>
+            <p>Thirty millimetres of a sheep tibia are gone. A steel plate bridges the gap while the leg carries 823&nbsp;N and a bending load.</p>
+          </div>
+          <figure class="stage__fig">
+            <div class="stage__media">
+              <picture>
+                <source type="image/avif" srcset="assets/film/stills/stage-1-portrait.avif" media="(max-width: 40rem)" width="720" height="900" data-portrait>
+                <source type="image/webp" srcset="assets/film/stills/stage-1-portrait.webp" media="(max-width: 40rem)" width="720" height="900" data-portrait>
+                <source srcset="assets/film/stills/stage-1-portrait.jpg" media="(max-width: 40rem)" width="720" height="900" data-portrait>
+                <source type="image/avif" srcset="assets/film/stills/stage-1-1280.avif 1280w, assets/film/stills/stage-1-1920.avif 1920w" sizes="(min-width: 60rem) 66vw, 100vw">
+                <source type="image/webp" srcset="assets/film/stills/stage-1-1280.webp 1280w, assets/film/stills/stage-1-1920.webp 1920w" sizes="(min-width: 60rem) 66vw, 100vw">
+                <img class="stage__poster" src="assets/film/stills/stage-1.jpg" width="1920" height="1080" alt="" loading="lazy" decoding="async" fetchpriority="low">
+              </picture>
+              <video class="stage__clip" muted loop playsinline preload="none" width="1920" height="1080" aria-label="A steel plate spans the gap between two grey bone ends. A thin amber layer of stem cells covers each cut end.">
+                <source src="assets/film/clips/stage-1-portrait.mp4" type="video/mp4" media="(max-width: 40rem)">
+                <source src="assets/film/clips/stage-1-av1.mp4" type='video/mp4; codecs="av01.0.08M.08"' media="(min-width: 60rem)">
+                <source src="assets/film/clips/stage-1-720.mp4" type="video/mp4">
+              </video>
+            </div>
+          </figure>
+        </li>
+        <li class="stage" id="stage-2">
+          <div class="stage__text" data-n="2">
+            <p class="stage__day">Days 0 to 30</p>
+            <h3>Stem cells move in</h3>
+            <p>Stem cells leave the marrow for the clot in the gap, 0.1&nbsp;mm at a time. Until day 30 they are the only cells here.</p>
+          </div>
+          <figure class="stage__fig">
+            <div class="stage__media">
+              <picture>
+                <source type="image/avif" srcset="assets/film/stills/stage-2-portrait.avif" media="(max-width: 40rem)" width="720" height="900" data-portrait>
+                <source type="image/webp" srcset="assets/film/stills/stage-2-portrait.webp" media="(max-width: 40rem)" width="720" height="900" data-portrait>
+                <source srcset="assets/film/stills/stage-2-portrait.jpg" media="(max-width: 40rem)" width="720" height="900" data-portrait>
+                <source type="image/avif" srcset="assets/film/stills/stage-2-1280.avif 1280w, assets/film/stills/stage-2-1920.avif 1920w" sizes="(min-width: 60rem) 66vw, 100vw">
+                <source type="image/webp" srcset="assets/film/stills/stage-2-1280.webp 1280w, assets/film/stills/stage-2-1920.webp 1920w" sizes="(min-width: 60rem) 66vw, 100vw">
+                <img class="stage__poster" src="assets/film/stills/stage-2.jpg" width="1920" height="1080" alt="" loading="lazy" decoding="async" fetchpriority="low">
+              </picture>
+              <video class="stage__clip" muted loop playsinline preload="none" width="1920" height="1080" aria-label="Close-up: amber stem cells stream from the red marrow on the left into the dark clot on the right.">
+                <source src="assets/film/clips/stage-2-portrait.mp4" type="video/mp4" media="(max-width: 40rem)">
+                <source src="assets/film/clips/stage-2-av1.mp4" type='video/mp4; codecs="av01.0.08M.08"' media="(min-width: 60rem)">
+                <source src="assets/film/clips/stage-2-720.mp4" type="video/mp4">
+              </video>
+            </div>
+          </figure>
+        </li>
+        <li class="stage" id="stage-3">
+          <div class="stage__text" data-n="3">
+            <p class="stage__day">Days 30 to 220</p>
+            <h3>Each cell lays down tissue</h3>
+            <p>Osteoblasts make bone, chondrocytes cartilage, fibroblasts fibrous tissue.</p>
+          </div>
+          <figure class="stage__fig">
+            <div class="stage__media">
+              <picture>
+                <source type="image/avif" srcset="assets/film/stills/stage-3-portrait.avif" media="(max-width: 40rem)" width="720" height="900" data-portrait>
+                <source type="image/webp" srcset="assets/film/stills/stage-3-portrait.webp" media="(max-width: 40rem)" width="720" height="900" data-portrait>
+                <source srcset="assets/film/stills/stage-3-portrait.jpg" media="(max-width: 40rem)" width="720" height="900" data-portrait>
+                <source type="image/avif" srcset="assets/film/stills/stage-3-1280.avif 1280w, assets/film/stills/stage-3-1920.avif 1920w" sizes="(min-width: 60rem) 66vw, 100vw">
+                <source type="image/webp" srcset="assets/film/stills/stage-3-1280.webp 1280w, assets/film/stills/stage-3-1920.webp 1920w" sizes="(min-width: 60rem) 66vw, 100vw">
+                <img class="stage__poster" src="assets/film/stills/stage-3.jpg" width="1920" height="1080" alt="" loading="lazy" decoding="async" fetchpriority="low">
+              </picture>
+              <video class="stage__clip" muted loop playsinline preload="none" width="1920" height="1080" aria-label="Close-up under the grey cortex: ivory woven bone dotted with bone cells, a dark hollow in its core, amber stem cells around it.">
+                <source src="assets/film/clips/stage-3-portrait.mp4" type="video/mp4" media="(max-width: 40rem)">
+                <source src="assets/film/clips/stage-3-av1.mp4" type='video/mp4; codecs="av01.0.08M.08"' media="(min-width: 60rem)">
+                <source src="assets/film/clips/stage-3-720.mp4" type="video/mp4">
+              </video>
+            </div>
+          </figure>
+        </li>
+        <li class="stage" id="stage-4">
+          <div class="stage__text" data-n="4">
+            <p class="stage__day">Days 220 to 357</p>
+            <h3>Bone and cartilage along the plate</h3>
+            <p>Under the plate the new bone thickens, from 404 to 1,346 bone cells in this slice. Near day 325 cartilage forms beside it.</p>
+          </div>
+          <figure class="stage__fig">
+            <div class="stage__media">
+              <picture>
+                <source type="image/avif" srcset="assets/film/stills/stage-4-portrait.avif" media="(max-width: 40rem)" width="720" height="900" data-portrait>
+                <source type="image/webp" srcset="assets/film/stills/stage-4-portrait.webp" media="(max-width: 40rem)" width="720" height="900" data-portrait>
+                <source srcset="assets/film/stills/stage-4-portrait.jpg" media="(max-width: 40rem)" width="720" height="900" data-portrait>
+                <source type="image/avif" srcset="assets/film/stills/stage-4-1280.avif 1280w, assets/film/stills/stage-4-1920.avif 1920w" sizes="(min-width: 60rem) 66vw, 100vw">
+                <source type="image/webp" srcset="assets/film/stills/stage-4-1280.webp 1280w, assets/film/stills/stage-4-1920.webp 1920w" sizes="(min-width: 60rem) 66vw, 100vw">
+                <img class="stage__poster" src="assets/film/stills/stage-4.jpg" width="1920" height="1080" alt="" loading="lazy" decoding="async" fetchpriority="low">
+              </picture>
+              <video class="stage__clip" muted loop playsinline preload="none" width="1920" height="1080" aria-label="Close-up under the steel plate: an ivory band of new bone with its cells, a blue patch of cartilage beside it, amber stem cells around.">
+                <source src="assets/film/clips/stage-4-portrait.mp4" type="video/mp4" media="(max-width: 40rem)">
+                <source src="assets/film/clips/stage-4-av1.mp4" type='video/mp4; codecs="av01.0.08M.08"' media="(min-width: 60rem)">
+                <source src="assets/film/clips/stage-4-720.mp4" type="video/mp4">
+              </video>
+            </div>
+          </figure>
+        </li>
+        <li class="stage" id="stage-5">
+          <div class="stage__text" data-n="5">
+            <p class="stage__day">Days 6 to 357</p>
+            <h3>Tissue sets the stiffness</h3>
+            <p>Each element mixes its tissues over the last ten days, from 0.2&nbsp;MPa for granulation to 17,000&nbsp;MPa for bone.</p>
+          </div>
+          <figure class="stage__fig">
+            <div class="stage__media">
+              <picture>
+                <source type="image/avif" srcset="assets/film/stills/stage-5-portrait.avif" media="(max-width: 40rem)" width="720" height="900" data-portrait>
+                <source type="image/webp" srcset="assets/film/stills/stage-5-portrait.webp" media="(max-width: 40rem)" width="720" height="900" data-portrait>
+                <source srcset="assets/film/stills/stage-5-portrait.jpg" media="(max-width: 40rem)" width="720" height="900" data-portrait>
+                <source type="image/avif" srcset="assets/film/stills/stage-5-1280.avif 1280w, assets/film/stills/stage-5-1920.avif 1920w" sizes="(min-width: 60rem) 66vw, 100vw">
+                <source type="image/webp" srcset="assets/film/stills/stage-5-1280.webp 1280w, assets/film/stills/stage-5-1920.webp 1920w" sizes="(min-width: 60rem) 66vw, 100vw">
+                <img class="stage__poster" src="assets/film/stills/stage-5.jpg" width="1920" height="1080" alt="" loading="lazy" decoding="async" fetchpriority="low">
+              </picture>
+              <video class="stage__clip" muted loop playsinline preload="none" width="1920" height="1080" aria-label="The cut face as a stiffness map: the cortex bright yellow, the soft callus dark purple, new stiff bone at its edges.">
+                <source src="assets/film/clips/stage-5-portrait.mp4" type="video/mp4" media="(max-width: 40rem)">
+                <source src="assets/film/clips/stage-5-av1.mp4" type='video/mp4; codecs="av01.0.08M.08"' media="(min-width: 60rem)">
+                <source src="assets/film/clips/stage-5-720.mp4" type="video/mp4">
+              </video>
+            </div>
+          </figure>
+        </li>
+        <li class="stage" id="stage-6">
+          <div class="stage__text" data-n="6">
+            <p class="stage__day">Day 357</p>
+            <h3>CalculiX loads the leg</h3>
+            <p>Every three days a finite-element solve turns that stiffness into strain and pressure across the callus.</p>
+          </div>
+          <figure class="stage__fig">
+            <div class="stage__media">
+              <picture>
+                <source type="image/avif" srcset="assets/film/stills/stage-6-portrait.avif" media="(max-width: 40rem)" width="720" height="900" data-portrait>
+                <source type="image/webp" srcset="assets/film/stills/stage-6-portrait.webp" media="(max-width: 40rem)" width="720" height="900" data-portrait>
+                <source srcset="assets/film/stills/stage-6-portrait.jpg" media="(max-width: 40rem)" width="720" height="900" data-portrait>
+                <source type="image/avif" srcset="assets/film/stills/stage-6-1280.avif 1280w, assets/film/stills/stage-6-1920.avif 1920w" sizes="(min-width: 60rem) 66vw, 100vw">
+                <source type="image/webp" srcset="assets/film/stills/stage-6-1280.webp 1280w, assets/film/stills/stage-6-1920.webp 1920w" sizes="(min-width: 60rem) 66vw, 100vw">
+                <img class="stage__poster" src="assets/film/stills/stage-6.jpg" width="1920" height="1080" alt="" loading="lazy" decoding="async" fetchpriority="low">
+              </picture>
+              <video class="stage__clip" muted loop playsinline preload="none" width="1920" height="1080" aria-label="The cut face as a strain map: the soft callus glows orange, the bone at its edges stays dark. A load arrow and a bending arc sit beside it.">
+                <source src="assets/film/clips/stage-6-portrait.mp4" type="video/mp4" media="(max-width: 40rem)">
+                <source src="assets/film/clips/stage-6-av1.mp4" type='video/mp4; codecs="av01.0.08M.08"' media="(min-width: 60rem)">
+                <source src="assets/film/clips/stage-6-720.mp4" type="video/mp4">
+              </video>
+            </div>
+          </figure>
+        </li>
+        <li class="stage" id="stage-7">
+          <div class="stage__text" data-n="7">
+            <p class="stage__day">Day 357</p>
+            <h3>Strain picks the next cell</h3>
+            <p>Each callus element lands on a plane of strain and pressure. Low values make bone, higher ones cartilage or fibrous tissue. Then the loop starts again.</p>
+          </div>
+          <figure class="stage__fig">
+            <div class="stage__media">
+              <picture>
+                <source type="image/avif" srcset="assets/film/stills/stage-7-portrait.avif" media="(max-width: 40rem)" width="720" height="900" data-portrait>
+                <source type="image/webp" srcset="assets/film/stills/stage-7-portrait.webp" media="(max-width: 40rem)" width="720" height="900" data-portrait>
+                <source srcset="assets/film/stills/stage-7-portrait.jpg" media="(max-width: 40rem)" width="720" height="900" data-portrait>
+                <source type="image/avif" srcset="assets/film/stills/stage-7-1280.avif 1280w, assets/film/stills/stage-7-1920.avif 1920w" sizes="(min-width: 60rem) 66vw, 100vw">
+                <source type="image/webp" srcset="assets/film/stills/stage-7-1280.webp 1280w, assets/film/stills/stage-7-1920.webp 1920w" sizes="(min-width: 60rem) 66vw, 100vw">
+                <img class="stage__poster" src="assets/film/stills/stage-7.jpg" width="1920" height="1080" alt="" loading="lazy" decoding="async" fetchpriority="low">
+              </picture>
+              <video class="stage__clip" muted loop playsinline preload="none" width="1920" height="1080" aria-label="Below the strain map, thousands of points have landed on the decision plane, most in one ivory streak.">
+                <source src="assets/film/clips/stage-7-portrait.mp4" type="video/mp4" media="(max-width: 40rem)">
+                <source src="assets/film/clips/stage-7-av1.mp4" type='video/mp4; codecs="av01.0.08M.08"' media="(min-width: 60rem)">
+                <source src="assets/film/clips/stage-7-720.mp4" type="video/mp4">
+              </video>
+            </div>
+          </figure>
+        </li>
+      </ol>
+    <div class="container">
+      <ol class="refs">
+        <li id="perier-metz2022">Perier-Metz C et al. Acta Biomaterialia 2022;145:329-341. <a href="https://doi.org/10.1016/j.actbio.2022.04.008">doi.org/10.1016/j.actbio.2022.04.008</a></li>
+        <li id="perier-metz2020">Perier-Metz C, Duda GN, Checa S. Front Bioeng Biotechnol 2020;8:585799. <a href="https://doi.org/10.3389/fbioe.2020.585799">doi.org/10.3389/fbioe.2020.585799</a></li>
+        <li id="claes1999">Claes LE, Heigele CA. J Biomech 1999;32(3):255-266. <a href="https://doi.org/10.1016/S0021-9290(98)00153-5">doi.org/10.1016/S0021-9290(98)00153-5</a></li>
+        <li id="dhondt2004">Dhondt G. The finite element method for three-dimensional thermomechanical applications. Wiley 2004. <a href="https://doi.org/10.1002/0470021217">doi.org/10.1002/0470021217</a></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="section section--l" id="run" aria-labelledby="run-title">
+    <div class="container">
+      <div class="head">
+        <h2 id="run-title">Open a run in 3D.</h2>
+      </div>
+      <div class="run__stage">
+        <div class="run__pair">
+          <a class="run__card run__card--callus" href="viewer/">
+            <span class="run__shot">
+              <picture>
+                <source type="image/avif" srcset="assets/viewer-callus-800.avif 800w, assets/viewer-callus-1600.avif 1600w" sizes="(min-width: 60rem) 46vw, 100vw">
+                <source type="image/webp" srcset="assets/viewer-callus-800.webp 800w, assets/viewer-callus-1600.webp 1600w" sizes="(min-width: 60rem) 46vw, 100vw">
+                <img src="assets/viewer-callus.jpg" width="1600" height="1000" alt="The callus viewer: three runs of the sheep tibia defect side by side, new bone and stem cells growing from both bone ends and along the plate" loading="lazy" decoding="async">
+              </picture>
+            </span>
+            <span class="run__name">Callus viewer</span>
+            <span class="run__what">A year of the whole callus, three runs side by side.</span>
+            <span class="run__foot"><span class="btn btn--primary run__go">Open the callus viewer</span></span>
+          </a>
+          <a class="run__card run__card--cells" href="cells/">
+            <span class="run__shot">
+              <picture>
+                <source type="image/avif" srcset="assets/viewer-cells-800.avif 800w, assets/viewer-cells-1600.avif 1600w" sizes="(min-width: 60rem) 46vw, 100vw">
+                <source type="image/webp" srcset="assets/viewer-cells-800.webp 800w, assets/viewer-cells-1600.webp 1600w" sizes="(min-width: 60rem) 46vw, 100vw">
+                <img src="assets/viewer-cells.jpg" width="1600" height="1000" alt="The cell viewer's callus map: a frontal section of the callus, coloured by tissue, with a box to place anywhere" loading="lazy" decoding="async">
+              </picture>
+            </span>
+            <span class="run__name">Cell viewer</span>
+            <span class="run__what">Pick any spot on the callus map and watch its cells.</span>
+            <span class="run__foot"><span class="btn btn--primary run__go">Open the cell viewer</span></span>
+          </a>
+        </div>
+        <div class="run__side">
+          <p>Want a different load, defect or graft? Ask for a run.</p>
+          <a class="btn btn--secondary" href="#request">Request a run</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="validation" aria-labelledby="validation-title">
+    <!-- Every claim and number here is checked against long_bone/docs/makale_karsilastirma.md (unbonded plate,
+         three runs per sign convention, mean ± SD) and Perier-Metz 2022, Figure 4a. -->
+    <div class="container">
+      <div class="head">
+        <h2 id="validation-title">Does it heal like the real sheep?</h2>
+        <p class="lead">We reran Perier-Metz 2022: an empty 30&nbsp;mm gap in a sheep tibia under a plate.</p>
+      </div>
+      <ol class="checks">
+        <li class="check">
+          <p class="check__verdict"><span class="check__mark check__mark--yes" aria-hidden="true"></span>Yes</p>
+          <h3>Bone bridges along the plate</h3>
+          <p>By day 359 bone lines the plate in 98% of slices, like their model (month 12) and the sheep (month 3). The gap stays open.</p>
+        </li>
+        <li class="check check--wide">
+          <p class="check__verdict"><span class="check__mark check__mark--less" aria-hidden="true"></span>Less</p>
+          <h3>Bone after three months</h3>
+          <figure class="bars">
+            <div class="bars__plot" role="img" aria-label="New bone at 3 months: sheep about 170 mm³ (measured range 110 to 230), their model about 150, SilicoGraft 106 ± 1.">
+              <div class="bars__row" title="Sheep (experiment): about 170 mm³, range 110 to 230"><span class="bars__name">Sheep</span><span class="bars__track"><span class="bars__bar" style="--w: 68.0%"></span><span class="bars__range" style="--from: 44.0%; --to: 92.0%"></span></span><span class="bars__val">about 170</span></div>
+              <div class="bars__row" title="Perier-Metz model: about 150 mm³"><span class="bars__name">Their model</span><span class="bars__track"><span class="bars__bar" style="--w: 60.0%"></span></span><span class="bars__val">about 150</span></div>
+              <div class="bars__row bars__row--ours" title="SilicoGraft: 106 ± 1 mm³ (mean ± SD of three runs)"><span class="bars__name">SilicoGraft</span><span class="bars__track"><span class="bars__bar" style="--w: 42.4%"></span></span><span class="bars__val">106 ± 1</span></div>
+              <div class="bars__axis"><span style="--at: 0%">0</span><span style="--at: 40.0%">100</span><span style="--at: 80.0%">200 mm³</span></div>
+            </div>
+            <figcaption>mm³ at 3 months. Line: sheep range.</figcaption>
+          </figure>
+          <p>The model makes bone more slowly at first.</p>
+        </li>
+        <li class="check">
+          <p class="check__verdict"><span class="check__mark check__mark--yes" aria-hidden="true"></span>Yes</p>
+          <h3>Same result on repeat runs</h3>
+          <p>Three runs, different random starts: 1% apart at day 90, 10% at day 359.</p>
+        </li>
+      </ol>
+      <p class="checks__note">Means of three runs. Claes-Heigele sign: 109 ± 5 and 445 ± 12&nbsp;mm³. Sheep and their model: <a href="#perier-metz2022">Perier-Metz 2022</a>, Fig.&nbsp;4a.</p>
+    </div>
+  </section>
+
+  <section class="section" id="dental" aria-labelledby="dental-title">
+    <div class="container">
+      <div class="head">
+        <h2 id="dental-title">β-TCP in the jumping gap.</h2>
+        <p class="lead">Coming next, an implant in a fresh socket with granules in the gap.</p>
+      </div>
+      <ol class="steps">
+        <li><h3>Calibrate on dog sockets</h3><p>Fit resorption and new bone to socket histology.</p></li>
+        <li><h3>Validate on dog implants</h3><p>Predict bone contact at 12 weeks, with and without PDGF.</p></li>
+        <li><h3>Predict in patients</h3><p>Compare buccal bone over 18 months with serial CBCT.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="section section--l" id="request" aria-labelledby="request-title">
+    <div class="container request">
+      <h2 id="request-title">Ask for a run.</h2>
+      <p class="lead request__note">It’s free.</p>
+      <form class="form" data-endpoint="https://formsubmit.co/ajax/melih6775@gmail.com" action="https://formsubmit.co/melih6775@gmail.com" method="post" novalidate>
+        <input type="hidden" name="_subject" value="SilicoGraft run request">
+        <input type="hidden" name="_template" value="table">
+        <input type="hidden" name="_next" value="https://melihmarangoz.github.io/silicograft/#request">
+        <input type="text" name="_honey" hidden tabindex="-1" autocomplete="off" aria-hidden="true">
+        <div class="field--pair">
+          <div class="field"><label for="f-name">Name</label><input id="f-name" name="name" autocomplete="name" required></div>
+          <div class="field"><label for="f-email">Email</label><input id="f-email" name="email" type="email" autocomplete="email" required></div>
+        </div>
+        <div class="field--pair">
+          <div class="field"><label for="f-inst">Institution</label><input id="f-inst" name="institution" autocomplete="organization"></div>
+          <div class="field"><label for="f-model">Model</label>
+            <select id="f-model" name="model">
+              <option value="long-bone">Long bone, sheep tibia</option>
+              <option value="dental">Dental implant with β-TCP</option>
+              <option value="custom">Custom model</option>
+            </select>
+          </div>
+        </div>
+        <div class="field"><label for="f-change">What should change?</label><textarea id="f-change" name="change" placeholder="Load, defect size, graft or run length" required></textarea></div>
+        <div><button class="btn btn--secondary" type="submit">Send request</button></div>
+        <p class="form__help" id="form-help" aria-live="polite"></p>
+      </form>
+    </div>
+  </section>
+
+  <section class="section section--l" id="about" aria-labelledby="about-title">
+    <div class="container about">
+      <figure class="about__photo" data-slot="portrait" data-alt="Melih Marangoz">
+        <img src="https://avatars.githubusercontent.com/u/155770352?v=4&amp;s=720" width="720" height="720" alt="Melih Marangoz" loading="lazy">
+      </figure>
+      <div class="about__text">
+        <h2 id="about-title">Melih Marangoz</h2>
+        <p class="lead">I am a biomedical engineering student at İzmir Katip Çelebi University in İzmir, Türkiye. I build computer models of bone healing and work on dental graft materials.</p>
+        <p>SilicoGraft began as my one-person course project, a port of an Abaqus model to open tools.</p>
+        <ul class="about__links">
+          <li><a href="https://github.com/melihmarangoz">GitHub</a></li>
+          <li><a href="mailto:melih6775@gmail.com">melih6775@gmail.com</a></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="container">
+    <div class="foot__meta">
+      <p>SilicoGraft builds on <a href="https://github.com/camille-PM/mechanobio_bone_2">mechanobio_bone_2</a> by Camille Perier-Metz (Apache-2.0) and runs on CalculiX. Its own code will be released under the GNU AGPL-3.0; the files from mechanobio_bone_2 keep their Apache-2.0 licence.</p>
+      <p>© 2026 Melih Marangoz</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+document.querySelectorAll('form[data-endpoint]').forEach((form) => {
+  const help = form.querySelector('[aria-live]');
+  // a custom model asks for the model itself, the two fixed models for what should change in them
+  const model = form.querySelector('#f-model'), change = form.querySelector('#f-change');
+  const hint = () => { change.placeholder = model.value === 'custom' ? 'Describe the model: geometry, tissue, loads, graft' : 'Load, defect size, graft or run length'; };
+  model.addEventListener('change', hint);
+  form.addEventListener('reset', () => setTimeout(hint));
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const fields = [...form.querySelectorAll('input:not([type=hidden]):not([name=_honey]), select, textarea')];
+    let first = null;
+    fields.forEach((f) => { const ok = f.checkValidity(); f.toggleAttribute('aria-invalid', !ok); if (!ok) { f.setAttribute('aria-describedby', help.id); first = first || f; } });
+    if (first) { help.textContent = 'Some fields are missing. Name, email and what should change are needed.'; first.focus(); return; }
+    if (!form.dataset.endpoint) { help.textContent = 'Nothing was sent: this form is not connected yet. Write to melih6775@gmail.com instead.'; return; }
+    const button = form.querySelector('[type=submit]');
+    button.disabled = true;
+    help.textContent = 'Sending…';
+    fetch(form.dataset.endpoint, { method: 'POST', headers: { Accept: 'application/json' }, body: new FormData(form) })
+      .then((r) => r.json().catch(() => ({})).then((d) => r.ok && String(d.success) === 'true'))
+      .then((ok) => {
+        help.textContent = ok ? 'Request received. A reply goes to ' + form.querySelector('[type=email]').value.trim() + '.' : 'That did not go through. Try again later, or write to melih6775@gmail.com.';
+        if (ok) form.reset();
+      })
+      .catch(() => { help.textContent = 'That did not go through. Try again later, or write to melih6775@gmail.com.'; })
+      .finally(() => { button.disabled = false; });
+  });
+});
+</script>
+<script>window.hallmarkSlots = (m) => { for (const [k, v] of Object.entries(m)) { const s = document.querySelector(`[data-slot="${k}"]`); if (!s) continue; const im = new Image(); im.src = typeof v === 'string' ? v : v.src; im.alt = (typeof v === 'object' && v.alt) || s.dataset.alt || ''; s.querySelectorAll(':scope > img').forEach((o) => o.remove()); s.prepend(im); } };
+{
+// Phones get portrait posters (<source data-portrait>). A picture whose portrait poster is missing drops its portrait
+// sources and shows the landscape one again; a broken image in a slot is removed, so the slot's own background shows.
+const pics = [...document.querySelectorAll('[data-slot] img, picture > img')].map((i) => {
+  const fail = () => {
+    const portrait = i.parentElement ? i.parentElement.querySelectorAll('source[data-portrait]') : [];
+    if (portrait.length) { portrait.forEach((s) => s.remove()); i.closest('.hero__canvas')?.classList.add('no-portrait'); i.addEventListener('error', fail, { once: true }); }
+    else if (i.closest('[data-slot]') && i.complete && !i.naturalWidth) i.remove();  // still broken, not reloading
+  };
+  if (i.complete && !i.naturalWidth) fail(); else i.addEventListener('error', fail, { once: true });
+  const pic = { i, fail, loaded: i.complete && i.naturalWidth > 0 };
+  i.addEventListener('load', () => { pic.loaded = true; });
+  return pic;
+});
+// When a screen turns or narrows into a portrait query, the browser switches a loaded picture to its portrait file
+// and, if that file is missing, shows it broken without an error event; so look at each such image until it settles.
+new Set([...document.querySelectorAll('source[data-portrait]')].map((s) => s.media)).forEach((q) => matchMedia(q).addEventListener('change', (e) => {
+  if (e.matches) pics.forEach(({ i, fail, loaded }) => {
+    if (!loaded) return;  // not loaded yet: its first load fires error as usual
+    let n = 0;
+    const look = () => {
+      const portrait = i.parentElement ? [...i.parentElement.querySelectorAll('source[data-portrait]')] : [];
+      if (!portrait.some((s) => s.media === q)) return;
+      if (i.complete && portrait.some((s) => new URL(s.srcset, document.baseURI).href === i.currentSrc)) { if (!i.naturalWidth) fail(); return; }
+      if (++n < 40) setTimeout(look, 250);
+    };
+    look();
+  });
+}));
+}</script>
+<script defer src="story.js"></script>
+</body>
+</html>

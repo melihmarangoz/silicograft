@@ -1,0 +1,144 @@
+/* SG-Bone model loop diagram (site/partials/model-loop.html).
+   Uses only the design tokens from site/tokens.css. No colour literals. */
+
+.diagram--loop {
+  margin: 0;
+  display: grid;
+  gap: var(--space-md);
+}
+
+.diagram--loop .diagram__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  font-family: var(--font-body);
+}
+
+/* Nodes: square corners, hairline stroke, paper-2 surface */
+.diagram--loop .node rect {
+  fill: var(--color-paper-2);
+  stroke: var(--color-rule-2);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Input and output sit outside the loop: outlined on the page colour */
+.diagram--loop .node--io rect {
+  fill: var(--color-paper);
+}
+
+.diagram--loop text {
+  font-family: var(--font-body);
+}
+
+.diagram--loop .node-title {
+  fill: var(--color-ink);
+  font-size: calc(var(--text-md) * 1.125);
+  font-weight: 500;
+}
+
+.diagram--loop .node-line {
+  fill: var(--color-muted);
+  font-size: var(--text-md);
+  font-weight: 400;
+}
+
+/* Edges: one path per edge, line plus a small filled arrowhead */
+.diagram--loop .edge {
+  fill: var(--color-rule-2);
+  stroke: var(--color-rule-2);
+  stroke-width: 1;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+  vector-effect: non-scaling-stroke;
+}
+
+/* The edge that closes the loop: the only accent element */
+.diagram--loop .edge--loop {
+  fill: var(--color-accent);
+  stroke: var(--color-accent);
+  stroke-width: 1.5;
+}
+
+.diagram--loop .edge-label {
+  fill: var(--color-ink-2);
+  font-size: var(--text-md);
+  font-weight: 500;
+}
+
+.diagram--loop .loop-note {
+  fill: var(--color-muted);
+  font-size: var(--text-md);
+}
+
+.diagram--loop .diagram__caption {
+  max-width: 72ch;
+  color: var(--color-muted);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+}
+
+/* Legend: carries every fact in text and is the readable version on small screens */
+.diagram-legend {
+  list-style: none;
+  margin: var(--space-lg) 0 0;
+  padding: 0;
+  counter-reset: loop-step;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  font-family: var(--font-body);
+}
+
+.diagram-legend > li {
+  counter-increment: loop-step;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-content: start;
+  column-gap: var(--space-sm);
+  row-gap: var(--space-2xs);
+  padding-block: var(--space-sm);
+  border-top: 1px solid var(--color-rule-2);
+}
+
+.diagram-legend > li::before {
+  content: counter(loop-step);
+  grid-row: 1 / span 2;
+  min-width: 2ch;
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.55;
+}
+
+.diagram-legend__title {
+  color: var(--color-ink);
+  font-size: var(--text-md);
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.diagram-legend__line {
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+/* Small screens: the list replaces the picture */
+@media (width < 60rem) {
+  .diagram--loop .diagram__svg {
+    display: none;
+  }
+}
+
+/* Wide screens: the picture carries every fact; the key stays for screen readers */
+@media (width >= 60rem) {
+  .diagram-legend {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}

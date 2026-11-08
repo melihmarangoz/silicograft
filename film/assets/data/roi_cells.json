@@ -1,0 +1,394 @@
+{
+ "generator": "long_bone/araclar/film_export_roi.py",
+ "created": "2026-11-07 13:07:10",
+ "endianness": "little",
+ "run": "/home/melihmar/mechanobio_calculix/gunluk_2026-11-07/bagsiz_orijinal_t12345",
+ "purpose": "b2 close-up of the film (film/SPEC.md): one drawn cell per occupied lattice site",
+ "file": "roi_cells.bin",
+ "arrays": {
+  "site_ijk": {
+   "offset": 0,
+   "dtype": "uint16",
+   "shape": [
+    11627,
+    3
+   ],
+   "meaning": "global lattice indices (i, j, k) of each site; model mm = origin + 0.1 * (i, j, k)"
+  },
+  "in_callus": {
+   "offset": 69764,
+   "dtype": "uint8",
+   "shape": [
+    11627
+   ],
+   "meaning": "1 = inside the callus mesh (lattice-element map != 0), 0 = outside (marrow canal of the bone end)"
+  },
+  "codes": {
+   "offset": 81392,
+   "dtype": "uint8",
+   "shape": [
+    31,
+    11627
+   ],
+   "meaning": "lattice code of site n on exported day d at [d, n] (codes: 0 empty, 1 stem cell, 2 bone (osteoblast), 4 chondrocyte, 5 fibroblast, 11 intact bone, 13 plate)"
+  }
+ },
+ "n_sites": 11627,
+ "days": [
+  0,
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8,
+  9,
+  10,
+  11,
+  12,
+  13,
+  14,
+  15,
+  16,
+  17,
+  18,
+  19,
+  20,
+  21,
+  22,
+  23,
+  24,
+  25,
+  26,
+  27,
+  28,
+  29,
+  30
+ ],
+ "lattice": {
+  "shape": [
+   361,
+   361,
+   401
+  ],
+  "spacing_mm": 0.10000000149011612,
+  "origin_mm": [
+   -18.0,
+   -18.0,
+   0.0
+  ],
+  "point_mm": "model (x, y, z) = origin + 0.1 * (i, j, k)"
+ },
+ "box": {
+  "index_inclusive": {
+   "i": [
+    162,
+    179
+   ],
+   "j": [
+    130,
+    190
+   ],
+   "k": [
+    332,
+    353
+   ]
+  },
+  "site_centres_model_mm": {
+   "lo": [
+    -1.7999997586011887,
+    -4.9999998062849045,
+    33.20000049471855
+   ],
+   "hi": [
+    -0.09999973326921463,
+    1.0000002831220627,
+    35.30000052601099
+   ]
+  },
+  "site_centres_scene_mm": {
+   "x": [
+    0.09999973326921463,
+    1.7999997586011887
+   ],
+   "y": [
+    13.200000494718552,
+    15.30000052601099
+   ],
+   "z": [
+    -4.9999998062849045,
+    1.0000002831220627
+   ]
+  },
+  "note": "scene = manifest.scene_transform: scene.x = -model.x, scene.y = model.z - 20, scene.z = model.y. The box lies in the kept half (model x <= -0.1, scene x >= 0.1), just behind the cut face, at the proximal bone end (end face k = 350, model z = 35, scene y = 15) next to the marrow (j >= 138) and the cortex (j < 138)."
+ },
+ "site_rule": "a site is listed when it holds a tissue code (1, 2, 4 or 5) on at least one exported day; on other days its code may be 0 (empty)",
+ "counts_per_day": {
+  "0": {
+   "stem_cell": 2338,
+   "bone": 0,
+   "chondrocyte": 0,
+   "fibroblast": 0,
+   "intact_bone": 506,
+   "plate": 0
+  },
+  "1": {
+   "stem_cell": 2922,
+   "bone": 0,
+   "chondrocyte": 0,
+   "fibroblast": 0,
+   "intact_bone": 506,
+   "plate": 0
+  },
+  "2": {
+   "stem_cell": 3418,
+   "bone": 0,
+   "chondrocyte": 0,
+   "fibroblast": 0,
+   "intact_bone": 506,
+   "plate": 0
+  },
+  "3": {
+   "stem_cell": 3885,
+   "bone": 0,
+   "chondrocyte": 0,
+   "fibroblast": 0,
+   "intact_bone": 506,
+   "plate": 0
+  },
+  "4": {
+   "stem_cell": 4334,
+   "bone": 0,
+   "chondrocyte": 0,
+   "fibroblast": 0,
+   "intact_bone": 506,
+   "plate": 0
+  },
+  "5": {
+   "stem_cell": 4799,
+   "bone": 0,
+   "chondrocyte": 0,
+   "fibroblast": 0,
+   "intact_bone": 506,
+   "plate": 0
+  },
+  "6": {
+   "stem_cell": 5269,
+   "bone": 0,
+   "chondrocyte": 0,
+   "fibroblast": 0,
+   "intact_bone": 506,
+   "plate": 0
+  },
+  "7": {
+   "stem_cell": 5754,
+   "bone": 0,
+   "chondrocyte": 0,
+   "fibroblast": 0,
+   "intact_bone": 506,
+   "plate": 0
+  },
+  "8": {
+   "stem_cell": 6271,
+   "bone": 0,
+   "chondrocyte": 0,
+   "fibroblast": 0,
+   "intact_bone": 506,
+   "plate": 0
+  },
+  "9": {
+   "stem_cell": 6782,
+   "bone": 2,
+   "chondrocyte": 0,
+   "fibroblast": 0,
+   "intact_bone": 506,
+   "plate": 0
+  },
+  "10": {
+   "stem_cell": 7290,
+   "bone": 3,
+   "chondrocyte": 0,
+   "fibroblast": 0,
+   "intact_bone": 506,
+   "plate": 0
+  },
+  "11": {
+   "stem_cell": 7810,
+   "bone": 5,
+   "chondrocyte": 0,
+   "fibroblast": 0,
+   "intact_bone": 506,
+   "plate": 0
+  },
+  "12": {
+   "stem_cell": 8311,
+   "bone": 10,
+   "chondrocyte": 0,
+   "fibroblast": 0,
+   "intact_bone": 506,
+   "plate": 0
+  },
+  "13": {
+   "stem_cell": 8817,
+   "bone": 17,
+   "chondrocyte": 0,
+   "fibroblast": 0,
+   "intact_bone": 506,
+   "plate": 0
+  },
+  "14": {
+   "stem_cell": 9323,
+   "bone": 26,
+   "chondrocyte": 0,
+   "fibroblast": 0,
+   "intact_bone": 506,
+   "plate": 0
+  },
+  "15": {
+   "stem_cell": 9456,
+   "bone": 29,
+   "chondrocyte": 0,
+   "fibroblast": 0,
+   "intact_bone": 506,
+   "plate": 0
+  },
+  "16": {
+   "stem_cell": 9584,
+   "bone": 31,
+   "chondrocyte": 0,
+   "fibroblast": 0,
+   "intact_bone": 506,
+   "plate": 0
+  },
+  "17": {
+   "stem_cell": 9717,
+   "bone": 34,
+   "chondrocyte": 0,
+   "fibroblast": 0,
+   "intact_bone": 506,
+   "plate": 0
+  },
+  "18": {
+   "stem_cell": 9853,
+   "bone": 37,
+   "chondrocyte": 0,
+   "fibroblast": 0,
+   "intact_bone": 506,
+   "plate": 0
+  },
+  "19": {
+   "stem_cell": 10007,
+   "bone": 40,
+   "chondrocyte": 0,
+   "fibroblast": 0,
+   "intact_bone": 506,
+   "plate": 0
+  },
+  "20": {
+   "stem_cell": 10152,
+   "bone": 43,
+   "chondrocyte": 0,
+   "fibroblast": 0,
+   "intact_bone": 506,
+   "plate": 0
+  },
+  "21": {
+   "stem_cell": 10302,
+   "bone": 46,
+   "chondrocyte": 0,
+   "fibroblast": 0,
+   "intact_bone": 506,
+   "plate": 0
+  },
+  "22": {
+   "stem_cell": 10440,
+   "bone": 49,
+   "chondrocyte": 0,
+   "fibroblast": 0,
+   "intact_bone": 506,
+   "plate": 0
+  },
+  "23": {
+   "stem_cell": 10570,
+   "bone": 53,
+   "chondrocyte": 0,
+   "fibroblast": 0,
+   "intact_bone": 506,
+   "plate": 0
+  },
+  "24": {
+   "stem_cell": 10696,
+   "bone": 57,
+   "chondrocyte": 0,
+   "fibroblast": 0,
+   "intact_bone": 506,
+   "plate": 0
+  },
+  "25": {
+   "stem_cell": 10834,
+   "bone": 61,
+   "chondrocyte": 0,
+   "fibroblast": 0,
+   "intact_bone": 506,
+   "plate": 0
+  },
+  "26": {
+   "stem_cell": 10977,
+   "bone": 64,
+   "chondrocyte": 0,
+   "fibroblast": 0,
+   "intact_bone": 506,
+   "plate": 0
+  },
+  "27": {
+   "stem_cell": 11112,
+   "bone": 66,
+   "chondrocyte": 0,
+   "fibroblast": 0,
+   "intact_bone": 506,
+   "plate": 0
+  },
+  "28": {
+   "stem_cell": 11269,
+   "bone": 70,
+   "chondrocyte": 0,
+   "fibroblast": 0,
+   "intact_bone": 506,
+   "plate": 0
+  },
+  "29": {
+   "stem_cell": 11394,
+   "bone": 72,
+   "chondrocyte": 0,
+   "fibroblast": 0,
+   "intact_bone": 506,
+   "plate": 0
+  },
+  "30": {
+   "stem_cell": 11525,
+   "bone": 75,
+   "chondrocyte": 0,
+   "fibroblast": 0,
+   "intact_bone": 506,
+   "plate": 0
+  }
+ },
+ "codes": {
+  "0": "empty",
+  "1": "stem_cell",
+  "2": "bone",
+  "4": "chondrocyte",
+  "5": "fibroblast",
+  "11": "intact_bone",
+  "12": "scaffold",
+  "13": "plate"
+ },
+ "verification": {
+  "msc_whole_lattice_vs_istatistik": "all 31 days: lattice code-1 count = istatistik.csv MSC + MSC_kallus_disi",
+  "callus_tissue_vs_istatistik": "days 0 and 30: bone, cartilage and fibrous counts inside the callus mesh = istatistik.csv",
+  "read_back": "roi_cells.bin codes = lattice at every exported site on days 0 and 30"
+ },
+ "seconds": 4.5
+}

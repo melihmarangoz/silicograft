@@ -1,0 +1,114 @@
+<!-- SG-Bone model loop. Facts checked against long_bone/src (header.h, main.cpp, Update_model.cpp,
+     Read_stimulus.cpp, Cell_differentiation.cpp) and long_bone/docs/makale_karsilastirma.md.
+     Styles: site/partials/model-loop.css. Under 60rem the SVG is hidden and the list below is the readable version. -->
+<figure class="diagram diagram--loop" aria-labelledby="loop-title loop-desc">
+  <svg class="diagram__svg" viewBox="0 0 1312 560" role="img" aria-labelledby="loop-title" aria-describedby="loop-desc">
+    <title id="loop-title">SG-Bone feedback loop</title>
+    <desc id="loop-desc">A sheep tibia defect with a 30 mm gap, loaded with 823 N axially and about 9.8 N m in bending, enters a loop of six steps. Cells on a 0.1 mm lattice form tissue. The tissue sets each element's stiffness by a rule of mixtures, from 0.2 to 17,000 MPa. A CalculiX finite-element analysis with C3D10 elements runs every 3 days and gives the mechanical stimulus, the minimum principal strain and the hydrostatic pressure. A Claes and Heigele type rule then decides how stem cells differentiate, which closes the loop back to the cells. One pass of the loop is one simulated day. After 360 days the run gives the healing outcome as a tissue map.</desc>
+
+    <g class="edges" aria-hidden="true">
+      <!-- input to cells -->
+      <path class="edge" d="M212 124 V172 M207 171 L212 179 L217 171 Z"/>
+      <!-- cells to tissue -->
+      <path class="edge" d="M400 224 H460 M459 219 L467 224 L459 229 Z"/>
+      <!-- tissue to stiffness -->
+      <path class="edge" d="M844 224 H904 M903 219 L911 224 L903 229 Z"/>
+      <!-- stiffness to finite-element analysis -->
+      <path class="edge" d="M1100 268 V428 M1095 427 L1100 435 L1105 427 Z"/>
+      <!-- finite-element analysis to stimulus -->
+      <path class="edge" d="M912 480 H852 M853 475 L845 480 L853 485 Z"/>
+      <!-- stimulus to differentiation -->
+      <path class="edge" d="M468 480 H408 M409 475 L401 480 L409 485 Z"/>
+      <!-- tissue to outcome (elbow, two straight subpaths so the fill never closes a shape) -->
+      <path class="edge" d="M656 180 V80 M656 80 H904 M903 75 L911 80 L903 85 Z"/>
+      <!-- differentiation back to cells: the edge that closes the loop (only accent element) -->
+      <path class="edge edge--loop" d="M212 436 V276 M207 277 L212 269 L217 277 Z"/>
+    </g>
+
+    <text class="edge-label" x="228" y="357">Closes the loop</text>
+    <text class="loop-note" x="656" y="357" text-anchor="middle">One pass of the loop is one simulated day</text>
+
+    <g class="node node--io">
+      <rect aria-hidden="true" x="24" y="36" width="376" height="88"/>
+      <text class="node-title" x="44" y="72">Sheep tibia defect</text>
+      <text class="node-line" x="44" y="100">30 mm gap, 823 N axial, 9.8 N m bending</text>
+    </g>
+
+    <g class="node">
+      <rect aria-hidden="true" x="24" y="180" width="376" height="88"/>
+      <text class="node-title" x="44" y="216">Cells on a lattice</text>
+      <text class="node-line" x="44" y="244">4 cell types on a 0.1 mm grid</text>
+    </g>
+
+    <g class="node">
+      <rect aria-hidden="true" x="468" y="180" width="376" height="88"/>
+      <text class="node-title" x="488" y="216">Tissue formed</text>
+      <text class="node-line" x="488" y="244">Granulation, fibrous, cartilage, bone</text>
+    </g>
+
+    <g class="node">
+      <rect aria-hidden="true" x="912" y="180" width="376" height="88"/>
+      <text class="node-title" x="932" y="216">Element stiffness</text>
+      <text class="node-line" x="932" y="244">Rule of mixtures, 0.2 to 17,000 MPa</text>
+    </g>
+
+    <g class="node">
+      <rect aria-hidden="true" x="912" y="436" width="376" height="88"/>
+      <text class="node-title" x="932" y="472">Finite-element analysis</text>
+      <text class="node-line" x="932" y="500">CalculiX C3D10, every 3 days</text>
+    </g>
+
+    <g class="node">
+      <rect aria-hidden="true" x="468" y="436" width="376" height="88"/>
+      <text class="node-title" x="488" y="472">Mechanical stimulus</text>
+      <text class="node-line" x="488" y="500">Minimum principal strain, pressure</text>
+    </g>
+
+    <g class="node">
+      <rect aria-hidden="true" x="24" y="436" width="376" height="88"/>
+      <text class="node-title" x="44" y="472">Cell differentiation</text>
+      <text class="node-line" x="44" y="500">Claes and Heigele type rule</text>
+    </g>
+
+    <g class="node node--io">
+      <rect aria-hidden="true" x="912" y="36" width="376" height="88"/>
+      <text class="node-title" x="932" y="72">Healing outcome</text>
+      <text class="node-line" x="932" y="100">Tissue map after 360 days</text>
+    </g>
+  </svg>
+  <figcaption class="diagram__caption">The SG-Bone feedback loop. One pass is one simulated day.</figcaption>
+</figure>
+<ol class="diagram-legend" role="list">
+  <li>
+    <span class="diagram-legend__title">Sheep tibia defect</span>
+    <span class="diagram-legend__line">An empty 30&nbsp;mm defect fixed with a steel plate, loaded with 823&nbsp;N axially plus about 9.8&nbsp;N&nbsp;m of bending, distal end clamped.</span>
+  </li>
+  <li>
+    <span class="diagram-legend__title">Cells on a lattice</span>
+    <span class="diagram-legend__line">Mesenchymal stem cells, fibroblasts, chondrocytes and osteoblasts sit on a 0.1&nbsp;mm lattice, where they migrate, proliferate, differentiate and die.</span>
+  </li>
+  <li>
+    <span class="diagram-legend__title">Tissue formed</span>
+    <span class="diagram-legend__line">Fibroblasts make fibrous tissue, chondrocytes cartilage and osteoblasts bone. Every other lattice point counts as granulation tissue.</span>
+  </li>
+  <li>
+    <span class="diagram-legend__title">Element stiffness</span>
+    <span class="diagram-legend__line">A rule of mixtures over the tissues in each element, averaged over the last 10 days: granulation 0.2, fibrous 2, cartilage 10, bone 17,000&nbsp;MPa.</span>
+  </li>
+  <li>
+    <span class="diagram-legend__title">Finite-element analysis</span>
+    <span class="diagram-legend__line">A linear-elastic CalculiX model of quadratic tetrahedra (C3D10) is solved every 3 days.</span>
+  </li>
+  <li>
+    <span class="diagram-legend__title">Mechanical stimulus</span>
+    <span class="diagram-legend__line">Minimum principal strain and hydrostatic pressure (MPa) in each element, averaged over its 4 integration points.</span>
+  </li>
+  <li>
+    <span class="diagram-legend__title">Cell differentiation</span>
+    <span class="diagram-legend__line">A Claes and Heigele type rule turns stem cells into osteoblasts, chondrocytes or fibroblasts. This closes the loop back to the cells (step&nbsp;2).</span>
+  </li>
+  <li>
+    <span class="diagram-legend__title">Healing outcome</span>
+    <span class="diagram-legend__line">After 360 simulated days the run gives the tissue map and daily cell and tissue counts.</span>
+  </li>
+</ol>

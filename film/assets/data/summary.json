@@ -1,0 +1,402 @@
+{
+ "run": "bagsiz_orijinal_t12345: plate unbonded, original stimulus sign, seed 12345, 360 days",
+ "n_callus_elements": 24698,
+ "n_mesh_nodes": 93415,
+ "surfaces": {
+  "surf_cortex_prox.bin": {
+   "vertices": 8470,
+   "faces": 16064
+  },
+  "surf_cortex_prox_half.bin": {
+   "vertices": 6730,
+   "faces": 11668
+  },
+  "surf_cortex_dist.bin": {
+   "vertices": 8488,
+   "faces": 16096
+  },
+  "surf_cortex_dist_half.bin": {
+   "vertices": 6698,
+   "faces": 11604
+  },
+  "surf_marrow_prox.bin": {
+   "vertices": 3770,
+   "faces": 7152
+  },
+  "surf_marrow_prox_half.bin": {
+   "vertices": 4772,
+   "faces": 8450
+  },
+  "surf_marrow_dist.bin": {
+   "vertices": 3780,
+   "faces": 7168
+  },
+  "surf_marrow_dist_half.bin": {
+   "vertices": 4736,
+   "faces": 8382
+  },
+  "surf_plate.bin": {
+   "vertices": 9330,
+   "faces": 16888
+  },
+  "surf_plate_half.bin": {
+   "vertices": 8415,
+   "faces": 14388
+  },
+  "surf_screws.bin": {
+   "vertices": 9360,
+   "faces": 18168
+  },
+  "surf_screws_half.bin": {
+   "vertices": 13416,
+   "faces": 24284
+  },
+  "surf_callus_hull.bin": {
+   "vertices": 10594,
+   "faces": 19968
+  },
+  "surf_callus_hull_half.bin": {
+   "vertices": 5521,
+   "faces": 10147
+  },
+  "surf_callus_cut.bin": {
+   "vertices": 4059,
+   "faces": 7843
+  }
+ },
+ "voxel_blocks_per_day": {
+  "0": 5699,
+  "3": 9869,
+  "6": 14633,
+  "9": 19340,
+  "12": 24693,
+  "15": 28843,
+  "18": 30305,
+  "21": 31708,
+  "24": 33133,
+  "27": 34661,
+  "30": 36229,
+  "33": 37755,
+  "36": 39284,
+  "39": 40809,
+  "42": 42346,
+  "45": 43864,
+  "48": 45446,
+  "51": 47087,
+  "54": 48698,
+  "57": 50350,
+  "60": 51969,
+  "63": 53555,
+  "66": 55168,
+  "69": 56879,
+  "72": 58575,
+  "75": 60309,
+  "78": 61993,
+  "81": 63670,
+  "84": 65343,
+  "87": 67006,
+  "90": 68731,
+  "93": 70456,
+  "96": 72232,
+  "99": 73960,
+  "102": 75718,
+  "105": 77359,
+  "108": 79068,
+  "111": 80758,
+  "114": 82533,
+  "117": 84281,
+  "120": 86061,
+  "123": 87783,
+  "126": 89583,
+  "129": 91277,
+  "132": 93036,
+  "135": 94773,
+  "138": 96530,
+  "141": 98310,
+  "144": 100200,
+  "147": 102111,
+  "150": 103956,
+  "153": 105730,
+  "156": 107467,
+  "159": 109310,
+  "162": 111126,
+  "165": 113025,
+  "168": 114988,
+  "171": 116923,
+  "174": 118760,
+  "177": 120555,
+  "180": 122498,
+  "183": 124422,
+  "186": 126383,
+  "189": 128333,
+  "192": 130371,
+  "195": 132386,
+  "198": 134314,
+  "201": 136244,
+  "204": 138195,
+  "207": 140150,
+  "210": 142127,
+  "213": 144200,
+  "216": 146203,
+  "219": 148346,
+  "222": 150346,
+  "225": 152380,
+  "228": 154377,
+  "231": 156469,
+  "234": 158626,
+  "237": 160795,
+  "240": 163051,
+  "243": 165195,
+  "246": 167248,
+  "249": 169315,
+  "252": 171480,
+  "255": 173608,
+  "258": 175804,
+  "261": 178087,
+  "264": 180350,
+  "267": 182570,
+  "270": 184800,
+  "273": 187035,
+  "276": 189234,
+  "279": 191465,
+  "282": 193698,
+  "285": 196034,
+  "288": 198422,
+  "291": 200757,
+  "294": 203002,
+  "297": 205258,
+  "300": 207515,
+  "303": 209912,
+  "306": 212272,
+  "309": 214668,
+  "312": 217021,
+  "315": 219353,
+  "318": 221743,
+  "321": 224152,
+  "324": 226457,
+  "327": 228799,
+  "330": 231195,
+  "333": 233631,
+  "336": 236035,
+  "339": 238442,
+  "342": 240890,
+  "345": 243256,
+  "348": 245577,
+  "351": 247979,
+  "354": 250434,
+  "357": 252844,
+  "359": 254410
+ },
+ "voxel_blocks_per_code_last_days": {
+  "357": {
+   "stem_cell": 231063,
+   "bone": 19982,
+   "chondrocyte": 226,
+   "fibroblast": 1573
+  },
+  "359": {
+   "stem_cell": 232071,
+   "bone": 20301,
+   "chondrocyte": 241,
+   "fibroblast": 1797
+  }
+ },
+ "E_MPa": {
+  "9": {
+   "min": 0.20000001788139343,
+   "median": 0.20000001788139343,
+   "max": 818.0138549804688
+  },
+  "90": {
+   "min": 0.20000001788139343,
+   "median": 0.20000001788139343,
+   "max": 16112.470703125
+  },
+  "180": {
+   "min": 0.20000001788139343,
+   "median": 0.20000001788139343,
+   "max": 16754.220703125
+  },
+  "357": {
+   "min": 0.20000001788139343,
+   "median": 0.20000001788139343,
+   "max": 16865.412109375
+  }
+ },
+ "strain_day": 357,
+ "min_principal_strain": {
+  "min": -0.04028255033846758,
+  "median": -0.004229408990491475,
+  "max": -9.618414653471762e-07
+ },
+ "abs_min_principal_strain": {
+  "min": 9.618414653471762e-07,
+  "median": 0.004229408990491475,
+  "max": 0.04028255033846758
+ },
+ "hydrostatic_pressure_MPa": {
+  "min": -0.8199909583333334,
+  "median": 0.000224761606375,
+  "max": 2.3513628916666667
+ },
+ "class_counts": {
+  "resorption (1)": 2306,
+  "intramembranous bone formation (2)": 21763,
+  "endochondral (cartilage) (4)": 98,
+  "fibrocartilage / connective (fibrous) (5)": 531
+ },
+ "voxel_block_over_lattice_volume": {
+  "0": {
+   "stem_cell": 3.4316,
+   "bone": null,
+   "chondrocyte": null,
+   "fibroblast": null
+  },
+  "30": {
+   "stem_cell": 1.3178,
+   "bone": 0.9935,
+   "chondrocyte": 0.0,
+   "fibroblast": 0.172
+  },
+  "90": {
+   "stem_cell": 1.1815,
+   "bone": 0.9734,
+   "chondrocyte": 0.0,
+   "fibroblast": 0.1015
+  },
+  "180": {
+   "stem_cell": 1.1145,
+   "bone": 0.973,
+   "chondrocyte": 0.0,
+   "fibroblast": 0.0925
+  },
+  "357": {
+   "stem_cell": 1.0697,
+   "bone": 1.1204,
+   "chondrocyte": 0.4594,
+   "fibroblast": 0.7251
+  },
+  "359": {
+   "stem_cell": 1.0694,
+   "bone": 1.1216,
+   "chondrocyte": 0.4623,
+   "fibroblast": 0.7442
+  }
+ },
+ "verification": {
+  "surface_interfaces": {
+   "KALLUS->KORTEKS": 3072,
+   "KALLUS->ILIK": 432,
+   "KALLUS->PLAK": 2944,
+   "KORTEKS->KALLUS": 3072,
+   "KORTEKS->ILIK": 8308,
+   "KORTEKS->VIDA": 6036,
+   "ILIK->KALLUS": 432,
+   "ILIK->KORTEKS": 8308,
+   "ILIK->VIDA": 5412,
+   "PLAK->KALLUS": 2944,
+   "PLAK->VIDA": 3808,
+   "VIDA->KORTEKS": 6036,
+   "VIDA->ILIK": 5412,
+   "VIDA->PLAK": 3808
+  },
+  "surface_geometry": {
+   "cortex_prox": {
+    "open_edges": 0,
+    "open_edges_half_with_cut": 0,
+    "volume_mm3": 12378.471,
+    "volume_rel_diff_vs_tetrahedra": 4.440892098500626e-16,
+    "half_over_full_volume": 0.49996
+   },
+   "cortex_dist": {
+    "open_edges": 0,
+    "open_edges_half_with_cut": 0,
+    "volume_mm3": 12378.512,
+    "volume_rel_diff_vs_tetrahedra": 2.220446049250313e-16,
+    "half_over_full_volume": 0.50003
+   },
+   "marrow_prox": {
+    "open_edges": 0,
+    "open_edges_half_with_cut": 0,
+    "volume_mm3": 4116.302,
+    "volume_rel_diff_vs_tetrahedra": 0.0,
+    "half_over_full_volume": 0.50002
+   },
+   "marrow_dist": {
+    "open_edges": 0,
+    "open_edges_half_with_cut": 0,
+    "volume_mm3": 4116.692,
+    "volume_rel_diff_vs_tetrahedra": 2.220446049250313e-16,
+    "half_over_full_volume": 0.49997
+   },
+   "plate": {
+    "open_edges": 0,
+    "open_edges_half_with_cut": 0,
+    "volume_mm3": 11484.681,
+    "volume_rel_diff_vs_tetrahedra": 4.440892098500626e-16,
+    "half_over_full_volume": 0.5
+   },
+   "screws": {
+    "open_edges": 0,
+    "open_edges_half_with_cut": 0,
+    "volume_mm3": 1377.783,
+    "volume_rel_diff_vs_tetrahedra": 0.0,
+    "half_over_full_volume": 0.49999
+   },
+   "callus_hull": {
+    "open_edges": 0,
+    "open_edges_half_with_cut": 0,
+    "volume_mm3": 24889.722,
+    "volume_rel_diff_vs_tetrahedra": 3.3306690738754696e-16,
+    "half_over_full_volume": 0.5
+   }
+  },
+  "callus_cut_max_abs_x_mm": 0.0,
+  "lattice_element_map_vs_kesit_eleman_bin": "0 differing points on the 3 planes",
+  "daily_modulus_vs_site_stages": "day 357: identical bits for all 24698 elements",
+  "E_nu_vs_without_scaffold_inp": "day 358: 0 of 24698 elements differ (text of E, nu)",
+  "E_uint16_roundtrip_max_relative_error": 8.760276609176554e-05,
+  "E_outside_mapping_range": 0,
+  "class_vs_stimulus_bin": "stimulus_358.bin (the day-357 solve): 0 of 24698 differ",
+  "voxel_lattice_totals_vs_istatistik_csv": "all 121 sampled days: the per-code lattice point counts inside the callus equal istatistik.csv exactly",
+  "voxel_block_volume_over_istatistik_volume": {
+   "0": {
+    "stem_cell": 3.4316,
+    "bone": null,
+    "chondrocyte": null,
+    "fibroblast": null
+   },
+   "30": {
+    "stem_cell": 1.3178,
+    "bone": 0.9935,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.172
+   },
+   "90": {
+    "stem_cell": 1.1815,
+    "bone": 0.9734,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.1015
+   },
+   "180": {
+    "stem_cell": 1.1145,
+    "bone": 0.973,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.0925
+   },
+   "357": {
+    "stem_cell": 1.0697,
+    "bone": 1.1204,
+    "chondrocyte": 0.4594,
+    "fibroblast": 0.7251
+   },
+   "359": {
+    "stem_cell": 1.0694,
+    "bone": 1.1216,
+    "chondrocyte": 0.4623,
+    "fibroblast": 0.7442
+   }
+  }
+ },
+ "seconds": 100.7
+}

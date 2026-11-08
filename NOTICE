@@ -1,0 +1,59 @@
+SilicoGraft
+Copyright 2026 Melih Marangoz
+
+Licences
+- SilicoGraft as a whole, and every addition and modification made in this
+  repository, is licensed under the GNU Affero General Public License,
+  version 3 (AGPL-3.0): see LICENSE.
+- Files that come from mechanobio_bone_2
+  (https://github.com/camille-PM/mechanobio_bone_2) remain under the Apache
+  License, Version 2.0, copyright their authors (Camille Perier-Metz et al.):
+  see LICENSE-APACHE-2.0. These are the upstream sources in long_bone/src
+  (header.h, main.cpp, the *.cpp files there except Write_statistics.cpp,
+  which is new and AGPL-3.0, and README.md, upstream's own README). Several of them were
+  modified for the CalculiX port, as listed below; the modifications are
+  SilicoGraft's and fall under AGPL-3.0.
+- The Apache-2.0 code is combined with the AGPL-3.0 code as both licences
+  permit: Apache-2.0 is compatible with the GPLv3 family of licences, so the
+  combined work is distributed under AGPL-3.0 while the Apache-2.0 notices
+  and terms for the upstream files stay in force.
+
+This product includes software from mechanobio_bone_2 by Camille Perier-Metz.
+The model is described in Perier-Metz C, Cipitria A, Hutmacher DW, Duda GN,
+Checa S. Acta Biomaterialia 145 (2022) 329-341.
+
+Changes to the upstream sources (long_bone/src), all marked [CCX] in the code:
+- The upstream sources were moved into long_bone/src and converted to LF line
+  endings.
+- FE coupling ported from Abaqus to CalculiX 2.17: the input deck is written
+  in Update_model.cpp, stresses and strains are read from the CalculiX .dat
+  output in Read_stimulus.cpp, and the minimum principal strain is computed
+  from the strain tensor. The reference node uses *RIGID BODY.
+- Elements with identical (E, nu) are grouped into one material. This is
+  equivalent to the original per-element materials.
+- The initial FE solution is computed inside the program.
+- Random numbers come from a seeded std::mt19937 (nrand.cpp, main.cpp).
+- More robust node and element file readers, and clamping to the lattice
+  bounds (Read_node_file.cpp, Read_element_file.cpp, Extremes_element.cpp).
+- Write_statistics.cpp (new) writes a daily summary of cell and tissue counts.
+- run.bat (Abaqus) was removed and replaced by long_bone/araclar/run.sh.
+
+The cell rules (differentiation, proliferation, mitosis, migration, apoptosis,
+ageing) are unchanged.
+
+Everything outside long_bone/src (geometry, tools, results, viewers, website,
+film, dental work) is original to this repository and licensed under AGPL-3.0,
+except the third-party files below.
+
+Third-party files (each keeps its own licence)
+- site/vendor/three-0.147.0: three.js r147, MIT licence, copyright 2010-2022
+  three.js authors (licence text in that folder). The film and the viewers
+  load three.js from a CDN and do not redistribute it.
+- long_bone/web3d_uygulama/hucre/marching_cubes_r147.js: three.js r147
+  MarchingCubes.js, MIT licence, with SilicoGraft changes marked in the file.
+- Mona Sans (site/assets/fonts/mona-sans-*.woff2,
+  film/assets/fonts/MonaSans-latin-var.woff2): SIL Open Font License 1.1,
+  copyright 2022 The Mona Sans Project Authors (site/assets/fonts/OFL-MonaSans.txt,
+  film/assets/fonts/OFL-MonaSans.txt).
+- IBM Plex Sans and IBM Plex Mono (site/assets/fonts/ibm-plex-*.woff2): SIL
+  Open Font License 1.1, copyright IBM Corp. (site/assets/fonts/OFL-IBMPlex.txt).

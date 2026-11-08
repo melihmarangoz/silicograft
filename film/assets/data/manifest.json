@@ -1,0 +1,2232 @@
+{
+ "format": "SG-Bone film assets 1",
+ "generator": "long_bone/araclar/film_export.py",
+ "created": "2026-11-07 06:56:07",
+ "endianness": "little",
+ "run": {
+  "folder": "/home/melihmar/mechanobio_calculix/gunluk_2026-11-07/bagsiz_orijinal_t12345",
+  "label": "bagsiz_orijinal_t12345: plate unbonded, original stimulus sign, seed 12345, 360 days",
+  "build": "isaret=orijinal bayraklar= -DRAW_WRITE_INTERVAL=1",
+  "seed": 12345,
+  "n_days": 360,
+  "claes_heigele_sign": false,
+  "plate_bonded_to_callus": false
+ },
+ "units": {
+  "length": "mm",
+  "E": "MPa",
+  "stress": "MPa",
+  "force": "N",
+  "moment": "N mm",
+  "strain": "fraction (0.01 = 1 %)",
+  "volume": "mm^3",
+  "time": "simulated day"
+ },
+ "model_frame": {
+  "bone_axis": "z (x = 0, y = 0); proximal end z = 120 (loaded), distal end z = -80 (clamped)",
+  "defect": "z = 5 to 35 mm, centre [0.0, 0.0, 20.0]",
+  "plate": "on +y: x -6.8..6.8, y 9..14.6 (bone-facing face y = 9, 0.5 mm off the cortex at y = 8.5), z -57.5..97.5",
+  "cortex": "elliptic tube, outer half axes 7.5 (x) x 8.5 (y) mm, marrow 3.75 x 4.4 mm",
+  "callus": "z 0..40 mm, revolved circular arc, radius 9 mm at z = 0 and 40 and 18 mm at z = 20, minus the bone ends and the box above the plate (|x| < 6.8, y > 9)",
+  "lattice": {
+   "shape": [
+    361,
+    361,
+    401
+   ],
+   "spacing_mm": 0.10000000149011612,
+   "origin_mm": [
+    -18.0,
+    -18.0,
+    0.0
+   ],
+   "point_mm": "(x, y, z) = origin + 0.1 * (i, j, k); the origin is the callus mesh min corner (Calculate_lattice.cpp), so the bone axis is i = j = 180 and the defect centre k = 200"
+  },
+  "half_model": "*_half files keep x <= 0 (scene x >= 0), cut by the plane x = 0, which contains the bone axis and the plate normal (y) and so is perpendicular to the plate; cut faces have normal +x"
+ },
+ "scene_transform": {
+  "meaning": "scene = R * model + t (mm). Scene: y up along the bone axis with proximal up, the defect centre at the origin, the plate on +z; x = y cross z (a proper rotation, no mirroring, so winding and handedness are kept)",
+  "R": [
+   [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    1.0
+   ],
+   [
+    0.0,
+    1.0,
+    0.0
+   ]
+  ],
+  "t": [
+   0.0,
+   -20.0,
+   0.0
+  ],
+  "matrix_rows": [
+   [
+    -1.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    1.0,
+    -20.0
+   ],
+   [
+    0.0,
+    1.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    1.0
+   ]
+  ],
+  "three_matrix4_elements": [
+   -1.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   1.0,
+   0.0,
+   0.0,
+   1.0,
+   0.0,
+   0.0,
+   0.0,
+   -20.0,
+   0.0,
+   1.0
+  ],
+  "three_object3d": {
+   "quaternion_xyzw": [
+    0.0,
+    0.7071067811865476,
+    0.7071067811865476,
+    0.0
+   ],
+   "position": [
+    0.0,
+    -20.0,
+    0.0
+   ],
+   "usage": "group.quaternion.set(0, Math.SQRT1_2, Math.SQRT1_2, 0); group.position.set(0, -20, 0); add every part, voxel and centroid to this group; normals follow automatically"
+  },
+  "per_axis": "scene.x = -model.x, scene.y = model.z - 20, scene.z = model.y",
+  "camera_hint": {
+   "position": [
+    -160.0,
+    0.0,
+    0.0
+   ],
+   "target": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "up": [
+    0.0,
+    1.0,
+    0.0
+   ],
+   "note": "looking along +x at the cut face (its normal maps to scene -x); screen right is +z, so the plate is on the right and proximal is up. A three-quarter view moves the camera towards +z."
+  },
+  "not_the_cell_viewer_mapping": "hucre3b.html maps lattice (x, y, z) -> (x, z - 20, y): a mirror image (det -1) of this transform; x has the opposite sign"
+ },
+ "codes": {
+  "lattice": {
+   "0": "empty (free lattice site; granulation tissue in the rule of mixtures, 0.2 MPa)",
+   "1": "stem cell (MSC; 0.2 MPa in the rule of mixtures)",
+   "2": "osteoblast / bone (mature osteoblast = woven bone, 17000 MPa)",
+   "3": "unused (no rule creates it; 8 -> 3 in Cell_proliferation.cpp never happens)",
+   "4": "chondrocyte (cartilage, 10 MPa)",
+   "5": "fibroblast (fibrous tissue, 2 MPa)",
+   "6": "transient new MSC during mitosis/migration (6..10 = new 1..5; never in a written lattice)",
+   "11": "intact bone of the two bone ends (outside the callus)",
+   "12": "scaffold (not used in this run)",
+   "13": "fixation plate (lattice copy; outside the callus)"
+  },
+  "voxel_codes_present": [
+   1,
+   2,
+   4,
+   5
+  ],
+  "stimulus_class": {
+   "1": "resorption",
+   "2": "intramembranous bone formation",
+   "4": "endochondral (cartilage)",
+   "5": "fibrocartilage / connective (fibrous)"
+  },
+  "stimulus_thresholds": {
+   "res_hp": 0.0016,
+   "res_ep": 0.0004,
+   "bone_hp": 0.15,
+   "bone_ep": 0.05,
+   "cart_hp": 0.15,
+   "cart_ep": 0.15,
+   "rule": "first match wins: resorption |HP| < 0.0016 and |eps| < 0.0004; bone |HP| < 0.15 and |eps| < 0.05; cartilage HP < -0.15 (hydrostatic tension, the original sign) and |eps| < 0.15; fibrous otherwise"
+  },
+  "face_tag": {
+   "0": "free surface (nothing on the other side)",
+   "1": "against the callus",
+   "2": "against the cortex",
+   "3": "against the marrow",
+   "4": "against the plate (contact only, the callus is not bonded to it)",
+   "5": "against a screw",
+   "255": "flat cut face on the plane x = 0 (normal +x)"
+  },
+  "region_material_MPa": {
+   "cortex": [
+    17000.0,
+    0.3
+   ],
+   "marrow": [
+    2.0,
+    0.167
+   ],
+   "plate": [
+    210000.0,
+    0.3
+   ],
+   "screws": [
+    210000.0,
+    0.3
+   ]
+  }
+ },
+ "fe_schedule": {
+  "fe_days": [
+   6,
+   9,
+   12,
+   15,
+   18,
+   21,
+   24,
+   27,
+   30,
+   33,
+   36,
+   39,
+   42,
+   45,
+   48,
+   51,
+   54,
+   57,
+   60,
+   63,
+   66,
+   69,
+   72,
+   75,
+   78,
+   81,
+   84,
+   87,
+   90,
+   93,
+   96,
+   99,
+   102,
+   105,
+   108,
+   111,
+   114,
+   117,
+   120,
+   123,
+   126,
+   129,
+   132,
+   135,
+   138,
+   141,
+   144,
+   147,
+   150,
+   153,
+   156,
+   159,
+   162,
+   165,
+   168,
+   171,
+   174,
+   177,
+   180,
+   183,
+   186,
+   189,
+   192,
+   195,
+   198,
+   201,
+   204,
+   207,
+   210,
+   213,
+   216,
+   219,
+   222,
+   225,
+   228,
+   231,
+   234,
+   237,
+   240,
+   243,
+   246,
+   249,
+   252,
+   255,
+   258,
+   261,
+   264,
+   267,
+   270,
+   273,
+   276,
+   279,
+   282,
+   285,
+   288,
+   291,
+   294,
+   297,
+   300,
+   303,
+   306,
+   309,
+   312,
+   315,
+   318,
+   321,
+   324,
+   327,
+   330,
+   333,
+   336,
+   339,
+   342,
+   345,
+   348,
+   351,
+   354,
+   357
+  ],
+  "n": 118,
+  "rule": "main.cpp: CalculiX runs once before day 0 with every callus element at 0.2 MPa, then on every iteration t with 5 < t < 359 and t % 3 == 0. The solve on day t uses the moduli Update_model writes on day t (lattices t-9..t) and sets the stimulus of days t+1..t+3.",
+  "initial_solve": "before day 0, E = 0.2 MPa everywhere (not stored; elem_E_days row 0 is day 6)",
+  "update_model_days": "6..358 (every day; only every third one is solved)",
+  "last_solve": "day 357: without_scaffold.dat; without_scaffold.inp is the unsolved day-358 input"
+ },
+ "surfaces": {
+  "method": "boundary faces of the C3D10 elements of each region; each 6-node face is split into 4 flat triangles through its mid-side nodes (curved geometry as CalculiX sees it). Half parts: the triangles are clipped to x <= 0 and the section of the region's sub-tetrahedra by x = 0 is added as flat cut faces (tag 255). callus_hull_half has no cut faces: they are callus_cut.",
+  "parts": {
+   "cortex_prox": "KORTEKS, z > 20",
+   "cortex_dist": "KORTEKS, z < 20",
+   "marrow_prox": "ILIK, z > 20",
+   "marrow_dist": "ILIK, z < 20",
+   "plate": "PLAK",
+   "screws": "VIDA (6 screws)",
+   "callus_hull": "KALLUS, its whole closed boundary; face group tag 0 is the outer skin, tags 2-4 are the faces against the bone ends and the plate"
+  },
+  "note": "faces are sorted by face_tag; face_groups give the ranges (THREE.BufferGeometry.addGroup(first*3, n*3, m))"
+ },
+ "voxels": {
+  "grid": {
+   "shape": [
+    121,
+    121,
+    134
+   ],
+   "block_mm": 0.30000000447034836,
+   "lattice_points_per_block": 3,
+   "index": "block_index = (bi * 121 + bj) * 134 + bk",
+   "decode_js": "bk = idx % 134; bj = Math.floor(idx / 134) % 121; bi = Math.floor(idx / 16214)",
+   "centre_model_mm": "(x, y, z) = (-18, -18, 0) + 0.1 * (3 * (bi, bj, bk) + 1)",
+   "covers": "lattice points i = 3 bi .. 3 bi + 2 (same for j, k); the last blocks are partial",
+   "cut_note": "blocks bi <= 59 lie in x < 0 (their +x face is at x = -0.05 mm)"
+  },
+  "days": [
+   0,
+   3,
+   6,
+   9,
+   12,
+   15,
+   18,
+   21,
+   24,
+   27,
+   30,
+   33,
+   36,
+   39,
+   42,
+   45,
+   48,
+   51,
+   54,
+   57,
+   60,
+   63,
+   66,
+   69,
+   72,
+   75,
+   78,
+   81,
+   84,
+   87,
+   90,
+   93,
+   96,
+   99,
+   102,
+   105,
+   108,
+   111,
+   114,
+   117,
+   120,
+   123,
+   126,
+   129,
+   132,
+   135,
+   138,
+   141,
+   144,
+   147,
+   150,
+   153,
+   156,
+   159,
+   162,
+   165,
+   168,
+   171,
+   174,
+   177,
+   180,
+   183,
+   186,
+   189,
+   192,
+   195,
+   198,
+   201,
+   204,
+   207,
+   210,
+   213,
+   216,
+   219,
+   222,
+   225,
+   228,
+   231,
+   234,
+   237,
+   240,
+   243,
+   246,
+   249,
+   252,
+   255,
+   258,
+   261,
+   264,
+   267,
+   270,
+   273,
+   276,
+   279,
+   282,
+   285,
+   288,
+   291,
+   294,
+   297,
+   300,
+   303,
+   306,
+   309,
+   312,
+   315,
+   318,
+   321,
+   324,
+   327,
+   330,
+   333,
+   336,
+   339,
+   342,
+   345,
+   348,
+   351,
+   354,
+   357,
+   359
+  ],
+  "rule": "only lattice points inside the callus (lattice-element map != 0); a block is stored when >= 4 of its 27 points are non-empty; code = the most frequent non-empty code, ties to bone > chondrocyte > fibroblast > stem cell",
+  "block_volume_mm3": 0.027000001206994074
+ },
+ "element_fields": {
+  "n_elements": 24698,
+  "element_index": "0-based row = C3D10 label - 1 (labels 1..24698, KALLUS)",
+  "empty_elements": 0
+ },
+ "load_case": {
+  "source": "without_scaffold.inp (*CLOAD written by Update_model.cpp) and model_sablon.inp (*RIGID BODY, *BOUNDARY)",
+  "axial_force": {
+   "value_N": 823.0,
+   "vector_model_N": [
+    0.0,
+    0.0,
+    -823.0
+   ],
+   "vector_scene_N": [
+    0.0,
+    -823.0,
+    0.0
+   ],
+   "application_point_model_mm": [
+    0.0,
+    0.0,
+    120.0
+   ],
+   "application_point_scene_mm": [
+    0.0,
+    100.0,
+    0.0
+   ],
+   "note": "CLOAD on node REF (93414), DOF 3: -823.0 N along the bone axis, i.e. compression pushing the proximal end towards the clamp. REF is the reference node of a rigid body over the whole proximal end face (node set PROKSIMAL, 200 nodes at z = 120 mm)."
+  },
+  "bending_moment": {
+   "value_Nmm": 9777.0,
+   "axis_model": [
+    0.0,
+    1.0,
+    0.0
+   ],
+   "axis_scene": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "vector_model_Nmm": [
+    0.0,
+    9777.0,
+    0.0
+   ],
+   "vector_scene_Nmm": [
+    0.0,
+    0.0,
+    9777.0
+   ],
+   "application_point_model_mm": [
+    0.0,
+    0.0,
+    120.0
+   ],
+   "application_point_scene_mm": [
+    0.0,
+    100.0,
+    0.0
+   ],
+   "note": "CLOAD on the rotational node ROT (93415), DOF 2 = rotation about +y: 9777.0 N mm (right-hand rule) on the proximal rigid body. It bends the bone in the model x-z plane (scene x-y plane): sideways, perpendicular to the cut plane x = 0 and parallel to the plate surface."
+  },
+  "clamp": {
+   "end": "distal",
+   "node_set": "DISTAL",
+   "n_nodes": 200,
+   "z_model_mm": -80.0,
+   "face_centre_model_mm": [
+    0.0,
+    0.0,
+    -80.0
+   ],
+   "face_centre_scene_mm": [
+    0.0,
+    -100.0,
+    0.0
+   ],
+   "fixed": "DOF 1-3 of every node on the distal end face (encastre for solid elements)"
+  },
+  "proximal_constraints": {
+   "text": "REF DOF 1, 2 fixed (no lateral translation); ROT DOF 3 fixed (no twist about the bone axis). Free: axial translation and the two bending rotations.",
+   "boundary_cards": [
+    "DISTAL, 1, 3",
+    "REF, 1, 2\nROT, 3, 3"
+   ]
+  },
+  "screws": [
+   {
+    "axis_model": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "radius_mm": 1.75,
+    "head_model_mm": [
+     0.0,
+     14.6,
+     -50.0
+    ],
+    "tip_model_mm": [
+     0.0,
+     -9.5,
+     -50.0
+    ],
+    "head_scene_mm": [
+     0.0,
+     -70.0,
+     14.6
+    ],
+    "tip_scene_mm": [
+     0.0,
+     -70.0,
+     -9.5
+    ],
+    "side": "distal"
+   },
+   {
+    "axis_model": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "radius_mm": 1.75,
+    "head_model_mm": [
+     0.0,
+     14.6,
+     -35.0
+    ],
+    "tip_model_mm": [
+     0.0,
+     -9.5,
+     -35.0
+    ],
+    "head_scene_mm": [
+     0.0,
+     -55.0,
+     14.6
+    ],
+    "tip_scene_mm": [
+     0.0,
+     -55.0,
+     -9.5
+    ],
+    "side": "distal"
+   },
+   {
+    "axis_model": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "radius_mm": 1.75,
+    "head_model_mm": [
+     0.0,
+     14.6,
+     -20.0
+    ],
+    "tip_model_mm": [
+     0.0,
+     -9.5,
+     -20.0
+    ],
+    "head_scene_mm": [
+     0.0,
+     -40.0,
+     14.6
+    ],
+    "tip_scene_mm": [
+     0.0,
+     -40.0,
+     -9.5
+    ],
+    "side": "distal"
+   },
+   {
+    "axis_model": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "radius_mm": 1.75,
+    "head_model_mm": [
+     0.0,
+     14.6,
+     60.0
+    ],
+    "tip_model_mm": [
+     0.0,
+     -9.5,
+     60.0
+    ],
+    "head_scene_mm": [
+     0.0,
+     40.0,
+     14.6
+    ],
+    "tip_scene_mm": [
+     0.0,
+     40.0,
+     -9.5
+    ],
+    "side": "proximal"
+   },
+   {
+    "axis_model": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "radius_mm": 1.75,
+    "head_model_mm": [
+     0.0,
+     14.6,
+     75.0
+    ],
+    "tip_model_mm": [
+     0.0,
+     -9.5,
+     75.0
+    ],
+    "head_scene_mm": [
+     0.0,
+     55.0,
+     14.6
+    ],
+    "tip_scene_mm": [
+     0.0,
+     55.0,
+     -9.5
+    ],
+    "side": "proximal"
+   },
+   {
+    "axis_model": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "radius_mm": 1.75,
+    "head_model_mm": [
+     0.0,
+     14.6,
+     90.0
+    ],
+    "tip_model_mm": [
+     0.0,
+     -9.5,
+     90.0
+    ],
+    "head_scene_mm": [
+     0.0,
+     70.0,
+     14.6
+    ],
+    "tip_scene_mm": [
+     0.0,
+     70.0,
+     -9.5
+    ],
+    "side": "proximal"
+   }
+  ],
+  "plate": {
+   "bbox_model_mm": [
+    [
+     -6.8,
+     9.0,
+     -57.5
+    ],
+    [
+     6.8,
+     14.6,
+     97.5
+    ]
+   ],
+   "bone_facing_surface_y_mm": 9.0,
+   "outer_surface_y_mm": 14.6,
+   "bonded_to_callus": false
+  }
+ },
+ "files": {
+  "surf_cortex_prox.bin": {
+   "kind": "surface",
+   "part": "cortex_prox",
+   "bytes": 412112,
+   "n_vertices": 8470,
+   "n_faces": 16064,
+   "arrays": {
+    "position": {
+     "offset": 0,
+     "dtype": "float32",
+     "shape": [
+      8470,
+      3
+     ],
+     "meaning": "vertex position, mm, model frame"
+    },
+    "normal": {
+     "offset": 101640,
+     "dtype": "float32",
+     "shape": [
+      8470,
+      3
+     ],
+     "meaning": "unit vertex normal, model frame (smooth per part with 40 deg creases; flat +x on cut faces)"
+    },
+    "index": {
+     "offset": 203280,
+     "dtype": "uint32",
+     "shape": [
+      16064,
+      3
+     ],
+     "meaning": "triangle vertex indices, counter-clockwise seen from outside"
+    },
+    "face_tag": {
+     "offset": 396048,
+     "dtype": "uint8",
+     "shape": [
+      16064
+     ],
+     "meaning": "what is on the other side of each triangle (codes.face_tag)"
+    }
+   },
+   "face_groups": [
+    {
+     "tag": 0,
+     "meaning": "free surface (nothing on the other side)",
+     "first_face": 0,
+     "n_faces": 7368
+    },
+    {
+     "tag": 1,
+     "meaning": "against the callus",
+     "first_face": 7368,
+     "n_faces": 1536
+    },
+    {
+     "tag": 3,
+     "meaning": "against the marrow",
+     "first_face": 8904,
+     "n_faces": 4148
+    },
+    {
+     "tag": 5,
+     "meaning": "against a screw",
+     "first_face": 13052,
+     "n_faces": 3012
+    }
+   ],
+   "bbox_mm": [
+    [
+     -7.5,
+     -8.5,
+     35.0
+    ],
+    [
+     7.5,
+     8.5,
+     120.0
+    ]
+   ]
+  },
+  "surf_cortex_prox_half.bin": {
+   "kind": "surface",
+   "part": "cortex_prox_half",
+   "bytes": 313204,
+   "n_vertices": 6730,
+   "n_faces": 11668,
+   "arrays": {
+    "position": {
+     "offset": 0,
+     "dtype": "float32",
+     "shape": [
+      6730,
+      3
+     ],
+     "meaning": "vertex position, mm, model frame"
+    },
+    "normal": {
+     "offset": 80760,
+     "dtype": "float32",
+     "shape": [
+      6730,
+      3
+     ],
+     "meaning": "unit vertex normal, model frame (smooth per part with 40 deg creases; flat +x on cut faces)"
+    },
+    "index": {
+     "offset": 161520,
+     "dtype": "uint32",
+     "shape": [
+      11668,
+      3
+     ],
+     "meaning": "triangle vertex indices, counter-clockwise seen from outside"
+    },
+    "face_tag": {
+     "offset": 301536,
+     "dtype": "uint8",
+     "shape": [
+      11668
+     ],
+     "meaning": "what is on the other side of each triangle (codes.face_tag)"
+    }
+   },
+   "face_groups": [
+    {
+     "tag": 0,
+     "meaning": "free surface (nothing on the other side)",
+     "first_face": 0,
+     "n_faces": 3805
+    },
+    {
+     "tag": 1,
+     "meaning": "against the callus",
+     "first_face": 3805,
+     "n_faces": 782
+    },
+    {
+     "tag": 3,
+     "meaning": "against the marrow",
+     "first_face": 4587,
+     "n_faces": 2251
+    },
+    {
+     "tag": 5,
+     "meaning": "against a screw",
+     "first_face": 6838,
+     "n_faces": 1600
+    },
+    {
+     "tag": 255,
+     "meaning": "flat cut face on the plane x = 0 (normal +x)",
+     "first_face": 8438,
+     "n_faces": 3230
+    }
+   ],
+   "bbox_mm": [
+    [
+     -7.5,
+     -8.5,
+     35.0
+    ],
+    [
+     0.0,
+     8.5,
+     120.0
+    ]
+   ]
+  },
+  "surf_cortex_dist.bin": {
+   "kind": "surface",
+   "part": "cortex_dist",
+   "bytes": 412960,
+   "n_vertices": 8488,
+   "n_faces": 16096,
+   "arrays": {
+    "position": {
+     "offset": 0,
+     "dtype": "float32",
+     "shape": [
+      8488,
+      3
+     ],
+     "meaning": "vertex position, mm, model frame"
+    },
+    "normal": {
+     "offset": 101856,
+     "dtype": "float32",
+     "shape": [
+      8488,
+      3
+     ],
+     "meaning": "unit vertex normal, model frame (smooth per part with 40 deg creases; flat +x on cut faces)"
+    },
+    "index": {
+     "offset": 203712,
+     "dtype": "uint32",
+     "shape": [
+      16096,
+      3
+     ],
+     "meaning": "triangle vertex indices, counter-clockwise seen from outside"
+    },
+    "face_tag": {
+     "offset": 396864,
+     "dtype": "uint8",
+     "shape": [
+      16096
+     ],
+     "meaning": "what is on the other side of each triangle (codes.face_tag)"
+    }
+   },
+   "face_groups": [
+    {
+     "tag": 0,
+     "meaning": "free surface (nothing on the other side)",
+     "first_face": 0,
+     "n_faces": 7376
+    },
+    {
+     "tag": 1,
+     "meaning": "against the callus",
+     "first_face": 7376,
+     "n_faces": 1536
+    },
+    {
+     "tag": 3,
+     "meaning": "against the marrow",
+     "first_face": 8912,
+     "n_faces": 4160
+    },
+    {
+     "tag": 5,
+     "meaning": "against a screw",
+     "first_face": 13072,
+     "n_faces": 3024
+    }
+   ],
+   "bbox_mm": [
+    [
+     -7.5,
+     -8.5,
+     -80.0
+    ],
+    [
+     7.5,
+     8.5,
+     5.0
+    ]
+   ]
+  },
+  "surf_cortex_dist_half.bin": {
+   "kind": "surface",
+   "part": "cortex_dist_half",
+   "bytes": 311604,
+   "n_vertices": 6698,
+   "n_faces": 11604,
+   "arrays": {
+    "position": {
+     "offset": 0,
+     "dtype": "float32",
+     "shape": [
+      6698,
+      3
+     ],
+     "meaning": "vertex position, mm, model frame"
+    },
+    "normal": {
+     "offset": 80376,
+     "dtype": "float32",
+     "shape": [
+      6698,
+      3
+     ],
+     "meaning": "unit vertex normal, model frame (smooth per part with 40 deg creases; flat +x on cut faces)"
+    },
+    "index": {
+     "offset": 160752,
+     "dtype": "uint32",
+     "shape": [
+      11604,
+      3
+     ],
+     "meaning": "triangle vertex indices, counter-clockwise seen from outside"
+    },
+    "face_tag": {
+     "offset": 300000,
+     "dtype": "uint8",
+     "shape": [
+      11604
+     ],
+     "meaning": "what is on the other side of each triangle (codes.face_tag)"
+    }
+   },
+   "face_groups": [
+    {
+     "tag": 0,
+     "meaning": "free surface (nothing on the other side)",
+     "first_face": 0,
+     "n_faces": 3853
+    },
+    {
+     "tag": 1,
+     "meaning": "against the callus",
+     "first_face": 3853,
+     "n_faces": 786
+    },
+    {
+     "tag": 3,
+     "meaning": "against the marrow",
+     "first_face": 4639,
+     "n_faces": 2221
+    },
+    {
+     "tag": 5,
+     "meaning": "against a screw",
+     "first_face": 6860,
+     "n_faces": 1610
+    },
+    {
+     "tag": 255,
+     "meaning": "flat cut face on the plane x = 0 (normal +x)",
+     "first_face": 8470,
+     "n_faces": 3134
+    }
+   ],
+   "bbox_mm": [
+    [
+     -7.5,
+     -8.5,
+     -80.0
+    ],
+    [
+     0.0,
+     8.5,
+     5.0
+    ]
+   ]
+  },
+  "surf_marrow_prox.bin": {
+   "kind": "surface",
+   "part": "marrow_prox",
+   "bytes": 183456,
+   "n_vertices": 3770,
+   "n_faces": 7152,
+   "arrays": {
+    "position": {
+     "offset": 0,
+     "dtype": "float32",
+     "shape": [
+      3770,
+      3
+     ],
+     "meaning": "vertex position, mm, model frame"
+    },
+    "normal": {
+     "offset": 45240,
+     "dtype": "float32",
+     "shape": [
+      3770,
+      3
+     ],
+     "meaning": "unit vertex normal, model frame (smooth per part with 40 deg creases; flat +x on cut faces)"
+    },
+    "index": {
+     "offset": 90480,
+     "dtype": "uint32",
+     "shape": [
+      7152,
+      3
+     ],
+     "meaning": "triangle vertex indices, counter-clockwise seen from outside"
+    },
+    "face_tag": {
+     "offset": 176304,
+     "dtype": "uint8",
+     "shape": [
+      7152
+     ],
+     "meaning": "what is on the other side of each triangle (codes.face_tag)"
+    }
+   },
+   "face_groups": [
+    {
+     "tag": 0,
+     "meaning": "free surface (nothing on the other side)",
+     "first_face": 0,
+     "n_faces": 84
+    },
+    {
+     "tag": 1,
+     "meaning": "against the callus",
+     "first_face": 84,
+     "n_faces": 216
+    },
+    {
+     "tag": 2,
+     "meaning": "against the cortex",
+     "first_face": 300,
+     "n_faces": 4148
+    },
+    {
+     "tag": 5,
+     "meaning": "against a screw",
+     "first_face": 4448,
+     "n_faces": 2704
+    }
+   ],
+   "bbox_mm": [
+    [
+     -3.75,
+     -4.4,
+     35.0
+    ],
+    [
+     3.75,
+     4.4,
+     120.0
+    ]
+   ]
+  },
+  "surf_marrow_prox_half.bin": {
+   "kind": "surface",
+   "part": "marrow_prox_half",
+   "bytes": 224378,
+   "n_vertices": 4772,
+   "n_faces": 8450,
+   "arrays": {
+    "position": {
+     "offset": 0,
+     "dtype": "float32",
+     "shape": [
+      4772,
+      3
+     ],
+     "meaning": "vertex position, mm, model frame"
+    },
+    "normal": {
+     "offset": 57264,
+     "dtype": "float32",
+     "shape": [
+      4772,
+      3
+     ],
+     "meaning": "unit vertex normal, model frame (smooth per part with 40 deg creases; flat +x on cut faces)"
+    },
+    "index": {
+     "offset": 114528,
+     "dtype": "uint32",
+     "shape": [
+      8450,
+      3
+     ],
+     "meaning": "triangle vertex indices, counter-clockwise seen from outside"
+    },
+    "face_tag": {
+     "offset": 215928,
+     "dtype": "uint8",
+     "shape": [
+      8450
+     ],
+     "meaning": "what is on the other side of each triangle (codes.face_tag)"
+    }
+   },
+   "face_groups": [
+    {
+     "tag": 0,
+     "meaning": "free surface (nothing on the other side)",
+     "first_face": 0,
+     "n_faces": 57
+    },
+    {
+     "tag": 1,
+     "meaning": "against the callus",
+     "first_face": 57,
+     "n_faces": 125
+    },
+    {
+     "tag": 2,
+     "meaning": "against the cortex",
+     "first_face": 182,
+     "n_faces": 2251
+    },
+    {
+     "tag": 5,
+     "meaning": "against a screw",
+     "first_face": 2433,
+     "n_faces": 1473
+    },
+    {
+     "tag": 255,
+     "meaning": "flat cut face on the plane x = 0 (normal +x)",
+     "first_face": 3906,
+     "n_faces": 4544
+    }
+   ],
+   "bbox_mm": [
+    [
+     -3.75,
+     -4.4,
+     35.0
+    ],
+    [
+     0.0,
+     4.4,
+     120.0
+    ]
+   ]
+  },
+  "surf_marrow_dist.bin": {
+   "kind": "surface",
+   "part": "marrow_dist",
+   "bytes": 183904,
+   "n_vertices": 3780,
+   "n_faces": 7168,
+   "arrays": {
+    "position": {
+     "offset": 0,
+     "dtype": "float32",
+     "shape": [
+      3780,
+      3
+     ],
+     "meaning": "vertex position, mm, model frame"
+    },
+    "normal": {
+     "offset": 45360,
+     "dtype": "float32",
+     "shape": [
+      3780,
+      3
+     ],
+     "meaning": "unit vertex normal, model frame (smooth per part with 40 deg creases; flat +x on cut faces)"
+    },
+    "index": {
+     "offset": 90720,
+     "dtype": "uint32",
+     "shape": [
+      7168,
+      3
+     ],
+     "meaning": "triangle vertex indices, counter-clockwise seen from outside"
+    },
+    "face_tag": {
+     "offset": 176736,
+     "dtype": "uint8",
+     "shape": [
+      7168
+     ],
+     "meaning": "what is on the other side of each triangle (codes.face_tag)"
+    }
+   },
+   "face_groups": [
+    {
+     "tag": 0,
+     "meaning": "free surface (nothing on the other side)",
+     "first_face": 0,
+     "n_faces": 84
+    },
+    {
+     "tag": 1,
+     "meaning": "against the callus",
+     "first_face": 84,
+     "n_faces": 216
+    },
+    {
+     "tag": 2,
+     "meaning": "against the cortex",
+     "first_face": 300,
+     "n_faces": 4160
+    },
+    {
+     "tag": 5,
+     "meaning": "against a screw",
+     "first_face": 4460,
+     "n_faces": 2708
+    }
+   ],
+   "bbox_mm": [
+    [
+     -3.75,
+     -4.4,
+     -80.0
+    ],
+    [
+     3.75,
+     4.4,
+     5.0
+    ]
+   ]
+  },
+  "surf_marrow_dist_half.bin": {
+   "kind": "surface",
+   "part": "marrow_dist_half",
+   "bytes": 222630,
+   "n_vertices": 4736,
+   "n_faces": 8382,
+   "arrays": {
+    "position": {
+     "offset": 0,
+     "dtype": "float32",
+     "shape": [
+      4736,
+      3
+     ],
+     "meaning": "vertex position, mm, model frame"
+    },
+    "normal": {
+     "offset": 56832,
+     "dtype": "float32",
+     "shape": [
+      4736,
+      3
+     ],
+     "meaning": "unit vertex normal, model frame (smooth per part with 40 deg creases; flat +x on cut faces)"
+    },
+    "index": {
+     "offset": 113664,
+     "dtype": "uint32",
+     "shape": [
+      8382,
+      3
+     ],
+     "meaning": "triangle vertex indices, counter-clockwise seen from outside"
+    },
+    "face_tag": {
+     "offset": 214248,
+     "dtype": "uint8",
+     "shape": [
+      8382
+     ],
+     "meaning": "what is on the other side of each triangle (codes.face_tag)"
+    }
+   },
+   "face_groups": [
+    {
+     "tag": 0,
+     "meaning": "free surface (nothing on the other side)",
+     "first_face": 0,
+     "n_faces": 57
+    },
+    {
+     "tag": 1,
+     "meaning": "against the callus",
+     "first_face": 57,
+     "n_faces": 125
+    },
+    {
+     "tag": 2,
+     "meaning": "against the cortex",
+     "first_face": 182,
+     "n_faces": 2221
+    },
+    {
+     "tag": 5,
+     "meaning": "against a screw",
+     "first_face": 2403,
+     "n_faces": 1463
+    },
+    {
+     "tag": 255,
+     "meaning": "flat cut face on the plane x = 0 (normal +x)",
+     "first_face": 3866,
+     "n_faces": 4516
+    }
+   ],
+   "bbox_mm": [
+    [
+     -3.75,
+     -4.4,
+     -80.0
+    ],
+    [
+     0.0,
+     4.4,
+     5.0
+    ]
+   ]
+  },
+  "surf_plate.bin": {
+   "kind": "surface",
+   "part": "plate",
+   "bytes": 443464,
+   "n_vertices": 9330,
+   "n_faces": 16888,
+   "arrays": {
+    "position": {
+     "offset": 0,
+     "dtype": "float32",
+     "shape": [
+      9330,
+      3
+     ],
+     "meaning": "vertex position, mm, model frame"
+    },
+    "normal": {
+     "offset": 111960,
+     "dtype": "float32",
+     "shape": [
+      9330,
+      3
+     ],
+     "meaning": "unit vertex normal, model frame (smooth per part with 40 deg creases; flat +x on cut faces)"
+    },
+    "index": {
+     "offset": 223920,
+     "dtype": "uint32",
+     "shape": [
+      16888,
+      3
+     ],
+     "meaning": "triangle vertex indices, counter-clockwise seen from outside"
+    },
+    "face_tag": {
+     "offset": 426576,
+     "dtype": "uint8",
+     "shape": [
+      16888
+     ],
+     "meaning": "what is on the other side of each triangle (codes.face_tag)"
+    }
+   },
+   "face_groups": [
+    {
+     "tag": 0,
+     "meaning": "free surface (nothing on the other side)",
+     "first_face": 0,
+     "n_faces": 10136
+    },
+    {
+     "tag": 1,
+     "meaning": "against the callus",
+     "first_face": 10136,
+     "n_faces": 2944
+    },
+    {
+     "tag": 5,
+     "meaning": "against a screw",
+     "first_face": 13080,
+     "n_faces": 3808
+    }
+   ],
+   "bbox_mm": [
+    [
+     -6.8,
+     9.0,
+     -57.5
+    ],
+    [
+     6.8,
+     14.6,
+     97.5
+    ]
+   ]
+  },
+  "surf_plate_half.bin": {
+   "kind": "surface",
+   "part": "plate_half",
+   "bytes": 389004,
+   "n_vertices": 8415,
+   "n_faces": 14388,
+   "arrays": {
+    "position": {
+     "offset": 0,
+     "dtype": "float32",
+     "shape": [
+      8415,
+      3
+     ],
+     "meaning": "vertex position, mm, model frame"
+    },
+    "normal": {
+     "offset": 100980,
+     "dtype": "float32",
+     "shape": [
+      8415,
+      3
+     ],
+     "meaning": "unit vertex normal, model frame (smooth per part with 40 deg creases; flat +x on cut faces)"
+    },
+    "index": {
+     "offset": 201960,
+     "dtype": "uint32",
+     "shape": [
+      14388,
+      3
+     ],
+     "meaning": "triangle vertex indices, counter-clockwise seen from outside"
+    },
+    "face_tag": {
+     "offset": 374616,
+     "dtype": "uint8",
+     "shape": [
+      14388
+     ],
+     "meaning": "what is on the other side of each triangle (codes.face_tag)"
+    }
+   },
+   "face_groups": [
+    {
+     "tag": 0,
+     "meaning": "free surface (nothing on the other side)",
+     "first_face": 0,
+     "n_faces": 5480
+    },
+    {
+     "tag": 1,
+     "meaning": "against the callus",
+     "first_face": 5480,
+     "n_faces": 1569
+    },
+    {
+     "tag": 5,
+     "meaning": "against a screw",
+     "first_face": 7049,
+     "n_faces": 2002
+    },
+    {
+     "tag": 255,
+     "meaning": "flat cut face on the plane x = 0 (normal +x)",
+     "first_face": 9051,
+     "n_faces": 5337
+    }
+   ],
+   "bbox_mm": [
+    [
+     -6.8,
+     9.0,
+     -57.5
+    ],
+    [
+     0.0,
+     14.6,
+     97.5
+    ]
+   ]
+  },
+  "surf_screws.bin": {
+   "kind": "surface",
+   "part": "screws",
+   "bytes": 460824,
+   "n_vertices": 9360,
+   "n_faces": 18168,
+   "arrays": {
+    "position": {
+     "offset": 0,
+     "dtype": "float32",
+     "shape": [
+      9360,
+      3
+     ],
+     "meaning": "vertex position, mm, model frame"
+    },
+    "normal": {
+     "offset": 112320,
+     "dtype": "float32",
+     "shape": [
+      9360,
+      3
+     ],
+     "meaning": "unit vertex normal, model frame (smooth per part with 40 deg creases; flat +x on cut faces)"
+    },
+    "index": {
+     "offset": 224640,
+     "dtype": "uint32",
+     "shape": [
+      18168,
+      3
+     ],
+     "meaning": "triangle vertex indices, counter-clockwise seen from outside"
+    },
+    "face_tag": {
+     "offset": 442656,
+     "dtype": "uint8",
+     "shape": [
+      18168
+     ],
+     "meaning": "what is on the other side of each triangle (codes.face_tag)"
+    }
+   },
+   "face_groups": [
+    {
+     "tag": 0,
+     "meaning": "free surface (nothing on the other side)",
+     "first_face": 0,
+     "n_faces": 2912
+    },
+    {
+     "tag": 2,
+     "meaning": "against the cortex",
+     "first_face": 2912,
+     "n_faces": 6036
+    },
+    {
+     "tag": 3,
+     "meaning": "against the marrow",
+     "first_face": 8948,
+     "n_faces": 5412
+    },
+    {
+     "tag": 4,
+     "meaning": "against the plate (contact only, the callus is not bonded to it)",
+     "first_face": 14360,
+     "n_faces": 3808
+    }
+   ],
+   "bbox_mm": [
+    [
+     -1.75,
+     -9.5,
+     -51.75
+    ],
+    [
+     1.75,
+     14.6,
+     91.75
+    ]
+   ]
+  },
+  "surf_screws_half.bin": {
+   "kind": "surface",
+   "part": "screws_half",
+   "bytes": 637676,
+   "n_vertices": 13416,
+   "n_faces": 24284,
+   "arrays": {
+    "position": {
+     "offset": 0,
+     "dtype": "float32",
+     "shape": [
+      13416,
+      3
+     ],
+     "meaning": "vertex position, mm, model frame"
+    },
+    "normal": {
+     "offset": 160992,
+     "dtype": "float32",
+     "shape": [
+      13416,
+      3
+     ],
+     "meaning": "unit vertex normal, model frame (smooth per part with 40 deg creases; flat +x on cut faces)"
+    },
+    "index": {
+     "offset": 321984,
+     "dtype": "uint32",
+     "shape": [
+      24284,
+      3
+     ],
+     "meaning": "triangle vertex indices, counter-clockwise seen from outside"
+    },
+    "face_tag": {
+     "offset": 613392,
+     "dtype": "uint8",
+     "shape": [
+      24284
+     ],
+     "meaning": "what is on the other side of each triangle (codes.face_tag)"
+    }
+   },
+   "face_groups": [
+    {
+     "tag": 0,
+     "meaning": "free surface (nothing on the other side)",
+     "first_face": 0,
+     "n_faces": 1634
+    },
+    {
+     "tag": 2,
+     "meaning": "against the cortex",
+     "first_face": 1634,
+     "n_faces": 3210
+    },
+    {
+     "tag": 3,
+     "meaning": "against the marrow",
+     "first_face": 4844,
+     "n_faces": 2936
+    },
+    {
+     "tag": 4,
+     "meaning": "against the plate (contact only, the callus is not bonded to it)",
+     "first_face": 7780,
+     "n_faces": 2002
+    },
+    {
+     "tag": 255,
+     "meaning": "flat cut face on the plane x = 0 (normal +x)",
+     "first_face": 9782,
+     "n_faces": 14502
+    }
+   ],
+   "bbox_mm": [
+    [
+     -1.75,
+     -9.5,
+     -51.75
+    ],
+    [
+     0.0,
+     14.6,
+     91.75
+    ]
+   ]
+  },
+  "surf_callus_hull.bin": {
+   "kind": "surface",
+   "part": "callus_hull",
+   "bytes": 593712,
+   "n_vertices": 10594,
+   "n_faces": 19968,
+   "arrays": {
+    "position": {
+     "offset": 0,
+     "dtype": "float32",
+     "shape": [
+      10594,
+      3
+     ],
+     "meaning": "vertex position, mm, model frame"
+    },
+    "normal": {
+     "offset": 127128,
+     "dtype": "float32",
+     "shape": [
+      10594,
+      3
+     ],
+     "meaning": "unit vertex normal, model frame (smooth per part with 40 deg creases; flat +x on cut faces)"
+    },
+    "index": {
+     "offset": 254256,
+     "dtype": "uint32",
+     "shape": [
+      19968,
+      3
+     ],
+     "meaning": "triangle vertex indices, counter-clockwise seen from outside"
+    },
+    "element": {
+     "offset": 493872,
+     "dtype": "uint32",
+     "shape": [
+      19968
+     ],
+     "meaning": "callus element of each triangle: 0-based row of elem_*.bin (= C3D10 label - 1)"
+    },
+    "face_tag": {
+     "offset": 573744,
+     "dtype": "uint8",
+     "shape": [
+      19968
+     ],
+     "meaning": "what is on the other side of each triangle (codes.face_tag)"
+    }
+   },
+   "face_groups": [
+    {
+     "tag": 0,
+     "meaning": "free surface (nothing on the other side)",
+     "first_face": 0,
+     "n_faces": 13520
+    },
+    {
+     "tag": 2,
+     "meaning": "against the cortex",
+     "first_face": 13520,
+     "n_faces": 3072
+    },
+    {
+     "tag": 3,
+     "meaning": "against the marrow",
+     "first_face": 16592,
+     "n_faces": 432
+    },
+    {
+     "tag": 4,
+     "meaning": "against the plate (contact only, the callus is not bonded to it)",
+     "first_face": 17024,
+     "n_faces": 2944
+    }
+   ],
+   "bbox_mm": [
+    [
+     -18.0,
+     -18.0,
+     0.0
+    ],
+    [
+     18.0,
+     16.6661,
+     40.0
+    ]
+   ]
+  },
+  "surf_callus_hull_half.bin": {
+   "kind": "surface",
+   "part": "callus_hull_half",
+   "bytes": 305003,
+   "n_vertices": 5521,
+   "n_faces": 10147,
+   "arrays": {
+    "position": {
+     "offset": 0,
+     "dtype": "float32",
+     "shape": [
+      5521,
+      3
+     ],
+     "meaning": "vertex position, mm, model frame"
+    },
+    "normal": {
+     "offset": 66252,
+     "dtype": "float32",
+     "shape": [
+      5521,
+      3
+     ],
+     "meaning": "unit vertex normal, model frame (smooth per part with 40 deg creases; flat +x on cut faces)"
+    },
+    "index": {
+     "offset": 132504,
+     "dtype": "uint32",
+     "shape": [
+      10147,
+      3
+     ],
+     "meaning": "triangle vertex indices, counter-clockwise seen from outside"
+    },
+    "element": {
+     "offset": 254268,
+     "dtype": "uint32",
+     "shape": [
+      10147
+     ],
+     "meaning": "callus element of each triangle: 0-based row of elem_*.bin (= C3D10 label - 1)"
+    },
+    "face_tag": {
+     "offset": 294856,
+     "dtype": "uint8",
+     "shape": [
+      10147
+     ],
+     "meaning": "what is on the other side of each triangle (codes.face_tag)"
+    }
+   },
+   "face_groups": [
+    {
+     "tag": 0,
+     "meaning": "free surface (nothing on the other side)",
+     "first_face": 0,
+     "n_faces": 6760
+    },
+    {
+     "tag": 2,
+     "meaning": "against the cortex",
+     "first_face": 6760,
+     "n_faces": 1568
+    },
+    {
+     "tag": 3,
+     "meaning": "against the marrow",
+     "first_face": 8328,
+     "n_faces": 250
+    },
+    {
+     "tag": 4,
+     "meaning": "against the plate (contact only, the callus is not bonded to it)",
+     "first_face": 8578,
+     "n_faces": 1569
+    }
+   ],
+   "bbox_mm": [
+    [
+     -18.0,
+     -18.0,
+     0.0
+    ],
+    [
+     0.0,
+     16.6661,
+     40.0
+    ]
+   ]
+  },
+  "surf_callus_cut.bin": {
+   "kind": "surface",
+   "part": "callus_cut",
+   "bytes": 230747,
+   "n_vertices": 4059,
+   "n_faces": 7843,
+   "arrays": {
+    "position": {
+     "offset": 0,
+     "dtype": "float32",
+     "shape": [
+      4059,
+      3
+     ],
+     "meaning": "vertex position, mm, model frame"
+    },
+    "normal": {
+     "offset": 48708,
+     "dtype": "float32",
+     "shape": [
+      4059,
+      3
+     ],
+     "meaning": "unit vertex normal, model frame (smooth per part with 40 deg creases; flat +x on cut faces)"
+    },
+    "index": {
+     "offset": 97416,
+     "dtype": "uint32",
+     "shape": [
+      7843,
+      3
+     ],
+     "meaning": "triangle vertex indices, counter-clockwise seen from outside"
+    },
+    "element": {
+     "offset": 191532,
+     "dtype": "uint32",
+     "shape": [
+      7843
+     ],
+     "meaning": "callus element of each triangle: 0-based row of elem_*.bin (= C3D10 label - 1)"
+    },
+    "face_tag": {
+     "offset": 222904,
+     "dtype": "uint8",
+     "shape": [
+      7843
+     ],
+     "meaning": "what is on the other side of each triangle (codes.face_tag)"
+    }
+   },
+   "face_groups": [
+    {
+     "tag": 255,
+     "meaning": "flat cut face on the plane x = 0 (normal +x)",
+     "first_face": 0,
+     "n_faces": 7843
+    }
+   ],
+   "bbox_mm": [
+    [
+     0.0,
+     -18.0,
+     0.0
+    ],
+    [
+     0.0,
+     9.0,
+     40.0
+    ]
+   ]
+  },
+  "elem_centroid.bin": {
+   "kind": "element_field",
+   "dtype": "float32",
+   "shape": [
+    24698,
+    3
+   ],
+   "units": "mm",
+   "meaning": "centroid of each callus element (mean of its 4 corner nodes), model frame",
+   "bytes": 296376
+  },
+  "elem_E_days.bin": {
+   "kind": "element_field",
+   "dtype": "uint16",
+   "shape": [
+    118,
+    24698
+   ],
+   "units": "MPa via mapping",
+   "meaning": "Young's modulus of each callus element in each FE solve (row = fe_days index), rule of mixtures + 10-day average of Update_model.cpp, log-mapped to uint16",
+   "bytes": 5828728,
+   "decode": {
+    "formula": "E_MPa = 0.2 * Math.pow(17000 / 0.2, q / 65535)",
+    "E_min_MPa": 0.2,
+    "E_max_MPa": 17000.0,
+    "encode": "q = round(65535 * ln(E / 0.2) / ln(17000 / 0.2)), clipped to 0..65535",
+    "max_relative_error": 8.760276609176554e-05,
+    "row_days": "fe_schedule.fe_days"
+   }
+  },
+  "elem_strain_357.bin": {
+   "kind": "element_field",
+   "dtype": "float32",
+   "shape": [
+    24698
+   ],
+   "units": "strain (fraction, 1 = 100 %)",
+   "meaning": "minimum principal strain, mean of the 4 integration points, day-357 solve (signed; negative = compression)",
+   "bytes": 98792
+  },
+  "elem_hp_357.bin": {
+   "kind": "element_field",
+   "dtype": "float32",
+   "shape": [
+    24698
+   ],
+   "units": "MPa",
+   "meaning": "hydrostatic pressure HP = -(s11+s22+s33)/3, mean of the 4 integration points, day-357 solve, compression positive (Read_stimulus.cpp)",
+   "bytes": 98792
+  },
+  "elem_class_357.bin": {
+   "kind": "element_field",
+   "dtype": "uint8",
+   "shape": [
+    24698
+   ],
+   "units": "code",
+   "meaning": "Read_stimulus.cpp class of each element from the day-357 solve; drives days 358-359 (codes.stimulus_class)",
+   "bytes": 24698
+  },
+  "vox_days.bin": {
+   "kind": "voxels",
+   "bytes": 77230088,
+   "index": "vox_index.json",
+   "arrays": {
+    "block_index": {
+     "dtype": "uint32",
+     "meaning": "flat block index into voxels.grid"
+    },
+    "code": {
+     "dtype": "uint8",
+     "meaning": "dominant non-empty lattice code of the block (codes.lattice: 1, 2, 4 or 5)"
+    }
+   }
+  },
+  "vox_index.json": {
+   "kind": "index",
+   "meaning": "day -> offset, count and tissue totals of vox_days.bin"
+  }
+ },
+ "verification": {
+  "surface_interfaces": {
+   "KALLUS->KORTEKS": 3072,
+   "KALLUS->ILIK": 432,
+   "KALLUS->PLAK": 2944,
+   "KORTEKS->KALLUS": 3072,
+   "KORTEKS->ILIK": 8308,
+   "KORTEKS->VIDA": 6036,
+   "ILIK->KALLUS": 432,
+   "ILIK->KORTEKS": 8308,
+   "ILIK->VIDA": 5412,
+   "PLAK->KALLUS": 2944,
+   "PLAK->VIDA": 3808,
+   "VIDA->KORTEKS": 6036,
+   "VIDA->ILIK": 5412,
+   "VIDA->PLAK": 3808
+  },
+  "surface_geometry": {
+   "cortex_prox": {
+    "open_edges": 0,
+    "open_edges_half_with_cut": 0,
+    "volume_mm3": 12378.471,
+    "volume_rel_diff_vs_tetrahedra": 4.440892098500626e-16,
+    "half_over_full_volume": 0.49996
+   },
+   "cortex_dist": {
+    "open_edges": 0,
+    "open_edges_half_with_cut": 0,
+    "volume_mm3": 12378.512,
+    "volume_rel_diff_vs_tetrahedra": 2.220446049250313e-16,
+    "half_over_full_volume": 0.50003
+   },
+   "marrow_prox": {
+    "open_edges": 0,
+    "open_edges_half_with_cut": 0,
+    "volume_mm3": 4116.302,
+    "volume_rel_diff_vs_tetrahedra": 0.0,
+    "half_over_full_volume": 0.50002
+   },
+   "marrow_dist": {
+    "open_edges": 0,
+    "open_edges_half_with_cut": 0,
+    "volume_mm3": 4116.692,
+    "volume_rel_diff_vs_tetrahedra": 2.220446049250313e-16,
+    "half_over_full_volume": 0.49997
+   },
+   "plate": {
+    "open_edges": 0,
+    "open_edges_half_with_cut": 0,
+    "volume_mm3": 11484.681,
+    "volume_rel_diff_vs_tetrahedra": 4.440892098500626e-16,
+    "half_over_full_volume": 0.5
+   },
+   "screws": {
+    "open_edges": 0,
+    "open_edges_half_with_cut": 0,
+    "volume_mm3": 1377.783,
+    "volume_rel_diff_vs_tetrahedra": 0.0,
+    "half_over_full_volume": 0.49999
+   },
+   "callus_hull": {
+    "open_edges": 0,
+    "open_edges_half_with_cut": 0,
+    "volume_mm3": 24889.722,
+    "volume_rel_diff_vs_tetrahedra": 3.3306690738754696e-16,
+    "half_over_full_volume": 0.5
+   }
+  },
+  "callus_cut_max_abs_x_mm": 0.0,
+  "lattice_element_map_vs_kesit_eleman_bin": "0 differing points on the 3 planes",
+  "daily_modulus_vs_site_stages": "day 357: identical bits for all 24698 elements",
+  "E_nu_vs_without_scaffold_inp": "day 358: 0 of 24698 elements differ (text of E, nu)",
+  "E_uint16_roundtrip_max_relative_error": 8.760276609176554e-05,
+  "E_outside_mapping_range": 0,
+  "class_vs_stimulus_bin": "stimulus_358.bin (the day-357 solve): 0 of 24698 differ",
+  "voxel_lattice_totals_vs_istatistik_csv": "all 121 sampled days: the per-code lattice point counts inside the callus equal istatistik.csv exactly",
+  "voxel_block_volume_over_istatistik_volume": {
+   "0": {
+    "stem_cell": 3.4316,
+    "bone": null,
+    "chondrocyte": null,
+    "fibroblast": null
+   },
+   "30": {
+    "stem_cell": 1.3178,
+    "bone": 0.9935,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.172
+   },
+   "90": {
+    "stem_cell": 1.1815,
+    "bone": 0.9734,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.1015
+   },
+   "180": {
+    "stem_cell": 1.1145,
+    "bone": 0.973,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.0925
+   },
+   "357": {
+    "stem_cell": 1.0697,
+    "bone": 1.1204,
+    "chondrocyte": 0.4594,
+    "fibroblast": 0.7251
+   },
+   "359": {
+    "stem_cell": 1.0694,
+    "bone": 1.1216,
+    "chondrocyte": 0.4623,
+    "fibroblast": 0.7442
+   }
+  }
+ }
+}

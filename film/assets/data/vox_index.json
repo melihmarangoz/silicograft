@@ -1,0 +1,2790 @@
+{
+ "file": "vox_days.bin",
+ "layout": "for each day: uint32 block_index[count] at offset, then uint8 code[count] at code_offset, then zero padding to a multiple of 4 bytes; offsets in bytes from the start of the file",
+ "grid": "manifest.voxels.grid",
+ "days": {
+  "0": {
+   "offset": 0,
+   "count": 5699,
+   "code_offset": 22796,
+   "blocks_per_code": {
+    "stem_cell": 5699,
+    "bone": 0,
+    "chondrocyte": 0,
+    "fibroblast": 0
+   },
+   "block_volume_mm3": {
+    "stem_cell": 153.873,
+    "bone": 0.0,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.0
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 44.84,
+    "bone": 0.0,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.0
+   }
+  },
+  "3": {
+   "offset": 28496,
+   "count": 9869,
+   "code_offset": 67972,
+   "blocks_per_code": {
+    "stem_cell": 9869,
+    "bone": 0,
+    "chondrocyte": 0,
+    "fibroblast": 0
+   },
+   "block_volume_mm3": {
+    "stem_cell": 266.463,
+    "bone": 0.0,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.0
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 131.557,
+    "bone": 0.0,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.0
+   }
+  },
+  "6": {
+   "offset": 77844,
+   "count": 14633,
+   "code_offset": 136376,
+   "blocks_per_code": {
+    "stem_cell": 14557,
+    "bone": 76,
+    "chondrocyte": 0,
+    "fibroblast": 0
+   },
+   "block_volume_mm3": {
+    "stem_cell": 393.039,
+    "bone": 2.052,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.0
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 224.089,
+    "bone": 9.856,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.0
+   }
+  },
+  "9": {
+   "offset": 151012,
+   "count": 19340,
+   "code_offset": 228372,
+   "blocks_per_code": {
+    "stem_cell": 18775,
+    "bone": 565,
+    "chondrocyte": 0,
+    "fibroblast": 0
+   },
+   "block_volume_mm3": {
+    "stem_cell": 506.925,
+    "bone": 15.255,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.0
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 328.093,
+    "bone": 19.802,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.0
+   }
+  },
+  "12": {
+   "offset": 247712,
+   "count": 24693,
+   "code_offset": 346484,
+   "blocks_per_code": {
+    "stem_cell": 22909,
+    "bone": 1736,
+    "chondrocyte": 17,
+    "fibroblast": 31
+   },
+   "block_volume_mm3": {
+    "stem_cell": 618.543,
+    "bone": 46.872,
+    "chondrocyte": 0.459,
+    "fibroblast": 0.837
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 427.107,
+    "bone": 43.549,
+    "chondrocyte": 0.525,
+    "fibroblast": 0.982
+   }
+  },
+  "15": {
+   "offset": 371180,
+   "count": 28843,
+   "code_offset": 486552,
+   "blocks_per_code": {
+    "stem_cell": 27044,
+    "bone": 1770,
+    "chondrocyte": 9,
+    "fibroblast": 20
+   },
+   "block_volume_mm3": {
+    "stem_cell": 730.188,
+    "bone": 47.79,
+    "chondrocyte": 0.243,
+    "fibroblast": 0.54
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 520.262,
+    "bone": 47.977,
+    "chondrocyte": 0.392,
+    "fibroblast": 0.864
+   }
+  },
+  "18": {
+   "offset": 515396,
+   "count": 30305,
+   "code_offset": 636616,
+   "blocks_per_code": {
+    "stem_cell": 28604,
+    "bone": 1684,
+    "chondrocyte": 2,
+    "fibroblast": 15
+   },
+   "block_volume_mm3": {
+    "stem_cell": 772.308,
+    "bone": 45.468,
+    "chondrocyte": 0.054,
+    "fibroblast": 0.405
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 556.461,
+    "bone": 46.52,
+    "chondrocyte": 0.297,
+    "fibroblast": 0.761
+   }
+  },
+  "21": {
+   "offset": 666924,
+   "count": 31708,
+   "code_offset": 793756,
+   "blocks_per_code": {
+    "stem_cell": 29996,
+    "bone": 1703,
+    "chondrocyte": 1,
+    "fibroblast": 8
+   },
+   "block_volume_mm3": {
+    "stem_cell": 809.892,
+    "bone": 45.981,
+    "chondrocyte": 0.027,
+    "fibroblast": 0.216
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 593.42,
+    "bone": 46.96,
+    "chondrocyte": 0.224,
+    "fibroblast": 0.674
+   }
+  },
+  "24": {
+   "offset": 825464,
+   "count": 33133,
+   "code_offset": 957996,
+   "blocks_per_code": {
+    "stem_cell": 31357,
+    "bone": 1771,
+    "chondrocyte": 1,
+    "fibroblast": 4
+   },
+   "block_volume_mm3": {
+    "stem_cell": 846.639,
+    "bone": 47.817,
+    "chondrocyte": 0.027,
+    "fibroblast": 0.108
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 630.109,
+    "bone": 48.093,
+    "chondrocyte": 0.171,
+    "fibroblast": 0.597
+   }
+  },
+  "27": {
+   "offset": 991132,
+   "count": 34661,
+   "code_offset": 1129776,
+   "blocks_per_code": {
+    "stem_cell": 32813,
+    "bone": 1844,
+    "chondrocyte": 0,
+    "fibroblast": 4
+   },
+   "block_volume_mm3": {
+    "stem_cell": 885.951,
+    "bone": 49.788,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.108
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 666.491,
+    "bone": 49.984,
+    "chondrocyte": 0.132,
+    "fibroblast": 0.528
+   }
+  },
+  "30": {
+   "offset": 1164440,
+   "count": 36229,
+   "code_offset": 1309356,
+   "blocks_per_code": {
+    "stem_cell": 34297,
+    "bone": 1929,
+    "chondrocyte": 0,
+    "fibroblast": 3
+   },
+   "block_volume_mm3": {
+    "stem_cell": 926.019,
+    "bone": 52.083,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.081
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 702.688,
+    "bone": 52.422,
+    "chondrocyte": 0.109,
+    "fibroblast": 0.471
+   }
+  },
+  "33": {
+   "offset": 1345588,
+   "count": 37755,
+   "code_offset": 1496608,
+   "blocks_per_code": {
+    "stem_cell": 35698,
+    "bone": 2055,
+    "chondrocyte": 0,
+    "fibroblast": 2
+   },
+   "block_volume_mm3": {
+    "stem_cell": 963.846,
+    "bone": 55.485,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.054
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 738.791,
+    "bone": 55.476,
+    "chondrocyte": 0.088,
+    "fibroblast": 0.429
+   }
+  },
+  "36": {
+   "offset": 1534364,
+   "count": 39284,
+   "code_offset": 1691500,
+   "blocks_per_code": {
+    "stem_cell": 37093,
+    "bone": 2189,
+    "chondrocyte": 0,
+    "fibroblast": 2
+   },
+   "block_volume_mm3": {
+    "stem_cell": 1001.511,
+    "bone": 59.103,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.054
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 774.974,
+    "bone": 58.568,
+    "chondrocyte": 0.069,
+    "fibroblast": 0.395
+   }
+  },
+  "39": {
+   "offset": 1730784,
+   "count": 40809,
+   "code_offset": 1894020,
+   "blocks_per_code": {
+    "stem_cell": 38494,
+    "bone": 2313,
+    "chondrocyte": 0,
+    "fibroblast": 2
+   },
+   "block_volume_mm3": {
+    "stem_cell": 1039.338,
+    "bone": 62.451,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.054
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 811.374,
+    "bone": 61.845,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.362
+   }
+  },
+  "42": {
+   "offset": 1934832,
+   "count": 42346,
+   "code_offset": 2104216,
+   "blocks_per_code": {
+    "stem_cell": 39942,
+    "bone": 2402,
+    "chondrocyte": 0,
+    "fibroblast": 2
+   },
+   "block_volume_mm3": {
+    "stem_cell": 1078.434,
+    "bone": 64.854,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.054
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 848.013,
+    "bone": 64.931,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.332
+   }
+  },
+  "45": {
+   "offset": 2146564,
+   "count": 43864,
+   "code_offset": 2322020,
+   "blocks_per_code": {
+    "stem_cell": 41348,
+    "bone": 2515,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 1116.396,
+    "bone": 67.905,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 885.105,
+    "bone": 67.502,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.303
+   }
+  },
+  "48": {
+   "offset": 2365884,
+   "count": 45446,
+   "code_offset": 2547668,
+   "blocks_per_code": {
+    "stem_cell": 42828,
+    "bone": 2617,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 1156.356,
+    "bone": 70.659,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 922.626,
+    "bone": 70.111,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.279
+   }
+  },
+  "51": {
+   "offset": 2593116,
+   "count": 47087,
+   "code_offset": 2781464,
+   "blocks_per_code": {
+    "stem_cell": 44373,
+    "bone": 2713,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 1198.071,
+    "bone": 73.251,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 960.193,
+    "bone": 73.041,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.269
+   }
+  },
+  "54": {
+   "offset": 2828552,
+   "count": 48698,
+   "code_offset": 3023344,
+   "blocks_per_code": {
+    "stem_cell": 45869,
+    "bone": 2828,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 1238.463,
+    "bone": 76.356,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 998.327,
+    "bone": 76.446,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.266
+   }
+  },
+  "57": {
+   "offset": 3072044,
+   "count": 50350,
+   "code_offset": 3273444,
+   "blocks_per_code": {
+    "stem_cell": 47410,
+    "bone": 2939,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 1280.07,
+    "bone": 79.353,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 1036.672,
+    "bone": 79.539,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.266
+   }
+  },
+  "60": {
+   "offset": 3323796,
+   "count": 51969,
+   "code_offset": 3531672,
+   "blocks_per_code": {
+    "stem_cell": 48916,
+    "bone": 3052,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 1320.732,
+    "bone": 82.404,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 1075.601,
+    "bone": 82.55,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.266
+   }
+  },
+  "63": {
+   "offset": 3583644,
+   "count": 53555,
+   "code_offset": 3797864,
+   "blocks_per_code": {
+    "stem_cell": 50400,
+    "bone": 3154,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 1360.8,
+    "bone": 85.158,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 1114.646,
+    "bone": 85.188,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.266
+   }
+  },
+  "66": {
+   "offset": 3851420,
+   "count": 55168,
+   "code_offset": 4072092,
+   "blocks_per_code": {
+    "stem_cell": 51927,
+    "bone": 3240,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 1402.029,
+    "bone": 87.48,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 1154.262,
+    "bone": 87.776,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.266
+   }
+  },
+  "69": {
+   "offset": 4127260,
+   "count": 56879,
+   "code_offset": 4354776,
+   "blocks_per_code": {
+    "stem_cell": 53539,
+    "bone": 3339,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 1445.553,
+    "bone": 90.153,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 1194.065,
+    "bone": 90.474,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.266
+   }
+  },
+  "72": {
+   "offset": 4411656,
+   "count": 58575,
+   "code_offset": 4645956,
+   "blocks_per_code": {
+    "stem_cell": 55119,
+    "bone": 3455,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 1488.213,
+    "bone": 93.285,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 1233.949,
+    "bone": 93.325,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.266
+   }
+  },
+  "75": {
+   "offset": 4704532,
+   "count": 60309,
+   "code_offset": 4945768,
+   "blocks_per_code": {
+    "stem_cell": 56763,
+    "bone": 3545,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 1532.601,
+    "bone": 95.715,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 1274.247,
+    "bone": 96.445,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.266
+   }
+  },
+  "78": {
+   "offset": 5006080,
+   "count": 61993,
+   "code_offset": 5254052,
+   "blocks_per_code": {
+    "stem_cell": 58388,
+    "bone": 3604,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 1576.476,
+    "bone": 97.308,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 1315.094,
+    "bone": 98.688,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.266
+   }
+  },
+  "81": {
+   "offset": 5316048,
+   "count": 63670,
+   "code_offset": 5570728,
+   "blocks_per_code": {
+    "stem_cell": 59988,
+    "bone": 3681,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 1619.676,
+    "bone": 99.387,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 1356.86,
+    "bone": 100.528,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.266
+   }
+  },
+  "84": {
+   "offset": 5634400,
+   "count": 65343,
+   "code_offset": 5895772,
+   "blocks_per_code": {
+    "stem_cell": 61595,
+    "bone": 3747,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 1663.065,
+    "bone": 101.169,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 1398.849,
+    "bone": 102.465,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.266
+   }
+  },
+  "87": {
+   "offset": 5961116,
+   "count": 67006,
+   "code_offset": 6229140,
+   "blocks_per_code": {
+    "stem_cell": 63189,
+    "bone": 3816,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 1706.103,
+    "bone": 103.032,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 1440.579,
+    "bone": 105.209,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.266
+   }
+  },
+  "90": {
+   "offset": 6296148,
+   "count": 68731,
+   "code_offset": 6571072,
+   "blocks_per_code": {
+    "stem_cell": 64882,
+    "bone": 3848,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 1751.814,
+    "bone": 103.896,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 1482.735,
+    "bone": 106.733,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.266
+   }
+  },
+  "93": {
+   "offset": 6639804,
+   "count": 70456,
+   "code_offset": 6921628,
+   "blocks_per_code": {
+    "stem_cell": 66528,
+    "bone": 3927,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 1796.256,
+    "bone": 106.029,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 1524.759,
+    "bone": 109.437,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.266
+   }
+  },
+  "96": {
+   "offset": 6992084,
+   "count": 72232,
+   "code_offset": 7281012,
+   "blocks_per_code": {
+    "stem_cell": 68155,
+    "bone": 4076,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 1840.185,
+    "bone": 110.052,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 1566.645,
+    "bone": 112.477,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.266
+   }
+  },
+  "99": {
+   "offset": 7353244,
+   "count": 73960,
+   "code_offset": 7649084,
+   "blocks_per_code": {
+    "stem_cell": 69780,
+    "bone": 4179,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 1884.06,
+    "bone": 112.833,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 1608.677,
+    "bone": 115.316,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.266
+   }
+  },
+  "102": {
+   "offset": 7723044,
+   "count": 75718,
+   "code_offset": 8025916,
+   "blocks_per_code": {
+    "stem_cell": 71477,
+    "bone": 4240,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 1929.879,
+    "bone": 114.48,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 1651.057,
+    "bone": 117.201,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.266
+   }
+  },
+  "105": {
+   "offset": 8101636,
+   "count": 77359,
+   "code_offset": 8411072,
+   "blocks_per_code": {
+    "stem_cell": 73073,
+    "bone": 4285,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 1972.971,
+    "bone": 115.695,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 1694.083,
+    "bone": 118.637,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.266
+   }
+  },
+  "108": {
+   "offset": 8488432,
+   "count": 79068,
+   "code_offset": 8804704,
+   "blocks_per_code": {
+    "stem_cell": 74736,
+    "bone": 4331,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 2017.872,
+    "bone": 116.937,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 1737.287,
+    "bone": 120.352,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.266
+   }
+  },
+  "111": {
+   "offset": 8883772,
+   "count": 80758,
+   "code_offset": 9206804,
+   "blocks_per_code": {
+    "stem_cell": 76387,
+    "bone": 4370,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 2062.449,
+    "bone": 117.99,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 1780.936,
+    "bone": 122.272,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.266
+   }
+  },
+  "114": {
+   "offset": 9287564,
+   "count": 82533,
+   "code_offset": 9617696,
+   "blocks_per_code": {
+    "stem_cell": 78058,
+    "bone": 4474,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 2107.566,
+    "bone": 120.798,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 1823.709,
+    "bone": 125.19,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.266
+   }
+  },
+  "117": {
+   "offset": 9700232,
+   "count": 84281,
+   "code_offset": 10037356,
+   "blocks_per_code": {
+    "stem_cell": 79714,
+    "bone": 4566,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 2152.278,
+    "bone": 123.282,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 1865.998,
+    "bone": 128.361,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.266
+   }
+  },
+  "120": {
+   "offset": 10121640,
+   "count": 86061,
+   "code_offset": 10465884,
+   "blocks_per_code": {
+    "stem_cell": 81406,
+    "bone": 4654,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 2197.962,
+    "bone": 125.658,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 1908.516,
+    "bone": 130.27,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.266
+   }
+  },
+  "123": {
+   "offset": 10551948,
+   "count": 87783,
+   "code_offset": 10903080,
+   "blocks_per_code": {
+    "stem_cell": 83049,
+    "bone": 4733,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 2242.323,
+    "bone": 127.791,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 1952.24,
+    "bone": 132.161,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.266
+   }
+  },
+  "126": {
+   "offset": 10990864,
+   "count": 89583,
+   "code_offset": 11349196,
+   "blocks_per_code": {
+    "stem_cell": 84856,
+    "bone": 4726,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 2291.112,
+    "bone": 127.602,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 1997.004,
+    "bone": 132.909,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.266
+   }
+  },
+  "129": {
+   "offset": 11438780,
+   "count": 91277,
+   "code_offset": 11803888,
+   "blocks_per_code": {
+    "stem_cell": 86517,
+    "bone": 4759,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 2335.959,
+    "bone": 128.493,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 2042.03,
+    "bone": 134.324,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.266
+   }
+  },
+  "132": {
+   "offset": 11895168,
+   "count": 93036,
+   "code_offset": 12267312,
+   "blocks_per_code": {
+    "stem_cell": 88223,
+    "bone": 4812,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 2382.021,
+    "bone": 129.924,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 2086.893,
+    "bone": 135.642,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.266
+   }
+  },
+  "135": {
+   "offset": 12360348,
+   "count": 94773,
+   "code_offset": 12739440,
+   "blocks_per_code": {
+    "stem_cell": 89865,
+    "bone": 4907,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 2426.355,
+    "bone": 132.489,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 2130.864,
+    "bone": 138.197,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.266
+   }
+  },
+  "138": {
+   "offset": 12834216,
+   "count": 96530,
+   "code_offset": 13220336,
+   "blocks_per_code": {
+    "stem_cell": 91504,
+    "bone": 5025,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 2470.608,
+    "bone": 135.675,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 2174.664,
+    "bone": 140.921,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.266
+   }
+  },
+  "141": {
+   "offset": 13316868,
+   "count": 98310,
+   "code_offset": 13710108,
+   "blocks_per_code": {
+    "stem_cell": 93115,
+    "bone": 5194,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 2514.105,
+    "bone": 140.238,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 2218.265,
+    "bone": 144.515,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.266
+   }
+  },
+  "144": {
+   "offset": 13808420,
+   "count": 100200,
+   "code_offset": 14209220,
+   "blocks_per_code": {
+    "stem_cell": 94908,
+    "bone": 5291,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 2562.516,
+    "bone": 142.857,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 2261.974,
+    "bone": 146.551,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.266
+   }
+  },
+  "147": {
+   "offset": 14309420,
+   "count": 102111,
+   "code_offset": 14717864,
+   "blocks_per_code": {
+    "stem_cell": 96775,
+    "bone": 5335,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 2612.925,
+    "bone": 144.045,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 2307.095,
+    "bone": 147.869,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.266
+   }
+  },
+  "150": {
+   "offset": 14819976,
+   "count": 103956,
+   "code_offset": 15235800,
+   "blocks_per_code": {
+    "stem_cell": 98628,
+    "bone": 5327,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 2662.956,
+    "bone": 143.829,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 2353.845,
+    "bone": 147.865,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.266
+   }
+  },
+  "153": {
+   "offset": 15339756,
+   "count": 105730,
+   "code_offset": 15762676,
+   "blocks_per_code": {
+    "stem_cell": 100368,
+    "bone": 5361,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 2709.936,
+    "bone": 144.747,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 2400.369,
+    "bone": 148.919,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.266
+   }
+  },
+  "156": {
+   "offset": 15868408,
+   "count": 107467,
+   "code_offset": 16298276,
+   "blocks_per_code": {
+    "stem_cell": 102012,
+    "bone": 5454,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 2754.324,
+    "bone": 147.258,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 2446.391,
+    "bone": 151.094,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.266
+   }
+  },
+  "159": {
+   "offset": 16405744,
+   "count": 109310,
+   "code_offset": 16842984,
+   "blocks_per_code": {
+    "stem_cell": 103745,
+    "bone": 5564,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 2801.115,
+    "bone": 150.228,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 2491.969,
+    "bone": 153.519,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.266
+   }
+  },
+  "162": {
+   "offset": 16952296,
+   "count": 111126,
+   "code_offset": 17396800,
+   "blocks_per_code": {
+    "stem_cell": 105510,
+    "bone": 5615,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 2848.77,
+    "bone": 151.605,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 2537.808,
+    "bone": 155.125,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.266
+   }
+  },
+  "165": {
+   "offset": 17507928,
+   "count": 113025,
+   "code_offset": 17960028,
+   "blocks_per_code": {
+    "stem_cell": 107371,
+    "bone": 5653,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 2899.017,
+    "bone": 152.631,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 2584.806,
+    "bone": 156.688,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.266
+   }
+  },
+  "168": {
+   "offset": 18073056,
+   "count": 114988,
+   "code_offset": 18533008,
+   "blocks_per_code": {
+    "stem_cell": 109231,
+    "bone": 5756,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 2949.237,
+    "bone": 155.412,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 2631.43,
+    "bone": 159.161,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.266
+   }
+  },
+  "171": {
+   "offset": 18647996,
+   "count": 116923,
+   "code_offset": 19115688,
+   "blocks_per_code": {
+    "stem_cell": 111118,
+    "bone": 5804,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 3000.186,
+    "bone": 156.708,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 2678.507,
+    "bone": 161.158,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.274
+   }
+  },
+  "174": {
+   "offset": 19232612,
+   "count": 118760,
+   "code_offset": 19707652,
+   "blocks_per_code": {
+    "stem_cell": 112849,
+    "bone": 5910,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 3046.923,
+    "bone": 159.57,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 2725.321,
+    "bone": 163.48,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.28
+   }
+  },
+  "177": {
+   "offset": 19826412,
+   "count": 120555,
+   "code_offset": 20308632,
+   "blocks_per_code": {
+    "stem_cell": 114578,
+    "bone": 5976,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 3093.606,
+    "bone": 161.352,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 2772.526,
+    "bone": 165.957,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.286
+   }
+  },
+  "180": {
+   "offset": 20429188,
+   "count": 122498,
+   "code_offset": 20919180,
+   "blocks_per_code": {
+    "stem_cell": 116389,
+    "bone": 6108,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 3142.503,
+    "bone": 164.916,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 2819.527,
+    "bone": 169.495,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.292
+   }
+  },
+  "183": {
+   "offset": 21041680,
+   "count": 124422,
+   "code_offset": 21539368,
+   "blocks_per_code": {
+    "stem_cell": 118194,
+    "bone": 6227,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 3191.238,
+    "bone": 168.129,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 2866.536,
+    "bone": 172.852,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.296
+   }
+  },
+  "186": {
+   "offset": 21663792,
+   "count": 126383,
+   "code_offset": 22169324,
+   "blocks_per_code": {
+    "stem_cell": 120024,
+    "bone": 6358,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 3240.648,
+    "bone": 171.666,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 2913.212,
+    "bone": 176.163,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.299
+   }
+  },
+  "189": {
+   "offset": 22295708,
+   "count": 128333,
+   "code_offset": 22809040,
+   "blocks_per_code": {
+    "stem_cell": 121860,
+    "bone": 6472,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 3290.22,
+    "bone": 174.744,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 2960.975,
+    "bone": 178.106,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.302
+   }
+  },
+  "192": {
+   "offset": 22937376,
+   "count": 130371,
+   "code_offset": 23458860,
+   "blocks_per_code": {
+    "stem_cell": 123824,
+    "bone": 6546,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 3343.248,
+    "bone": 176.742,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 3009.385,
+    "bone": 180.192,
+    "chondrocyte": 0.063,
+    "fibroblast": 0.305
+   }
+  },
+  "195": {
+   "offset": 23589232,
+   "count": 132386,
+   "code_offset": 24118776,
+   "blocks_per_code": {
+    "stem_cell": 125782,
+    "bone": 6603,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 3396.114,
+    "bone": 178.281,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 3058.576,
+    "bone": 181.208,
+    "chondrocyte": 0.074,
+    "fibroblast": 0.308
+   }
+  },
+  "198": {
+   "offset": 24251164,
+   "count": 134314,
+   "code_offset": 24788420,
+   "blocks_per_code": {
+    "stem_cell": 127692,
+    "bone": 6621,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 3447.684,
+    "bone": 178.767,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 3108.037,
+    "bone": 183.308,
+    "chondrocyte": 0.083,
+    "fibroblast": 0.311
+   }
+  },
+  "201": {
+   "offset": 24922736,
+   "count": 136244,
+   "code_offset": 25467712,
+   "blocks_per_code": {
+    "stem_cell": 129522,
+    "bone": 6721,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 3497.094,
+    "bone": 181.467,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 3157.817,
+    "bone": 185.828,
+    "chondrocyte": 0.092,
+    "fibroblast": 0.314
+   }
+  },
+  "204": {
+   "offset": 25603956,
+   "count": 138195,
+   "code_offset": 26156736,
+   "blocks_per_code": {
+    "stem_cell": 131390,
+    "bone": 6804,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 3547.53,
+    "bone": 183.708,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 3207.555,
+    "bone": 187.542,
+    "chondrocyte": 0.099,
+    "fibroblast": 0.317
+   }
+  },
+  "207": {
+   "offset": 26294932,
+   "count": 140150,
+   "code_offset": 26855532,
+   "blocks_per_code": {
+    "stem_cell": 133296,
+    "bone": 6853,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 3598.992,
+    "bone": 185.031,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 3257.159,
+    "bone": 189.88,
+    "chondrocyte": 0.105,
+    "fibroblast": 0.317
+   }
+  },
+  "210": {
+   "offset": 26995684,
+   "count": 142127,
+   "code_offset": 27564192,
+   "blocks_per_code": {
+    "stem_cell": 135129,
+    "bone": 6997,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 3648.483,
+    "bone": 188.919,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 3306.265,
+    "bone": 193.781,
+    "chondrocyte": 0.111,
+    "fibroblast": 0.317
+   }
+  },
+  "213": {
+   "offset": 27706320,
+   "count": 144200,
+   "code_offset": 28283120,
+   "blocks_per_code": {
+    "stem_cell": 137048,
+    "bone": 7151,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 3700.296,
+    "bone": 193.077,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 3354.75,
+    "bone": 198.117,
+    "chondrocyte": 0.117,
+    "fibroblast": 0.318
+   }
+  },
+  "216": {
+   "offset": 28427320,
+   "count": 146203,
+   "code_offset": 29012132,
+   "blocks_per_code": {
+    "stem_cell": 138867,
+    "bone": 7335,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 3749.409,
+    "bone": 198.045,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 3403.391,
+    "bone": 202.193,
+    "chondrocyte": 0.124,
+    "fibroblast": 0.318
+   }
+  },
+  "219": {
+   "offset": 29158336,
+   "count": 148346,
+   "code_offset": 29751720,
+   "blocks_per_code": {
+    "stem_cell": 140607,
+    "bone": 7737,
+    "chondrocyte": 1,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 3796.389,
+    "bone": 208.899,
+    "chondrocyte": 0.027,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 3440.662,
+    "bone": 215.382,
+    "chondrocyte": 1.676,
+    "fibroblast": 1.085
+   }
+  },
+  "222": {
+   "offset": 29900068,
+   "count": 150346,
+   "code_offset": 30501452,
+   "blocks_per_code": {
+    "stem_cell": 142551,
+    "bone": 7794,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 3848.877,
+    "bone": 210.438,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 3492.935,
+    "bone": 214.553,
+    "chondrocyte": 1.366,
+    "fibroblast": 1.029
+   }
+  },
+  "225": {
+   "offset": 30651800,
+   "count": 152380,
+   "code_offset": 31261320,
+   "blocks_per_code": {
+    "stem_cell": 144535,
+    "bone": 7844,
+    "chondrocyte": 0,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 3902.445,
+    "bone": 211.788,
+    "chondrocyte": 0.0,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 3545.92,
+    "bone": 215.927,
+    "chondrocyte": 1.149,
+    "fibroblast": 0.989
+   }
+  },
+  "228": {
+   "offset": 31413700,
+   "count": 154377,
+   "code_offset": 32031208,
+   "blocks_per_code": {
+    "stem_cell": 146404,
+    "bone": 7971,
+    "chondrocyte": 1,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 3952.908,
+    "bone": 215.217,
+    "chondrocyte": 0.027,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 3597.999,
+    "bone": 218.305,
+    "chondrocyte": 1.002,
+    "fibroblast": 0.956
+   }
+  },
+  "231": {
+   "offset": 32185588,
+   "count": 156469,
+   "code_offset": 32811464,
+   "blocks_per_code": {
+    "stem_cell": 148305,
+    "bone": 8162,
+    "chondrocyte": 1,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 4004.235,
+    "bone": 220.374,
+    "chondrocyte": 0.027,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 3648.8,
+    "bone": 222.174,
+    "chondrocyte": 0.908,
+    "fibroblast": 0.931
+   }
+  },
+  "234": {
+   "offset": 32967936,
+   "count": 158626,
+   "code_offset": 33602440,
+   "blocks_per_code": {
+    "stem_cell": 150330,
+    "bone": 8294,
+    "chondrocyte": 1,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 4058.91,
+    "bone": 223.938,
+    "chondrocyte": 0.027,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 3699.676,
+    "bone": 225.433,
+    "chondrocyte": 0.865,
+    "fibroblast": 0.91
+   }
+  },
+  "237": {
+   "offset": 33761068,
+   "count": 160795,
+   "code_offset": 34404248,
+   "blocks_per_code": {
+    "stem_cell": 152389,
+    "bone": 8404,
+    "chondrocyte": 1,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 4114.503,
+    "bone": 226.908,
+    "chondrocyte": 0.027,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 3751.453,
+    "bone": 227.56,
+    "chondrocyte": 0.848,
+    "fibroblast": 0.89
+   }
+  },
+  "240": {
+   "offset": 34565044,
+   "count": 163051,
+   "code_offset": 35217248,
+   "blocks_per_code": {
+    "stem_cell": 154532,
+    "bone": 8518,
+    "chondrocyte": 1,
+    "fibroblast": 0
+   },
+   "block_volume_mm3": {
+    "stem_cell": 4172.364,
+    "bone": 229.986,
+    "chondrocyte": 0.027,
+    "fibroblast": 0.0
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 3803.485,
+    "bone": 231.078,
+    "chondrocyte": 0.837,
+    "fibroblast": 0.878
+   }
+  },
+  "243": {
+   "offset": 35380300,
+   "count": 165195,
+   "code_offset": 36041080,
+   "blocks_per_code": {
+    "stem_cell": 156517,
+    "bone": 8677,
+    "chondrocyte": 1,
+    "fibroblast": 0
+   },
+   "block_volume_mm3": {
+    "stem_cell": 4225.959,
+    "bone": 234.279,
+    "chondrocyte": 0.027,
+    "fibroblast": 0.0
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 3855.326,
+    "bone": 235.286,
+    "chondrocyte": 0.835,
+    "fibroblast": 0.878
+   }
+  },
+  "246": {
+   "offset": 36206276,
+   "count": 167248,
+   "code_offset": 36875268,
+   "blocks_per_code": {
+    "stem_cell": 158412,
+    "bone": 8835,
+    "chondrocyte": 1,
+    "fibroblast": 0
+   },
+   "block_volume_mm3": {
+    "stem_cell": 4277.124,
+    "bone": 238.545,
+    "chondrocyte": 0.027,
+    "fibroblast": 0.0
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 3907.219,
+    "bone": 239.009,
+    "chondrocyte": 0.836,
+    "fibroblast": 0.878
+   }
+  },
+  "249": {
+   "offset": 37042516,
+   "count": 169315,
+   "code_offset": 37719776,
+   "blocks_per_code": {
+    "stem_cell": 160283,
+    "bone": 9031,
+    "chondrocyte": 1,
+    "fibroblast": 0
+   },
+   "block_volume_mm3": {
+    "stem_cell": 4327.641,
+    "bone": 243.837,
+    "chondrocyte": 0.027,
+    "fibroblast": 0.0
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 3959.023,
+    "bone": 243.567,
+    "chondrocyte": 0.836,
+    "fibroblast": 0.878
+   }
+  },
+  "252": {
+   "offset": 37889092,
+   "count": 171480,
+   "code_offset": 38575012,
+   "blocks_per_code": {
+    "stem_cell": 162312,
+    "bone": 9167,
+    "chondrocyte": 1,
+    "fibroblast": 0
+   },
+   "block_volume_mm3": {
+    "stem_cell": 4382.424,
+    "bone": 247.509,
+    "chondrocyte": 0.027,
+    "fibroblast": 0.0
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 4010.999,
+    "bone": 247.615,
+    "chondrocyte": 0.836,
+    "fibroblast": 0.884
+   }
+  },
+  "255": {
+   "offset": 38746492,
+   "count": 173608,
+   "code_offset": 39440924,
+   "blocks_per_code": {
+    "stem_cell": 164262,
+    "bone": 9345,
+    "chondrocyte": 1,
+    "fibroblast": 0
+   },
+   "block_volume_mm3": {
+    "stem_cell": 4435.074,
+    "bone": 252.315,
+    "chondrocyte": 0.027,
+    "fibroblast": 0.0
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 4063.274,
+    "bone": 251.687,
+    "chondrocyte": 0.836,
+    "fibroblast": 0.888
+   }
+  },
+  "258": {
+   "offset": 39614532,
+   "count": 175804,
+   "code_offset": 40317748,
+   "blocks_per_code": {
+    "stem_cell": 166349,
+    "bone": 9454,
+    "chondrocyte": 1,
+    "fibroblast": 0
+   },
+   "block_volume_mm3": {
+    "stem_cell": 4491.423,
+    "bone": 255.258,
+    "chondrocyte": 0.027,
+    "fibroblast": 0.0
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 4116.37,
+    "bone": 254.86,
+    "chondrocyte": 0.836,
+    "fibroblast": 0.891
+   }
+  },
+  "261": {
+   "offset": 40493552,
+   "count": 178087,
+   "code_offset": 41205900,
+   "blocks_per_code": {
+    "stem_cell": 168521,
+    "bone": 9565,
+    "chondrocyte": 1,
+    "fibroblast": 0
+   },
+   "block_volume_mm3": {
+    "stem_cell": 4550.067,
+    "bone": 258.255,
+    "chondrocyte": 0.027,
+    "fibroblast": 0.0
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 4170.348,
+    "bone": 258.04,
+    "chondrocyte": 0.836,
+    "fibroblast": 0.909
+   }
+  },
+  "264": {
+   "offset": 41383988,
+   "count": 180350,
+   "code_offset": 42105388,
+   "blocks_per_code": {
+    "stem_cell": 170625,
+    "bone": 9724,
+    "chondrocyte": 1,
+    "fibroblast": 0
+   },
+   "block_volume_mm3": {
+    "stem_cell": 4606.875,
+    "bone": 262.548,
+    "chondrocyte": 0.027,
+    "fibroblast": 0.0
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 4224.407,
+    "bone": 262.048,
+    "chondrocyte": 0.836,
+    "fibroblast": 0.924
+   }
+  },
+  "267": {
+   "offset": 42285740,
+   "count": 182570,
+   "code_offset": 43016020,
+   "blocks_per_code": {
+    "stem_cell": 172725,
+    "bone": 9844,
+    "chondrocyte": 1,
+    "fibroblast": 0
+   },
+   "block_volume_mm3": {
+    "stem_cell": 4663.575,
+    "bone": 265.788,
+    "chondrocyte": 0.027,
+    "fibroblast": 0.0
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 4278.638,
+    "bone": 265.099,
+    "chondrocyte": 0.836,
+    "fibroblast": 0.936
+   }
+  },
+  "270": {
+   "offset": 43198592,
+   "count": 184800,
+   "code_offset": 43937792,
+   "blocks_per_code": {
+    "stem_cell": 174781,
+    "bone": 10018,
+    "chondrocyte": 1,
+    "fibroblast": 0
+   },
+   "block_volume_mm3": {
+    "stem_cell": 4719.087,
+    "bone": 270.486,
+    "chondrocyte": 0.027,
+    "fibroblast": 0.0
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 4333.015,
+    "bone": 269.069,
+    "chondrocyte": 0.836,
+    "fibroblast": 0.945
+   }
+  },
+  "273": {
+   "offset": 44122592,
+   "count": 187035,
+   "code_offset": 44870732,
+   "blocks_per_code": {
+    "stem_cell": 176891,
+    "bone": 10143,
+    "chondrocyte": 1,
+    "fibroblast": 0
+   },
+   "block_volume_mm3": {
+    "stem_cell": 4776.057,
+    "bone": 273.861,
+    "chondrocyte": 0.027,
+    "fibroblast": 0.0
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 4387.63,
+    "bone": 272.999,
+    "chondrocyte": 0.836,
+    "fibroblast": 0.954
+   }
+  },
+  "276": {
+   "offset": 45057768,
+   "count": 189234,
+   "code_offset": 45814704,
+   "blocks_per_code": {
+    "stem_cell": 178993,
+    "bone": 10240,
+    "chondrocyte": 1,
+    "fibroblast": 0
+   },
+   "block_volume_mm3": {
+    "stem_cell": 4832.811,
+    "bone": 276.48,
+    "chondrocyte": 0.027,
+    "fibroblast": 0.0
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 4442.273,
+    "bone": 275.927,
+    "chondrocyte": 0.836,
+    "fibroblast": 0.962
+   }
+  },
+  "279": {
+   "offset": 46003940,
+   "count": 191465,
+   "code_offset": 46769800,
+   "blocks_per_code": {
+    "stem_cell": 181072,
+    "bone": 10392,
+    "chondrocyte": 1,
+    "fibroblast": 0
+   },
+   "block_volume_mm3": {
+    "stem_cell": 4888.944,
+    "bone": 280.584,
+    "chondrocyte": 0.027,
+    "fibroblast": 0.0
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 4497.31,
+    "bone": 279.92,
+    "chondrocyte": 0.836,
+    "fibroblast": 0.968
+   }
+  },
+  "282": {
+   "offset": 46961268,
+   "count": 193698,
+   "code_offset": 47736060,
+   "blocks_per_code": {
+    "stem_cell": 183185,
+    "bone": 10512,
+    "chondrocyte": 1,
+    "fibroblast": 0
+   },
+   "block_volume_mm3": {
+    "stem_cell": 4945.995,
+    "bone": 283.824,
+    "chondrocyte": 0.027,
+    "fibroblast": 0.0
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 4553.096,
+    "bone": 282.427,
+    "chondrocyte": 0.836,
+    "fibroblast": 0.974
+   }
+  },
+  "285": {
+   "offset": 47929760,
+   "count": 196034,
+   "code_offset": 48713896,
+   "blocks_per_code": {
+    "stem_cell": 185450,
+    "bone": 10583,
+    "chondrocyte": 1,
+    "fibroblast": 0
+   },
+   "block_volume_mm3": {
+    "stem_cell": 5007.15,
+    "bone": 285.741,
+    "chondrocyte": 0.027,
+    "fibroblast": 0.0
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 4609.809,
+    "bone": 284.514,
+    "chondrocyte": 0.836,
+    "fibroblast": 0.977
+   }
+  },
+  "288": {
+   "offset": 48909932,
+   "count": 198422,
+   "code_offset": 49703620,
+   "blocks_per_code": {
+    "stem_cell": 187753,
+    "bone": 10668,
+    "chondrocyte": 1,
+    "fibroblast": 0
+   },
+   "block_volume_mm3": {
+    "stem_cell": 5069.331,
+    "bone": 288.036,
+    "chondrocyte": 0.027,
+    "fibroblast": 0.0
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 4667.1,
+    "bone": 286.986,
+    "chondrocyte": 0.836,
+    "fibroblast": 0.98
+   }
+  },
+  "291": {
+   "offset": 49902044,
+   "count": 200757,
+   "code_offset": 50705072,
+   "blocks_per_code": {
+    "stem_cell": 190008,
+    "bone": 10748,
+    "chondrocyte": 1,
+    "fibroblast": 0
+   },
+   "block_volume_mm3": {
+    "stem_cell": 5130.216,
+    "bone": 290.196,
+    "chondrocyte": 0.027,
+    "fibroblast": 0.0
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 4724.745,
+    "bone": 289.141,
+    "chondrocyte": 0.836,
+    "fibroblast": 0.983
+   }
+  },
+  "294": {
+   "offset": 50905832,
+   "count": 203002,
+   "code_offset": 51717840,
+   "blocks_per_code": {
+    "stem_cell": 192103,
+    "bone": 10898,
+    "chondrocyte": 1,
+    "fibroblast": 0
+   },
+   "block_volume_mm3": {
+    "stem_cell": 5186.781,
+    "bone": 294.246,
+    "chondrocyte": 0.027,
+    "fibroblast": 0.0
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 4782.076,
+    "bone": 292.788,
+    "chondrocyte": 0.836,
+    "fibroblast": 1.011
+   }
+  },
+  "297": {
+   "offset": 51920844,
+   "count": 205258,
+   "code_offset": 52741876,
+   "blocks_per_code": {
+    "stem_cell": 194180,
+    "bone": 11077,
+    "chondrocyte": 1,
+    "fibroblast": 0
+   },
+   "block_volume_mm3": {
+    "stem_cell": 5242.86,
+    "bone": 299.079,
+    "chondrocyte": 0.027,
+    "fibroblast": 0.0
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 4838.492,
+    "bone": 297.029,
+    "chondrocyte": 0.836,
+    "fibroblast": 1.037
+   }
+  },
+  "300": {
+   "offset": 52947136,
+   "count": 207515,
+   "code_offset": 53777196,
+   "blocks_per_code": {
+    "stem_cell": 196247,
+    "bone": 11267,
+    "chondrocyte": 1,
+    "fibroblast": 0
+   },
+   "block_volume_mm3": {
+    "stem_cell": 5298.669,
+    "bone": 304.209,
+    "chondrocyte": 0.027,
+    "fibroblast": 0.0
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 4894.439,
+    "bone": 301.628,
+    "chondrocyte": 0.836,
+    "fibroblast": 1.061
+   }
+  },
+  "303": {
+   "offset": 53984712,
+   "count": 209912,
+   "code_offset": 54824360,
+   "blocks_per_code": {
+    "stem_cell": 198441,
+    "bone": 11470,
+    "chondrocyte": 1,
+    "fibroblast": 0
+   },
+   "block_volume_mm3": {
+    "stem_cell": 5357.907,
+    "bone": 309.69,
+    "chondrocyte": 0.027,
+    "fibroblast": 0.0
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 4950.322,
+    "bone": 306.655,
+    "chondrocyte": 0.862,
+    "fibroblast": 1.092
+   }
+  },
+  "306": {
+   "offset": 55034272,
+   "count": 212272,
+   "code_offset": 55883360,
+   "blocks_per_code": {
+    "stem_cell": 200539,
+    "bone": 11731,
+    "chondrocyte": 1,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 5414.553,
+    "bone": 316.737,
+    "chondrocyte": 0.027,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 5006.156,
+    "bone": 312.461,
+    "chondrocyte": 0.891,
+    "fibroblast": 1.125
+   }
+  },
+  "309": {
+   "offset": 56095632,
+   "count": 214668,
+   "code_offset": 56954304,
+   "blocks_per_code": {
+    "stem_cell": 202713,
+    "bone": 11953,
+    "chondrocyte": 1,
+    "fibroblast": 1
+   },
+   "block_volume_mm3": {
+    "stem_cell": 5473.251,
+    "bone": 322.731,
+    "chondrocyte": 0.027,
+    "fibroblast": 0.027
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 5061.406,
+    "bone": 317.797,
+    "chondrocyte": 0.927,
+    "fibroblast": 1.223
+   }
+  },
+  "312": {
+   "offset": 57168972,
+   "count": 217021,
+   "code_offset": 58037056,
+   "blocks_per_code": {
+    "stem_cell": 204804,
+    "bone": 12214,
+    "chondrocyte": 1,
+    "fibroblast": 2
+   },
+   "block_volume_mm3": {
+    "stem_cell": 5529.708,
+    "bone": 329.778,
+    "chondrocyte": 0.027,
+    "fibroblast": 0.054
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 5115.526,
+    "bone": 325.421,
+    "chondrocyte": 0.988,
+    "fibroblast": 1.372
+   }
+  },
+  "315": {
+   "offset": 58254080,
+   "count": 219353,
+   "code_offset": 59131492,
+   "blocks_per_code": {
+    "stem_cell": 206826,
+    "bone": 12521,
+    "chondrocyte": 2,
+    "fibroblast": 4
+   },
+   "block_volume_mm3": {
+    "stem_cell": 5584.302,
+    "bone": 338.067,
+    "chondrocyte": 0.054,
+    "fibroblast": 0.108
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 5169.083,
+    "bone": 332.136,
+    "chondrocyte": 1.103,
+    "fibroblast": 1.812
+   }
+  },
+  "318": {
+   "offset": 59350848,
+   "count": 221743,
+   "code_offset": 60237820,
+   "blocks_per_code": {
+    "stem_cell": 208835,
+    "bone": 12898,
+    "chondrocyte": 2,
+    "fibroblast": 8
+   },
+   "block_volume_mm3": {
+    "stem_cell": 5638.545,
+    "bone": 348.246,
+    "chondrocyte": 0.054,
+    "fibroblast": 0.216
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 5222.255,
+    "bone": 339.888,
+    "chondrocyte": 1.324,
+    "fibroblast": 2.519
+   }
+  },
+  "321": {
+   "offset": 60459564,
+   "count": 224152,
+   "code_offset": 61356172,
+   "blocks_per_code": {
+    "stem_cell": 210772,
+    "bone": 13363,
+    "chondrocyte": 2,
+    "fibroblast": 15
+   },
+   "block_volume_mm3": {
+    "stem_cell": 5690.844,
+    "bone": 360.801,
+    "chondrocyte": 0.054,
+    "fibroblast": 0.405
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 5273.594,
+    "bone": 349.326,
+    "chondrocyte": 1.655,
+    "fibroblast": 3.47
+   }
+  },
+  "324": {
+   "offset": 61580324,
+   "count": 226457,
+   "code_offset": 62486152,
+   "blocks_per_code": {
+    "stem_cell": 212644,
+    "bone": 13783,
+    "chondrocyte": 2,
+    "fibroblast": 28
+   },
+   "block_volume_mm3": {
+    "stem_cell": 5741.388,
+    "bone": 372.141,
+    "chondrocyte": 0.054,
+    "fibroblast": 0.756
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 5325.456,
+    "bone": 357.653,
+    "chondrocyte": 2.115,
+    "fibroblast": 4.598
+   }
+  },
+  "327": {
+   "offset": 62712612,
+   "count": 228799,
+   "code_offset": 63627808,
+   "blocks_per_code": {
+    "stem_cell": 214510,
+    "bone": 14243,
+    "chondrocyte": 3,
+    "fibroblast": 43
+   },
+   "block_volume_mm3": {
+    "stem_cell": 5791.77,
+    "bone": 384.561,
+    "chondrocyte": 0.081,
+    "fibroblast": 1.161
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 5375.949,
+    "bone": 366.789,
+    "chondrocyte": 2.687,
+    "fibroblast": 6.189
+   }
+  },
+  "330": {
+   "offset": 63856608,
+   "count": 231195,
+   "code_offset": 64781388,
+   "blocks_per_code": {
+    "stem_cell": 216327,
+    "bone": 14783,
+    "chondrocyte": 6,
+    "fibroblast": 79
+   },
+   "block_volume_mm3": {
+    "stem_cell": 5840.829,
+    "bone": 399.141,
+    "chondrocyte": 0.162,
+    "fibroblast": 2.133
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 5426.223,
+    "bone": 377.215,
+    "chondrocyte": 3.249,
+    "fibroblast": 8.174
+   }
+  },
+  "333": {
+   "offset": 65012584,
+   "count": 233631,
+   "code_offset": 65947108,
+   "blocks_per_code": {
+    "stem_cell": 218137,
+    "bone": 15360,
+    "chondrocyte": 14,
+    "fibroblast": 120
+   },
+   "block_volume_mm3": {
+    "stem_cell": 5889.699,
+    "bone": 414.72,
+    "chondrocyte": 0.378,
+    "fibroblast": 3.24
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 5475.62,
+    "bone": 387.497,
+    "chondrocyte": 4.014,
+    "fibroblast": 10.6
+   }
+  },
+  "336": {
+   "offset": 66180740,
+   "count": 236035,
+   "code_offset": 67124880,
+   "blocks_per_code": {
+    "stem_cell": 219890,
+    "bone": 15922,
+    "chondrocyte": 30,
+    "fibroblast": 193
+   },
+   "block_volume_mm3": {
+    "stem_cell": 5937.03,
+    "bone": 429.894,
+    "chondrocyte": 0.81,
+    "fibroblast": 5.211
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 5523.339,
+    "bone": 398.921,
+    "chondrocyte": 4.943,
+    "fibroblast": 13.603
+   }
+  },
+  "339": {
+   "offset": 67360916,
+   "count": 238442,
+   "code_offset": 68314684,
+   "blocks_per_code": {
+    "stem_cell": 221629,
+    "bone": 16470,
+    "chondrocyte": 51,
+    "fibroblast": 292
+   },
+   "block_volume_mm3": {
+    "stem_cell": 5983.983,
+    "bone": 444.69,
+    "chondrocyte": 1.377,
+    "fibroblast": 7.884
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 5570.774,
+    "bone": 409.735,
+    "chondrocyte": 6.042,
+    "fibroblast": 17.346
+   }
+  },
+  "342": {
+   "offset": 68553128,
+   "count": 240890,
+   "code_offset": 69516688,
+   "blocks_per_code": {
+    "stem_cell": 223453,
+    "bone": 16966,
+    "chondrocyte": 76,
+    "fibroblast": 395
+   },
+   "block_volume_mm3": {
+    "stem_cell": 6033.231,
+    "bone": 458.082,
+    "chondrocyte": 2.052,
+    "fibroblast": 10.665
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 5617.716,
+    "bone": 420.932,
+    "chondrocyte": 7.074,
+    "fibroblast": 22.069
+   }
+  },
+  "345": {
+   "offset": 69757580,
+   "count": 243256,
+   "code_offset": 70730604,
+   "blocks_per_code": {
+    "stem_cell": 225078,
+    "bone": 17531,
+    "chondrocyte": 102,
+    "fibroblast": 545
+   },
+   "block_volume_mm3": {
+    "stem_cell": 6077.106,
+    "bone": 473.337,
+    "chondrocyte": 2.754,
+    "fibroblast": 14.715
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 5663.326,
+    "bone": 432.993,
+    "chondrocyte": 8.255,
+    "fibroblast": 27.754
+   }
+  },
+  "348": {
+   "offset": 70973860,
+   "count": 245577,
+   "code_offset": 71956168,
+   "blocks_per_code": {
+    "stem_cell": 226557,
+    "bone": 18151,
+    "chondrocyte": 129,
+    "fibroblast": 740
+   },
+   "block_volume_mm3": {
+    "stem_cell": 6117.039,
+    "bone": 490.077,
+    "chondrocyte": 3.483,
+    "fibroblast": 19.98
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 5706.922,
+    "bone": 445.283,
+    "chondrocyte": 9.421,
+    "fibroblast": 34.331
+   }
+  },
+  "351": {
+   "offset": 72201748,
+   "count": 247979,
+   "code_offset": 73193664,
+   "blocks_per_code": {
+    "stem_cell": 228090,
+    "bone": 18735,
+    "chondrocyte": 168,
+    "fibroblast": 986
+   },
+   "block_volume_mm3": {
+    "stem_cell": 6158.43,
+    "bone": 505.845,
+    "chondrocyte": 4.536,
+    "fibroblast": 26.622
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 5750.004,
+    "bone": 456.777,
+    "chondrocyte": 10.71,
+    "fibroblast": 41.571
+   }
+  },
+  "354": {
+   "offset": 73441644,
+   "count": 250434,
+   "code_offset": 74443380,
+   "blocks_per_code": {
+    "stem_cell": 229651,
+    "bone": 19335,
+    "chondrocyte": 193,
+    "fibroblast": 1255
+   },
+   "block_volume_mm3": {
+    "stem_cell": 6200.577,
+    "bone": 522.045,
+    "chondrocyte": 5.211,
+    "fibroblast": 33.885
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 5791.692,
+    "bone": 469.596,
+    "chondrocyte": 11.853,
+    "fibroblast": 49.645
+   }
+  },
+  "357": {
+   "offset": 74693816,
+   "count": 252844,
+   "code_offset": 75705192,
+   "blocks_per_code": {
+    "stem_cell": 231063,
+    "bone": 19982,
+    "chondrocyte": 226,
+    "fibroblast": 1573
+   },
+   "block_volume_mm3": {
+    "stem_cell": 6238.701,
+    "bone": 539.514,
+    "chondrocyte": 6.102,
+    "fibroblast": 42.471
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 5832.425,
+    "bone": 481.543,
+    "chondrocyte": 13.282,
+    "fibroblast": 58.576
+   }
+  },
+  "359": {
+   "offset": 75958036,
+   "count": 254410,
+   "code_offset": 76975676,
+   "blocks_per_code": {
+    "stem_cell": 232071,
+    "bone": 20301,
+    "chondrocyte": 241,
+    "fibroblast": 1797
+   },
+   "block_volume_mm3": {
+    "stem_cell": 6265.917,
+    "bone": 548.127,
+    "chondrocyte": 6.507,
+    "fibroblast": 48.519
+   },
+   "lattice_volume_mm3": {
+    "stem_cell": 5859.443,
+    "bone": 488.697,
+    "chondrocyte": 14.074,
+    "fibroblast": 65.194
+   }
+  }
+ }
+}

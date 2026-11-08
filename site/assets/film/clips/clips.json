@@ -1,0 +1,301 @@
+{
+ "source": "silicograft-dive.mp4",
+ "fps": 30.0,
+ "crf": 28,
+ "portraitCrf": 28,
+ "stages": [
+  {
+   "stage": 1,
+   "title": "A gap in the tibia",
+   "start": 0,
+   "end": 6,
+   "frames": 180,
+   "holds": [],
+   "poster": "stills/stage-1.jpg",
+   "posterTime": 0.5,
+   "files": [
+    "stage-1-av1.mp4",
+    "stage-1-720.mp4"
+   ],
+   "bytes": {
+    "stage-1-av1.mp4": 597081,
+    "stage-1-720.mp4": 445646
+   },
+   "portrait": {
+    "file": "stage-1-portrait.mp4",
+    "bytes": 264395,
+    "poster": "stills/stage-1-portrait.jpg",
+    "crop": {
+     "w": 864,
+     "x": [
+      [
+       0,
+       100
+      ],
+      [
+       0.8,
+       400
+      ],
+      [
+       1.8,
+       0
+      ],
+      [
+       4.3,
+       0
+      ],
+      [
+       5.25,
+       600
+      ],
+      [
+       6,
+       480
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "stage": 2,
+   "title": "Stem cells move in",
+   "start": 6,
+   "end": 14,
+   "frames": 240,
+   "holds": [],
+   "poster": "stills/stage-2.jpg",
+   "posterTime": 10.5,
+   "files": [
+    "stage-2-av1.mp4",
+    "stage-2-720.mp4"
+   ],
+   "bytes": {
+    "stage-2-av1.mp4": 4059635,
+    "stage-2-720.mp4": 1912861
+   },
+   "portrait": {
+    "file": "stage-2-portrait.mp4",
+    "bytes": 1831676,
+    "poster": "stills/stage-2-portrait.jpg",
+    "crop": {
+     "w": 864,
+     "x": [
+      [
+       6,
+       528
+      ],
+      [
+       8.5,
+       528
+      ],
+      [
+       9.5,
+       980
+      ],
+      [
+       11.65,
+       980
+      ],
+      [
+       12.4,
+       528
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "stage": 3,
+   "title": "Each cell lays down tissue",
+   "start": 14,
+   "end": 27,
+   "frames": 480,
+   "holds": [
+    {
+     "at": 23.75,
+     "seconds": 3.0
+    }
+   ],
+   "poster": "stills/stage-3.jpg",
+   "posterTime": 23.0,
+   "files": [
+    "stage-3-av1.mp4",
+    "stage-3-720.mp4"
+   ],
+   "bytes": {
+    "stage-3-av1.mp4": 5936773,
+    "stage-3-720.mp4": 2839363
+   },
+   "portrait": {
+    "file": "stage-3-portrait.mp4",
+    "bytes": 1589775,
+    "poster": "stills/stage-3-portrait.jpg",
+    "crop": {
+     "w": 1320,
+     "ease": "linear",
+     "x": [
+      [
+       14,
+       100
+      ],
+      [
+       20,
+       300
+      ],
+      [
+       22.5,
+       390
+      ],
+      [
+       23.0,
+       390
+      ],
+      [
+       23.55,
+       226
+      ],
+      [
+       23.95,
+       290
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "stage": 4,
+   "title": "Bone and cartilage along the plate",
+   "start": 27,
+   "end": 34,
+   "frames": 300,
+   "holds": [
+    {
+     "at": 32.1,
+     "seconds": 3.0
+    }
+   ],
+   "poster": "stills/stage-4.jpg",
+   "posterTime": 32.3,
+   "files": [
+    "stage-4-av1.mp4",
+    "stage-4-720.mp4"
+   ],
+   "bytes": {
+    "stage-4-av1.mp4": 6996881,
+    "stage-4-720.mp4": 3048559
+   },
+   "portrait": {
+    "file": "stage-4-portrait.mp4",
+    "bytes": 1474960,
+    "poster": "stills/stage-4-portrait.jpg",
+    "crop": {
+     "w": 1580,
+     "x": 284
+    }
+   }
+  },
+  {
+   "stage": 5,
+   "title": "Tissue sets the stiffness",
+   "start": 34,
+   "end": 40,
+   "frames": 180,
+   "holds": [],
+   "poster": "stills/stage-5.jpg",
+   "posterTime": 39.5,
+   "files": [
+    "stage-5-av1.mp4",
+    "stage-5-720.mp4"
+   ],
+   "bytes": {
+    "stage-5-av1.mp4": 364155,
+    "stage-5-720.mp4": 236364
+   },
+   "portrait": {
+    "file": "stage-5-portrait.mp4",
+    "bytes": 150960,
+    "poster": "stills/stage-5-portrait.jpg",
+    "crop": {
+     "w": 1100,
+     "x": 440
+    }
+   }
+  },
+  {
+   "stage": 6,
+   "title": "CalculiX loads the leg",
+   "start": 40,
+   "end": 46,
+   "frames": 180,
+   "holds": [],
+   "poster": "stills/stage-6.jpg",
+   "posterTime": 43.0,
+   "files": [
+    "stage-6-av1.mp4",
+    "stage-6-720.mp4"
+   ],
+   "bytes": {
+    "stage-6-av1.mp4": 230293,
+    "stage-6-720.mp4": 189023
+   },
+   "portrait": {
+    "file": "stage-6-portrait.mp4",
+    "bytes": 104922,
+    "poster": "stills/stage-6-portrait.jpg",
+    "crop": {
+     "w": 1460,
+     "x": 60
+    }
+   }
+  },
+  {
+   "stage": 7,
+   "title": "Strain picks the next cell",
+   "start": 46,
+   "end": 52,
+   "frames": 315,
+   "holds": [
+    {
+     "at": 47.2,
+     "seconds": 1.5
+    },
+    {
+     "at": 50.2,
+     "seconds": 3.0
+    }
+   ],
+   "poster": "stills/stage-7.jpg",
+   "posterTime": 50.5,
+   "files": [
+    "stage-7-av1.mp4",
+    "stage-7-720.mp4"
+   ],
+   "bytes": {
+    "stage-7-av1.mp4": 4792571,
+    "stage-7-720.mp4": 1955721
+   },
+   "portrait": {
+    "file": "stage-7-portrait.mp4",
+    "bytes": 1063474,
+    "poster": "stills/stage-7-portrait.jpg",
+    "crop": {
+     "w": 1560,
+     "x": [
+      [
+       46,
+       180
+      ],
+      [
+       50.6,
+       180
+      ],
+      [
+       51.6,
+       360
+      ]
+     ]
+    }
+   }
+  }
+ ]
+}

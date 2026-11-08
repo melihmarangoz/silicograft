@@ -1,0 +1,28 @@
+[
+ {
+  "shape": "Map / Diagram",
+  "theme": "midnight",
+  "axes": "dark/grotesk-sans/cool",
+  "hero": "Poster",
+  "nav": "masthead",
+  "footer": "letter close",
+  "imagery": "the product",
+  "photos": [],
+  "entry": "index.html",
+  "sections": [
+   "hero poster",
+   "map diagram",
+   "pinned viewer facade",
+   "table band",
+   "steps",
+   "form",
+   "split about",
+   "letter close"
+  ],
+  "signature": "the healing loop drawn as the real system",
+  "waived": [],
+  "prompt": "SilicoGraft: open-source in silico simulation of bone graft healing",
+  "date": "2026-11-07",
+  "mode": "build"
+ }
+]

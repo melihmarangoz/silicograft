@@ -1,0 +1,209 @@
+{
+  "about": "Stages of the SG-Bone film for the website's model section, read by film_clips.sh, which cuts one clip per stage (boundaries in film seconds). Ranges and titles follow film/STAGES.md; the day track comes from film/assets/js/timeline.js (dayAt). 'still' is the film time (s) of each clip's poster in assets/film/stills/; the cell stops use a close-up moment. 'hero' describes the old film-cut hero loop and is no longer read: the hero is now made from a separate recording. Optional 'holds' freeze the film frame at film time 'at' for 'seconds' inside the clip, so the cell-type labels (stages 3 and 4) and the strain plane (stage 7) stay on screen long enough to read (owner's request, 2026-11-08). Optional 'portrait' gives the phone (4:5) crop of each clip: 'w' is the width of the full-height window taken from the film (864 px of a 1920x1080 film is exactly 4:5; a wider window keeps wide content and is letterboxed in the page colour), 'x' its left edge in film pixels, either one number or [[film seconds, x], ...] keyframes, and 'ease' how x moves between keyframes ('smooth', the default, or 'linear'). Each crop was chosen from frames of the film so that the cell-type labels and the strain-plane diagram stay whole while they are on screen (2026-11-08).",
+  "duration": 52,
+  "boundaries": [
+    0,
+    6,
+    14,
+    27,
+    34,
+    40,
+    46,
+    52
+  ],
+  "stages": [
+    {
+      "stage": 1,
+      "title": "A gap in the tibia",
+      "beats": "b1",
+      "still": 0.5,
+      "portrait": {
+        "w": 864,
+        "x": [
+          [
+            0,
+            100
+          ],
+          [
+            0.8,
+            400
+          ],
+          [
+            1.8,
+            0
+          ],
+          [
+            4.3,
+            0
+          ],
+          [
+            5.25,
+            600
+          ],
+          [
+            6,
+            480
+          ]
+        ],
+        "why": "follows the cut ring, then holds the bone end and its load arrows, then pans along the plate to the gap"
+      }
+    },
+    {
+      "stage": 2,
+      "title": "Stem cells move in",
+      "beats": "b2 (ilik_ucu)",
+      "still": 10.5,
+      "portrait": {
+        "w": 864,
+        "x": [
+          [
+            6,
+            528
+          ],
+          [
+            8.5,
+            528
+          ],
+          [
+            9.5,
+            980
+          ],
+          [
+            11.65,
+            980
+          ],
+          [
+            12.4,
+            528
+          ]
+        ],
+        "why": "the marrow edge, then right while the 'Mesenchymal stem cell' label is up (9.55-11.6 s)"
+      }
+    },
+    {
+      "stage": 3,
+      "title": "Each cell lays down tissue",
+      "beats": "b3 + c2 (korteks_ucu)",
+      "still": 23.0,
+      "holds": [
+        {
+          "at": 23.75,
+          "seconds": 3.0
+        }
+      ],
+      "portrait": {
+        "w": 1320,
+        "ease": "linear",
+        "x": [
+          [
+            14,
+            100
+          ],
+          [
+            20,
+            300
+          ],
+          [
+            22.5,
+            390
+          ],
+          [
+            23.0,
+            390
+          ],
+          [
+            23.55,
+            226
+          ],
+          [
+            23.95,
+            290
+          ]
+        ],
+        "why": "the three labels (22.55-24.6 s) span up to 1250 px; x tracks them through the hold at 23.75 s"
+      }
+    },
+    {
+      "stage": 4,
+      "title": "Bone and cartilage along the plate",
+      "beats": "c3 (plak_alti)",
+      "still": 32.3,
+      "holds": [
+        {
+          "at": 32.1,
+          "seconds": 3.0
+        }
+      ],
+      "portrait": {
+        "w": 1580,
+        "x": 284,
+        "why": "the labels (30.1-32.55 s) span 303-1837 px at 31.0-31.3 s"
+      }
+    },
+    {
+      "stage": 5,
+      "title": "Tissue sets the stiffness",
+      "beats": "b4",
+      "still": 39.5,
+      "portrait": {
+        "w": 1100,
+        "x": 440,
+        "why": "the whole callus disc (about 460-1520 px) and both bone ends"
+      }
+    },
+    {
+      "stage": 6,
+      "title": "CalculiX loads the leg",
+      "beats": "b5",
+      "still": 43.0,
+      "portrait": {
+        "w": 1460,
+        "x": 60,
+        "why": "the axial and torsion load arrows (from 100 px) and the callus (to 1490 px)"
+      }
+    },
+    {
+      "stage": 7,
+      "title": "Strain picks the next cell",
+      "beats": "b6",
+      "still": 50.5,
+      "holds": [
+        {
+          "at": 47.2,
+          "seconds": 1.5
+        },
+        {
+          "at": 50.2,
+          "seconds": 3.0
+        }
+      ],
+      "portrait": {
+        "w": 1560,
+        "x": [
+          [
+            46,
+            180
+          ],
+          [
+            50.6,
+            180
+          ],
+          [
+            51.6,
+            360
+          ]
+        ],
+        "why": "wide enough (180-1740 px) for the strain-plane diagram while it flies in (46.5-48.3 s, up to about 120-1840 px; only its outermost 60 px leave the frame) and once it has settled, then the callus overview"
+      }
+    }
+  ],
+  "dayTrack": {
+    "module": "film/assets/js/timeline.js",
+    "function": "dayAt"
+  },
+  "hero": {
+    "start": 6,
+    "seconds": 10,
+    "crossfade": 0.5
+  }
+}

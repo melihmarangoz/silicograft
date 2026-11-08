@@ -1,0 +1,6 @@
+[
+  {"ad": "korteks_ucu", "baslik": "Korteks ucu", "aciklama": "Proksimal kemik ucunun plağa uzak köşesi: sağlam korteksin ucu ve dışındaki periost tarafı. Yeni kemik en erken burada oluşur.", "i0": 178, "j0": 76, "k0": 346, "nx": 5, "ny": 28, "nz": 28},
+  {"ad": "ilik_ucu", "baslik": "İlik kanalı ucu", "aciklama": "Proksimal ilik kanalının defekte açıldığı yer, kemiğin ortası. Kök hücreler buradan defekte girer.", "i0": 178, "j0": 166, "k0": 336, "nx": 5, "ny": 28, "nz": 28},
+  {"ad": "plak_alti", "baslik": "Plak altı", "aciklama": "Plağın kemiğe bakan yüzü, defektin proksimal yarısında. Bir yıl sonunda plak boyunca uzanan kemik ve kıkırdak şeridinin en kalın yeri. Plak, pencerenin plak tarafı etiketli kenarında.", "i0": 178, "j0": 244, "k0": 279, "nx": 5, "ny": 28, "nz": 28},
+  {"ad": "goc_cephesi", "baslik": "Göç cephesi", "aciklama": "Kemik ekseni üzerinde, proksimal uçtan defektin ortasına doğru. Kök hücreler buraya ancak yılın ikinci yarısında ulaşır. Defektin tam ortası bir yıl boyunca boş kalır.", "i0": 178, "j0": 166, "k0": 286, "nx": 5, "ny": 28, "nz": 28}
+]

@@ -1,0 +1,232 @@
+{
+ "surum": 1,
+ "kosu": "bagsiz_orijinal_t12345",
+ "ad": "Unbonded plate · original stimulus",
+ "kisa": "Unbonded · original",
+ "tohum": 12345,
+ "model": {
+  "plak": "bagsiz",
+  "plak_en": "plate-bone interface unbonded (duplicated interface nodes)",
+  "isaret": "orijinal",
+  "isaret_en": "original sign: cartilage stimulus HP < -0.15 MPa (acts in tension)",
+  "kaynak": "long_bone/src/Read_stimulus.cpp:16-17,108-113; araclar/kosu_hazirla.sh:10-11"
+ },
+ "gunler": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255, 256, 257, 258, 259, 260, 261, 262, 263, 264, 265, 266, 267, 268, 269, 270, 271, 272, 273, 274, 275, 276, 277, 278, 279, 280, 281, 282, 283, 284, 285, 286, 287, 288, 289, 290, 291, 292, 293, 294, 295, 296, 297, 298, 299, 300, 301, 302, 303, 304, 305, 306, 307, 308, 309, 310, 311, 312, 313, 314, 315, 316, 317, 318, 319, 320, 321, 322, 323, 324, 325, 326, 327, 328, 329, 330, 331, 332, 333, 334, 335, 336, 337, 338, 339, 340, 341, 342, 343, 344, 345, 346, 347, 348, 349, 350, 351, 352, 353, 354, 355, 356, 357, 358, 359],
+ "kafes": {
+  "adim_mm": 0.1,
+  "boyut": [361, 361, 401],
+  "koordinat": "x = i*0.1-18, y = j*0.1-18 (plate at +y), z = k*0.1 (distal end at 0)"
+ },
+ "kodlar": [
+  {
+   "kod": 0,
+   "ad": "Empty site",
+   "en": "empty site (clot / granulation tissue in the callus)",
+   "renk": "#c98a86"
+  },
+  {
+   "kod": 1,
+   "ad": "Stem cell (MSC)",
+   "en": "mesenchymal stem cell",
+   "renk": "#e7b860"
+  },
+  {
+   "kod": 2,
+   "ad": "Bone cell",
+   "en": "bone cell; drawn as osteoblast (#a46ad8) on the bone surface, osteocyte (#c9b3ea) inside",
+   "renk": "#a46ad8",
+   "cizim": [
+    {
+     "ad": "Osteoblast",
+     "renk": "#a46ad8"
+    },
+    {
+     "ad": "Osteocyte",
+     "renk": "#c9b3ea"
+    }
+   ]
+  },
+  {
+   "kod": 4,
+   "ad": "Chondrocyte",
+   "en": "chondrocyte",
+   "renk": "#6fb0e8"
+  },
+  {
+   "kod": 5,
+   "ad": "Fibroblast",
+   "en": "fibroblast",
+   "renk": "#e07a8a"
+  },
+  {
+   "kod": 11,
+   "ad": "Intact cortex",
+   "en": "intact cortex (fixed, no cells)",
+   "renk": "#cfc0a0"
+  },
+  {
+   "kod": 13,
+   "ad": "Plate",
+   "en": "plate (fixed)",
+   "renk": "#9c9d9e"
+  }
+ ],
+ "bolgeler": [
+  {
+   "ad": "korteks_ucu",
+   "baslik": "Cortex tip",
+   "dosya": "roi_korteks_ucu.b64.txt",
+   "kutu_payli": {
+    "nx": 11,
+    "ny": 34,
+    "nz": 34,
+    "pay": 3,
+    "i0": 175,
+    "j0": 73,
+    "k0": 343
+   },
+   "dilim": {
+    "i0": 178,
+    "j0": 76,
+    "k0": 346,
+    "nx": 5,
+    "ny": 28,
+    "nz": 28
+   }
+  },
+  {
+   "ad": "ilik_ucu",
+   "baslik": "Marrow canal opening",
+   "dosya": "roi_ilik_ucu.b64.txt",
+   "kutu_payli": {
+    "nx": 11,
+    "ny": 34,
+    "nz": 34,
+    "pay": 3,
+    "i0": 175,
+    "j0": 163,
+    "k0": 333
+   },
+   "dilim": {
+    "i0": 178,
+    "j0": 166,
+    "k0": 336,
+    "nx": 5,
+    "ny": 28,
+    "nz": 28
+   }
+  },
+  {
+   "ad": "plak_alti",
+   "baslik": "Under the plate",
+   "dosya": "roi_plak_alti.b64.txt",
+   "kutu_payli": {
+    "nx": 11,
+    "ny": 34,
+    "nz": 34,
+    "pay": 3,
+    "i0": 175,
+    "j0": 241,
+    "k0": 276
+   },
+   "dilim": {
+    "i0": 178,
+    "j0": 244,
+    "k0": 279,
+    "nx": 5,
+    "ny": 28,
+    "nz": 28
+   }
+  },
+  {
+   "ad": "goc_cephesi",
+   "baslik": "Migration front",
+   "dosya": "roi_goc_cephesi.b64.txt",
+   "kutu_payli": {
+    "nx": 11,
+    "ny": 34,
+    "nz": 34,
+    "pay": 3,
+    "i0": 175,
+    "j0": 163,
+    "k0": 283
+   },
+   "dilim": {
+    "i0": 178,
+    "j0": 166,
+    "k0": 286,
+    "nx": 5,
+    "ny": 28,
+    "nz": 28
+   }
+  }
+ ],
+ "kanallar": [
+  {
+   "ad": "kod",
+   "birim": null,
+   "tur": "kategorik",
+   "kaynak": "model",
+   "en": "lattice code of the site on that day (4 bit, codes above)"
+  },
+  {
+   "ad": "maske",
+   "birim": null,
+   "tur": "kategorik",
+   "kaynak": "model",
+   "en": "0 outside the callus, 1 callus element, 2 marrow cavity, same for every day (hucre3b_paket.py: true 3D mask recomputed from the mesh; cikar alone broadcasts the mid-frontal plane)"
+  },
+  {
+   "ad": "gun",
+   "baslik": "Days at this site",
+   "birim": "days",
+   "tur": "skaler",
+   "kaynak": "viewer",
+   "en": "days the site has held the same code without a break (no cell identity in the model)"
+  },
+  {
+   "ad": "komsu",
+   "baslik": "Same-type neighbours",
+   "birim": "neighbours (0-26)",
+   "tur": "skaler",
+   "kaynak": "viewer",
+   "en": "sites with the same code among the 26 lattice neighbours"
+  },
+  {
+   "ad": "uzak",
+   "baslik": "Distance to bone",
+   "birim": "mm",
+   "tur": "skaler",
+   "kaynak": "viewer",
+   "en": "Euclidean distance to the nearest bone (2) or intact-cortex (11) site inside the region box"
+  },
+  {
+   "ad": "once",
+   "baslik": "Previous cell",
+   "birim": null,
+   "tur": "kategorik",
+   "kaynak": "viewer",
+   "en": "code that held the site before the current one (255: unchanged since day 0)"
+  }
+ ],
+ "dosyalar": {
+  "makro": "makro.b64.txt",
+  "sayilar": "sayilar.json",
+  "paket": "parca.json",
+  "zemin": "zemin.b64.txt"
+ },
+ "kaynak_bilgisi": {
+  "yeniden_kosu": "2026-11-07",
+  "gunluk_kafes": "RAW_WRITE_INTERVAL=1 (araclar/gunluk_kosu.sh)",
+  "ayni_degil": "Not bit-identical to the 2026-10-26 runs of the same seed and settings; likely OMP_NUM_THREADS 4 -> 5 in CalculiX (not verified). Qualitative result unchanged.",
+  "ayni_degil_tr": "Not identical to the earlier run (see Methods)",
+  "fark": {
+   "ilk_farkli_gun": 10,
+   "kemik_mm3": {
+    "180": [169.4, 169.5],
+    "359": [444.1, 488.7]
+   }
+  },
+  "uretim": "araclar/hucre3b_veri.py manifest"
+ }
+}

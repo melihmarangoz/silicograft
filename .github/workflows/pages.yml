@@ -1,0 +1,73 @@
+name: Deploy site to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "site/**"
+      - "long_bone/web3d_uygulama/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/configure-pages@v6
+
+      - name: Assemble _site
+        run: |
+          set -euo pipefail
+          mkdir -p _site
+          cp -a site/. _site/
+
+          # 3D viewer: the HTML fetches data/<id>.b64.txt relative to itself.
+          # The .bin files are not needed at runtime, so they are not copied.
+          mkdir -p _site/viewer/data
+          cp long_bone/web3d_uygulama/kallus3b.html _site/viewer/index.html
+          cp long_bone/web3d_uygulama/data/*.b64.txt _site/viewer/data/
+
+          # Cell viewer: loads hucre/hucre_geometri.js and veri/... relative to itself.
+          mkdir -p _site/cells
+          cp long_bone/web3d_uygulama/hucre3b.html _site/cells/index.html
+          cp -a long_bone/web3d_uygulama/hucre _site/cells/hucre
+          cp -a long_bone/web3d_uygulama/veri _site/cells/veri
+          rm -f _site/cells/hucre/hucre_test.html
+
+          # NOTE: the page build inlines partials into the pages, so they are
+          # normally not needed at runtime. Check that no page still loads
+          # them (fetch/iframe/link) before relying on this deletion.
+          rm -rf _site/partials _site/content
+
+          # Build tools and source images that the page does not load: the clip and hero
+          # scripts (tools/), the old stage stills kept as reference for film/SPEC.md
+          # (assets/stages/), the viewer poster's provenance note and DEPLOY.md.
+          rm -rf _site/tools _site/assets/stages _site/assets/viewer-poster.txt
+          rm -f _site/DEPLOY.md
+
+          # Speed-up pass on the deployed copies only (sources stay artifact-compatible): CSS inlined in the
+          # home page, the viewers' fonts and three.js served from this site (site/tools/build_site.py).
+          python3 site/tools/build_site.py _site
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
