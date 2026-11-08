@@ -33,7 +33,7 @@
       s.type = type;
       v.append(s);
     };
-    // A phone held upright gets the portrait recording (720x1280); AV1 (1080p, about a third of the H.264
+    // A phone held upright gets the portrait recording (720x1440); AV1 (1080p, about a third of the H.264
     // size) goes to large screens, H.264 720p to everything else and to browsers without AV1. The browser
     // skips a <source> whose type it cannot play and falls through to the next when a file is missing.
     if (matchMedia('(max-width: 40rem) and (orientation: portrait)').matches) add(d.videoPortrait, 'video/mp4');
