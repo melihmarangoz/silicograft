@@ -33,7 +33,7 @@ Every 3 days a linear-elastic finite-element analysis of the healing region give
 | `long_bone/sonuclar/` | Figures and GIFs of the validation runs |
 | `long_bone/web3d_uygulama/` | three.js viewer that replays a run day by day |
 | `long_bone/docs/` | Comparison with Perier-Metz 2022 (in Turkish for now) |
-| `dental/` | Immediate implant with β-TCP in the jumping gap: design and literature review (work in progress) |
+| `dental/` | Dental model (work in progress): extraction-socket model and its Hong 2014 calibration (`dental/hong/`), design and literature review |
 
 Folder and script names are still Turkish. They will be renamed in a later commit.
 

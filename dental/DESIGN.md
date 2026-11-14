@@ -78,6 +78,6 @@ Findings that change this design (proposed, not yet confirmed by the user):
 - **Granule bed solid fraction** is about 0.2 (bulk density 0.60–0.65 g/cm³ against a ceramic density of 3.1 g/cm³). This agrees with the estimate above.
 
 ## Open decisions (ask the user)
-- Confirm the 3-stage plan.
+- ~~Confirm the 3-stage plan.~~ **Stage 1 (Hong calibration) confirmed by Melih on 2026-11-14.** The motivating case is socket preservation after extraction: one socket left empty and one grafted, which is exactly Hong's empty vs β-TCP comparison. No patient data is kept in this repository. Milestone 1 (empty-socket model, no fitting) is in [hong/README.md](hong/README.md); the decisions it raises are listed there.
 - Include the growth-factor arms in validation?
 - Loading protocol for the sweep: delayed, immediate, or both?

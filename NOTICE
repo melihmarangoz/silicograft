@@ -41,6 +41,23 @@ Changes to the upstream sources (long_bone/src), all marked [CCX] in the code:
 The cell rules (differentiation, proliferation, mitosis, migration, apoptosis,
 ageing) are unchanged.
 
+dental/src is a copy of long_bone/src for the dental extraction-socket model.
+Its upstream files keep the Apache License 2.0 in the same way; Dental_utils.cpp
+and Write_statistics.cpp are SilicoGraft's own (AGPL-3.0). Further changes,
+marked [DENTAL] in the code and described in dental/README.md:
+- The lattice size and origin come from the geometry script (model_info.h);
+  the initial lattice is read from lattice_init.raw, and MSCs are seeded in a
+  lining along the socket wall instead of the long-bone marrow and periosteum.
+- The long-bone marrow zone is removed from cell migration.
+- A soft-tissue cover over the socket opening is a new lattice code that does
+  not guide migration.
+- Per-element cell counts (proliferation, differentiation, apoptosis) use
+  stochastic rounding instead of integer truncation; a compile flag restores
+  the upstream truncation. The rates themselves are unchanged.
+- The CalculiX load step imposes a far-field strain on the bone block, and
+  the element hydrostatic pressure and minimum principal strain are written
+  out for checking.
+
 Everything outside long_bone/src (geometry, tools, results, viewers, website,
 film, dental work) is original to this repository and licensed under AGPL-3.0,
 except the third-party files below.
