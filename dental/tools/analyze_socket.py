@@ -16,7 +16,8 @@ NB = osteoblasts (lattice 2); CART = chondrocytes (4); FCT = every other socket 
 MSCs (1) and empty points (0, clot / granulation tissue). The section is the lattice plane y = 0.
 
 Outputs in OUTDIR: daily.csv (every run, day, region, zone), summary.csv (case means at days 14/28/56),
-comparison.md (markdown table vs Hong), nb_time.png, cases_total.png and section maps (sections_<case>.png).
+comparison.md (markdown table vs Hong), cases_total.png, and for each --maps case nb_time_<case>.png and
+section maps (sections_<case>.png).
 """
 import argparse, csv, json, os, re
 import numpy as np
@@ -170,25 +171,26 @@ def hong_points(ax, zone):
                         mew=2, capsize=3, lw=1.5, zorder=5)
 
 
-first = list(cases)[0]
-fig, axs = plt.subplots(1, 4, figsize=(11, 3.2), sharey=True)
-for ax, zone in zip(axs, ZONES):
-    for region, ls in [("section", "-"), ("volume", "--")]:
-        d, m, s = series(first, region, zone)
-        ax.plot(d, m, ls, color=BLUE, lw=2, label=f"model, {'central section' if region == 'section' else 'volume'}")
-        if s.any():
-            ax.fill_between(d, m - s, m + s, color=BLUE, alpha=0.15, lw=0)
-    hong_points(ax, zone)
-    ax.set_title(zone.capitalize(), color=INK, fontsize=10, loc="left")
-    ax.set_xticks([0, 14, 28, 42, 56]); ax.set_xlabel("Day")
-    ax.grid(axis="y", color=GRID, lw=0.8); ax.set_ylim(0, 100)
-axs[0].set_ylabel("New bone, % of socket")
-h, l = axs[0].get_legend_handles_labels()
-h.append(plt.Line2D([], [], marker="o", ls="", color=INK, mfc="white", mew=2)); l.append("Hong 2014 (zones: Fig. 8, total: text ± SD)")
-fig.legend(h, l, loc="upper center", ncol=3, frameon=False, bbox_to_anchor=(0.5, 1.04))
-fig.suptitle(f"Empty socket, case '{first}'", x=0.01, y=1.10, ha="left", fontsize=11, color=INK)
-fig.savefig(os.path.join(a.out, "nb_time.png"), dpi=150, bbox_inches="tight")
-plt.close(fig)
+for first in (a.maps or [list(cases)[0]]):
+    fig, axs = plt.subplots(1, 4, figsize=(11, 3.2), sharey=True)
+    for ax, zone in zip(axs, ZONES):
+        for region, ls in [("section", "-"), ("volume", "--")]:
+            d, m, s = series(first, region, zone)
+            ax.plot(d, m, ls, color=BLUE, lw=2, label=f"model, {'central section' if region == 'section' else 'volume'}")
+            if s.any():
+                ax.fill_between(d, m - s, m + s, color=BLUE, alpha=0.15, lw=0)
+        hong_points(ax, zone)
+        ax.set_title(zone.capitalize(), color=INK, fontsize=10, loc="left")
+        ax.set_xticks([0, 14, 28, 42, 56]); ax.set_xlabel("Day")
+        ax.grid(axis="y", color=GRID, lw=0.8); ax.set_ylim(0, 100)
+    axs[0].set_ylabel("New bone, % of socket")
+    h, l = axs[0].get_legend_handles_labels()
+    h.append(plt.Line2D([], [], marker="o", ls="", color=INK, mfc="white", mew=2)); l.append("Hong 2014 (zones: Fig. 8, total: text ± SD)")
+    fig.legend(h, l, loc="upper center", ncol=3, frameon=False, bbox_to_anchor=(0.5, 1.04))
+    nr = len(cases[first])
+    fig.suptitle(f"Empty socket, case '{first}'" + (f" (mean ± SD of {nr} seeds)" if nr > 1 else ""), x=0.01, y=1.10, ha="left", fontsize=11, color=INK)
+    fig.savefig(os.path.join(a.out, f"nb_time_{first}.png"), dpi=150, bbox_inches="tight")
+    plt.close(fig)
 
 if len(cases) > 1:
     fig, axs = plt.subplots(1, 2, figsize=(10, 3.4), sharey=True)
