@@ -1,3 +1,4 @@
+// Modified by Melih Marangoz in 2026 for the dental socket model (changes marked [DENTAL]; see NOTICE).
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
@@ -169,12 +170,9 @@ int Jump_migration(char cell_jump[LATTICE_X][LATTICE_Y][LATTICE_Z],int i_jump, i
     }
     
     // If the cell is not anymore in the callus and not in the bone marrow, it is removed
-    int a,b,h;
-	h = int(5/CELL_DIAMETER)+1;
-    a = int(3.75/CELL_DIAMETER)+1; // long axis bone marrow
-	b = int(4.4/CELL_DIAMETER)+1; // small axis bone marrow
-    if (lattice_points_element[i_jump][j_jump][k_jump]==0 && !((k_jump<h && h-k_jump<=h/3 || k_jump>=LATTICE_Z-h && k_jump-LATTICE_Z+h<h/3) && 
-		(pow(i_jump-(LATTICE_X-1)/2,2)/pow(a,2)+pow(j_jump-(LATTICE_Y-1)/2,2)/pow(b,2)<=1))) {
+    // [DENTAL] no marrow zone in the socket model (upstream: hard-coded long-bone marrow ellipse). All free
+    // points lie inside socket elements, so this only guards against a cell leaving the socket.
+    if (lattice_points_element[i_jump][j_jump][k_jump]==0) {
     	cell_jump[i_jump][j_jump][k_jump] = 0;
     	age_jump[i_jump][j_jump][k_jump] = 0;
     	distance=-1; 

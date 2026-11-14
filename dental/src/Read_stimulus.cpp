@@ -1,4 +1,5 @@
-// Modified by Melih Marangoz in 2026 for the CalculiX port (changes marked [CCX]; see NOTICE).
+// Modified by Melih Marangoz in 2026 for the CalculiX port and the dental socket model
+// (changes marked [CCX] and [DENTAL]; see NOTICE).
 // [CCX] Read_stimulus.cpp -- CalculiX .dat okuyucu (orijinal: Abaqus *EL PRINT EP, SP tablosu)
 //
 // Orijinal (main dali) davranisi korunur:
@@ -26,8 +27,11 @@
 
 using namespace std;
 
+// [DENTAL] element values of the last FE solution, for Write_mechanics()
+static vector<float> last_HP, last_minE;
+
 #ifndef STIMULUS_FILE
-#define STIMULUS_FILE "without_scaffold.dat"
+#define STIMULUS_FILE "socket.dat" // [DENTAL]
 #endif
 
 // simetrik 3x3 matrisin en kucuk ozdegeri (analitik, trigonometrik yontem)
@@ -86,6 +90,7 @@ bool Read_stimulus(char stimulus_read[NUMBER_ELEMS], int /*elements_read*/[NUMBE
 	}
 
 	int missing = 0;
+	last_HP.assign(NUMBER_ELEMS, 0.f); last_minE.assign(NUMBER_ELEMS, 0.f); // [DENTAL]
 	for (int elem = 0; elem < NUMBER_ELEMS; elem++) {
 		if (S[elem].size() != (size_t)IPS_PER_ELEM || E[elem].size() != (size_t)IPS_PER_ELEM) { missing++; continue; }
 		double min_E_read = 0, HP_read = 0;
@@ -97,6 +102,7 @@ bool Read_stimulus(char stimulus_read[NUMBER_ELEMS], int /*elements_read*/[NUMBE
 		}
 		min_E_read /= IPS_PER_ELEM;
 		HP_read /= IPS_PER_ELEM;
+		last_HP[elem] = (float)HP_read; last_minE[elem] = (float)min_E_read; // [DENTAL]
 
 		// Define stimulus (orijinal main Read_stimulus.cpp ile ayni)
 		if (fabs(HP_read) < 0.0016 && fabs(min_E_read) < 0.0004) {
@@ -116,9 +122,34 @@ bool Read_stimulus(char stimulus_read[NUMBER_ELEMS], int /*elements_read*/[NUMBE
 			stimulus_read[elem] = 5; // fibrocartilage or connective
 		}
 	}
+#ifdef FORCE_STIMULUS
+	// [DENTAL] biology-only baseline: every element gets the same stimulus whatever the mechanics
+	// (FORCE_STIMULUS=2: bone-permissive everywhere). The FE model still runs so the pipeline is the same.
+	for (int elem = 0; elem < NUMBER_ELEMS; elem++) stimulus_read[elem] = FORCE_STIMULUS;
+#endif
 	if (missing > 0) {
 		cerr << "HATA: " << missing << "/" << NUMBER_ELEMS << " kallus elemani icin " << IPS_PER_ELEM << " IP verisi yok." << endl;
 		return false;
 	}
 	return true;
+}
+
+// [DENTAL] Per-element hydrostatic pressure (MPa, compression positive) and minimum principal strain of the
+// FE solution read last: mech_<iter>.bin holds NUMBER_ELEMS float32 HP values followed by NUMBER_ELEMS
+// float32 strains. mechanics.csv gets one summary line per iteration.
+#include <algorithm>
+void Write_mechanics(int iter)
+{
+	if ((int)last_HP.size() != NUMBER_ELEMS) return;
+	ofstream b("mech_" + to_string(iter) + ".bin", ios::binary);
+	b.write(reinterpret_cast<const char*>(last_HP.data()), sizeof(float) * NUMBER_ELEMS);
+	b.write(reinterpret_cast<const char*>(last_minE.data()), sizeof(float) * NUMBER_ELEMS);
+	auto pct = [](vector<float> v, double q) { std::sort(v.begin(), v.end()); return v[(size_t)(q * (v.size() - 1))]; };
+	vector<float> aHP(NUMBER_ELEMS), aE(NUMBER_ELEMS);
+	for (int e = 0; e < NUMBER_ELEMS; e++) { aHP[e] = fabs(last_HP[e]); aE[e] = fabs(last_minE[e]); }
+	const bool header = !ifstream("mechanics.csv").good();
+	ofstream f("mechanics.csv", ios::app);
+	if (header) f << "iteration,absHP_p10,absHP_p50,absHP_p90,absHP_max,absminE_p10,absminE_p50,absminE_p90,absminE_max\n";
+	f << iter << "," << pct(aHP, .1) << "," << pct(aHP, .5) << "," << pct(aHP, .9) << "," << pct(aHP, 1.)
+	  << "," << pct(aE, .1) << "," << pct(aE, .5) << "," << pct(aE, .9) << "," << pct(aE, 1.) << "\n";
 }

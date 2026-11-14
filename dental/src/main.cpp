@@ -1,4 +1,5 @@
-// Modified by Melih Marangoz in 2026 for the CalculiX port (changes marked [CCX]; see NOTICE).
+// Modified by Melih Marangoz in 2026 for the CalculiX port and the dental socket model
+// (changes marked [CCX] and [DENTAL]; see NOTICE and dental/README.md).
 #include <cstdlib>
 #include <time.h>
 #include <stdio.h>
@@ -74,37 +75,10 @@ int main(int argc, char** argv)
     int i,j,k;
 	
     /****************************************************************************************
-    	Set lattice points (12:scaffold, 13: plate, 11:bone, 0:free, age 666)
+    	[DENTAL] The long-bone setup (plate 13, bone ends 11) is gone: the socket lattice comes from
+    	lattice_init.raw (Initialize_lattice) after the socket elements have been mapped.
     *****************************************************************************************/
-	int a, b, c, d, h;
-	h = int(5/CELL_DIAMETER)+1; // bone extremity is 5 mm high
-    a = int(3.75/CELL_DIAMETER)+1; // x axis bone marrow
-	b = int(4.4/CELL_DIAMETER)+1; // y axis bone marrow
-	c = int(7.5/CELL_DIAMETER)+1; // x axis bone
-	d = int(8.5/CELL_DIAMETER)+1; // y axis bone
-		
-	cout<<"Initialize lattice as scaffold, bone or empty"<<endl;
-	for (i=0;i<LATTICE_X;i++) {
-        for (j=0;j<LATTICE_Y;j++) {
-            for (k=0;k<LATTICE_Z;k++) {
-                age_cells[i][j][k]=666;
-                lattice[i][j][k]=0; // first empty everywhere, then given regions will be filled appropriately
-
-				// fixation plate
-            	if (i-(LATTICE_X-1)/2<68 && -i+(LATTICE_X-1)/2<68 && j>(LATTICE_Y-1)/2+d && j<(LATTICE_Y-1)/2+d+5.6/CELL_DIAMETER) { // plate is 5.6 mm thick
-                	lattice[i][j][k]=13; // relevant positions will be freed for tissue later on
-				}
-				
-				if((k<=h || k>=LATTICE_Z-h)) {
-					// Intact bone in upper and lower cylinders
-					if (pow(i-(LATTICE_X-1)/2,2)/pow(c,2)+pow(j-(LATTICE_Y-1)/2,2)/pow(d,2)<=1 &&  
-						pow(i-(LATTICE_X-1)/2,2)/pow(a,2)+pow(j-(LATTICE_Y-1)/2,2)/pow(b,2)>1) {
-						lattice[i][j][k]=11;
-					}
-            	}
-        	}
-    	}
-    }
+	for (i=0;i<LATTICE_X;i++) for (j=0;j<LATTICE_Y;j++) for (k=0;k<LATTICE_Z;k++) { lattice[i][j][k]=LATTICE_BONE; age_cells[i][j][k]=666; }
     
     /**************************************************************************************
                                               Read node file
@@ -140,7 +114,7 @@ int main(int argc, char** argv)
                                         Initialize lattice
     *****************************************************************************************/
     cout<<"Initialize lattice"<<endl;
-    Initialize_lattice(lattice,age_cells);                    
+    if (!Initialize_lattice(lattice,age_cells,lattice_point_element)) return 2; // [DENTAL]
     
     /**************************************************************************************
                                      Write_lattice_file_for_gnuplot
@@ -149,22 +123,15 @@ int main(int argc, char** argv)
     iteration=999;
     Write_raw_lattice_file(lattice, iteration); // full 3D model as binary file    
 
-    // [CCX] kafes-ag ortusme kontrolu: kemik ekseni kafes merkezinde olmali
+    // [DENTAL] element number of every lattice point (int32, [LATTICE_X][LATTICE_Y][LATTICE_Z], 0 = not socket)
     {
-        long n = 0; int imin=LATTICE_X, imax=-1, jmin=LATTICE_Y, jmax=-1, kmin=LATTICE_Z, kmax=-1;
-        for (i=0;i<LATTICE_X;i++) for (j=0;j<LATTICE_Y;j++) for (k=0;k<LATTICE_Z;k++)
-            if (lattice_point_element[i][j][k]!=0) { n++;
-                imin=min(imin,i); imax=max(imax,i); jmin=min(jmin,j); jmax=max(jmax,j); kmin=min(kmin,k); kmax=max(kmax,k); }
-        cout << "  Kallus kafes noktasi: " << n << " (" << n*1e-3 << " mm3)  i[" << imin << "," << imax << "] j[" << jmin << "," << jmax
-             << "] k[" << kmin << "," << kmax << "]  Global_min = (" << Global_minimum[0] << ", " << Global_minimum[1] << ", " << Global_minimum[2] << ")" << endl;        // gorsellestirme icin 3 kesitin eleman haritasi (int32): x-merkez (y,z), y-merkez (x,z), z-merkez (x,y)
-        std::ofstream kf("kesit_eleman.bin", std::ios::binary);
-        const int ci=(LATTICE_X-1)/2, cj=(LATTICE_Y-1)/2, ck=(LATTICE_Z-1)/2;
-        for (j=0;j<LATTICE_Y;j++) kf.write((const char*)&lattice_point_element[ci][j][0], sizeof(int)*LATTICE_Z);
-        for (i=0;i<LATTICE_X;i++) kf.write((const char*)&lattice_point_element[i][cj][0], sizeof(int)*LATTICE_Z);
-        for (i=0;i<LATTICE_X;i++) for (j=0;j<LATTICE_Y;j++) kf.write((const char*)&lattice_point_element[i][j][ck], sizeof(int));
+        std::ofstream ef("lattice_element.bin", std::ios::binary);
+        ef.write(reinterpret_cast<const char*>(&lattice_point_element[0][0][0]), sizeof(int)*(size_t)LATTICE_X*LATTICE_Y*LATTICE_Z);
+        cout << "  Lattice " << LATTICE_X << " x " << LATTICE_Y << " x " << LATTICE_Z << ", origin (" << Global_minimum[0] << ", "
+             << Global_minimum[1] << ", " << Global_minimum[2] << "), far-field strain " << FARFIELD_STRAIN << endl;
     }
 
-    // [CCX] baslangic FE cozumu: tum kallus granulasyon dokusu (E = 0.2 MPa, nu = 0.167)
+    // [CCX] initial FE solution: the whole socket is granulation tissue (E = 0.2 MPa, nu = 0.167)
     {
         float* E0 = new float[NUMBER_ELEMS]; float* nu0 = new float[NUMBER_ELEMS];
         for (int e=0; e<NUMBER_ELEMS; e++) { E0[e]=0.2f; nu0[e]=0.167f; }
@@ -188,6 +155,7 @@ int main(int argc, char** argv)
             cerr << "Iterasyon " << iteration << ": stimulus okunamadi, simulasyon durduruldu." << endl;
             return 2;
         }
+        Write_mechanics(iteration); // [DENTAL]
         
         /**************************************************************************************
                                                Differentiation

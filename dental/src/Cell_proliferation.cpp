@@ -1,3 +1,4 @@
+// Modified by Melih Marangoz in 2026 for the dental socket model (changes marked [DENTAL]; see NOTICE).
 #include <iostream>
 #include <cstdlib>
 #include <fstream>
@@ -80,16 +81,16 @@ void Cell_proliferation(char cells_prol[LATTICE_X][LATTICE_Y][LATTICE_Z], short 
 			}
 		}
 			if (iter < ACTIVITY_MAX) {
-				MSCs_to_prol=int(MSCs*0.6);
-				fibroblasts_to_prol=int(fibroblasts*0.55);
-				chondrocytes_to_prol=int(chondrocytes*0.20);
-				mature_osteoblasts_to_prol=int(mature_osteoblasts*0.3);
+				MSCs_to_prol=sg_count(MSCs,0.6); // [DENTAL]
+				fibroblasts_to_prol=sg_count(fibroblasts,0.55); // [DENTAL]
+				chondrocytes_to_prol=sg_count(chondrocytes,0.20); // [DENTAL]
+				mature_osteoblasts_to_prol=sg_count(mature_osteoblasts,0.3); // [DENTAL]
 			}
 			else { // activity levels divided by 5 after 15 days
-				MSCs_to_prol=int(MSCs*0.12);
-				fibroblasts_to_prol=int(fibroblasts*0.11);
-				chondrocytes_to_prol=int(chondrocytes*0.04);
-				mature_osteoblasts_to_prol=int(mature_osteoblasts*0.06);
+				MSCs_to_prol=sg_count(MSCs,0.12); // [DENTAL]
+				fibroblasts_to_prol=sg_count(fibroblasts,0.11); // [DENTAL]
+				chondrocytes_to_prol=sg_count(chondrocytes,0.04); // [DENTAL]
+				mature_osteoblasts_to_prol=sg_count(mature_osteoblasts,0.06); // [DENTAL]
 			}        
 					 
 			/******************************************

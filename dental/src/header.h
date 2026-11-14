@@ -1,66 +1,90 @@
-// Modified by Melih Marangoz in 2026 for the CalculiX port (changes marked [CCX]; see NOTICE).
-// CalculiX uyarlamasi (claude çalışma/14_Mechanabio_CalculiX): degisen satirlar "[CCX]" ile isaretli.
+// Modified by Melih Marangoz in 2026 for the CalculiX port and the dental socket model
+// (changes marked [CCX] and [DENTAL]; see NOTICE and dental/README.md).
 #pragma once
 #include <random>
-#include "model_bilgi.h" // [CCX] NUMBER_NODES, NUMBER_ELEMS: geometri/uzun_kemik_geometri.py uretir
+#include "model_info.h" // [DENTAL] NUMBER_NODES, NUMBER_ELEMS, LATTICE_X/Y/Z, LATTICE_ORIGIN_*, BLOCK_LENGTH_X:
+                        //          written by dental/geometry/socket_geometry.py
 
-constexpr int LATTICE_X = 361; 
-constexpr int LATTICE_Y = 361;
-constexpr int LATTICE_Z = 401; 
-// [CCX] orijinal: NUMBER_NODES = 38785, NUMBER_ELEMS = 26215 (yazarlarin Abaqus agi; bizde model_bilgi.h)
+// [DENTAL] LATTICE_X, LATTICE_Y, LATTICE_Z now come from model_info.h (long bone: 361 x 361 x 401)
 #ifdef NUMBER_ITERATIONS_OVERRIDE
-constexpr int NUMBER_ITERATIONS = NUMBER_ITERATIONS_OVERRIDE; // [CCX] kisa test icin
+constexpr int NUMBER_ITERATIONS = NUMBER_ITERATIONS_OVERRIDE; // [CCX] short tests
 #else
-constexpr int NUMBER_ITERATIONS = 360;
+constexpr int NUMBER_ITERATIONS = 56; // [DENTAL] 8 weeks (Hong et al. 2014); day d = state after iteration d-1
 #endif
-// [CCX] 52 MB'lik lattice_N.raw her iterasyonda yazilirsa 360 gunde ~19 GB eder; varsayilan 10 gunde bir + son gun
 #ifndef RAW_WRITE_INTERVAL
-#define RAW_WRITE_INTERVAL 10
+#define RAW_WRITE_INTERVAL 1 // [DENTAL] the socket lattice is small (~170 kB): write every day
 #endif
-constexpr int IPS_PER_ELEM = 4;          // [CCX] C3D10 -> 4 integrasyon noktasi
-constexpr int FIRST_CALLUS_ELEMENT = 1;  // [CCX] orijinal Update_model first_element = 1
+constexpr int IPS_PER_ELEM = 4;          // [CCX] C3D10 -> 4 integration points
+constexpr int FIRST_CALLUS_ELEMENT = 1;  // [CCX] first socket element label
 constexpr int NODES_PER_ELEM = 10; // number of nodes per element in Abaqus model (for callus part)
 constexpr float CELL_DIAMETER = 0.1; // (in mm)
 constexpr int ACTIVITY_MAX = 15; // latency period of 15 days
 
-// [CCX] ortak, tohumlanabilir rastgele sayi motoru (nrand.cpp)
+// [DENTAL] lattice codes besides the cells (0 free, 1 MSC, 2 osteoblast, 4 chondrocyte, 5 fibroblast, 6-10 temporary)
+constexpr char LATTICE_BONE = 11;  // native alveolar bone (socket wall)
+constexpr char LATTICE_COVER = 14; // soft-tissue cover over the socket opening (closed flap)
+
+// [DENTAL] day-0 cell source: MSCs in a lining of LINING_VOXELS lattice points along the bony socket wall
+// (PDL remnants and wall marrow openings), SEED_FRACTION of those points, chosen with a fixed pattern seed so
+// every run starts from the same seeding. The long-bone model seeded 30 % of marrow and periosteum points.
+#ifndef SEED_FRACTION
+#define SEED_FRACTION 0.30
+#endif
+#ifndef LINING_VOXELS
+#define LINING_VOXELS 2
+#endif
+#ifndef SEED_PATTERN
+#define SEED_PATTERN 2014u
+#endif
+
+// [DENTAL] far-field mesio-distal strain applied to the bone block (compression negative in the input deck).
+// Default 300 microstrain; see dental/README.md for the choice.
+#ifndef FARFIELD_STRAIN
+#define FARFIELD_STRAIN 3.0e-4
+#endif
+
+// [CCX] shared, seedable random engine (nrand.cpp)
 std::mt19937& rng();
 void seed_rng(unsigned int seed);
 int nrand(int n);
+int sg_count(int n, double rate); // [DENTAL] number of cells out of n that act at a given rate (Dental_utils.cpp)
+bool Neighbour_guides(char v);    // [DENTAL] does a lattice value count as a neighbour for migration/differentiation?
 
 void Read_node_file(float nodes_position[NUMBER_NODES][3]);
 void Read_element_file(int nodes_element[NUMBER_ELEMS][NODES_PER_ELEM]);
 void Calculate_lattice(int lattice_element[NUMBER_ELEMS][NODES_PER_ELEM], float lattice_node_position[NUMBER_NODES][3], float Global_min[3], float Global_max[3]);
 void Extremes_element(int extremes_element_nodes[NUMBER_ELEMS][NODES_PER_ELEM],float extremes_node_positions[NUMBER_NODES][3],int extreme_min[NUMBER_ELEMS][3],
 	int extreme_max[NUMBER_ELEMS][3], float Global_min_extreme[3],float Global_max_extreme[3]);
-void Lattice_point_in_element (char lattice[LATTICE_X][LATTICE_Y][LATTICE_Z], int lattice_points_element[LATTICE_X][LATTICE_Y][LATTICE_Z], int element_min[NUMBER_ELEMS][3], 
+void Lattice_point_in_element (char lattice[LATTICE_X][LATTICE_Y][LATTICE_Z], int lattice_points_element[LATTICE_X][LATTICE_Y][LATTICE_Z], int element_min[NUMBER_ELEMS][3],
 	int element_max[NUMBER_ELEMS][3],float Global_min[3], float Global_max[3],float node_pos[NUMBER_NODES][3],int elem_nodes[NUMBER_ELEMS][NODES_PER_ELEM]);
 float Plane_intersection(float face[3][3],float x,float y,float z);
-void Initialize_lattice(char initial_lattice[LATTICE_X][LATTICE_Y][LATTICE_Z], short initial_age[LATTICE_X][LATTICE_Y][LATTICE_Z]);
+// [DENTAL] reads lattice_init.raw and reconciles it with the lattice points inside socket elements
+bool Initialize_lattice(char initial_lattice[LATTICE_X][LATTICE_Y][LATTICE_Z], short initial_age[LATTICE_X][LATTICE_Y][LATTICE_Z],
+	int lattice_point_element[LATTICE_X][LATTICE_Y][LATTICE_Z]);
 bool Read_stimulus(char Stimulus_read[NUMBER_ELEMS],int elements_read[NUMBER_ELEMS][NODES_PER_ELEM]);
+void Write_mechanics(int iter); // [DENTAL] per-element HP and minimum principal strain of the last FE solution
 
-void Cell_differentiation(char cells_dif[LATTICE_X][LATTICE_Y][LATTICE_Z],short age_dif[LATTICE_X][LATTICE_Y][LATTICE_Z],char stimulus_dif[NUMBER_ELEMS], 
+void Cell_differentiation(char cells_dif[LATTICE_X][LATTICE_Y][LATTICE_Z],short age_dif[LATTICE_X][LATTICE_Y][LATTICE_Z],char stimulus_dif[NUMBER_ELEMS],
 	int element_local_min[NUMBER_ELEMS][3],int element_local_max[NUMBER_ELEMS][3],int lattice_point_element[LATTICE_X][LATTICE_Y][LATTICE_Z], int iter);
 void Cell_proliferation(char cells_prol[LATTICE_X][LATTICE_Y][LATTICE_Z], short age_prol[LATTICE_X][LATTICE_Y][LATTICE_Z],int element_local_min [NUMBER_ELEMS][3],
 	int element_local_max[NUMBER_ELEMS][3],int lattice_point_element[LATTICE_X][LATTICE_Y][LATTICE_Z], char stimulus_prol[NUMBER_ELEMS], int iter);
 void Cell_mitosis(char cells_mitosis[LATTICE_X][LATTICE_Y][LATTICE_Z], int i1, int j1, int k1, int cellnumber,short age_mitosis[LATTICE_X][LATTICE_Y][LATTICE_Z]);
-void Cell_migration(char cells_migration[LATTICE_X][LATTICE_Y][LATTICE_Z], short age_migration[LATTICE_X][LATTICE_Y][LATTICE_Z], 
+void Cell_migration(char cells_migration[LATTICE_X][LATTICE_Y][LATTICE_Z], short age_migration[LATTICE_X][LATTICE_Y][LATTICE_Z],
 	int lattice_points_element[LATTICE_X][LATTICE_Y][LATTICE_Z], int iter);
-int Jump_migration(char cell_jump[LATTICE_X][LATTICE_Y][LATTICE_Z],int i_jump, int j_jump, int k_jump,short age_jump[LATTICE_X][LATTICE_Y][LATTICE_Z], 
+int Jump_migration(char cell_jump[LATTICE_X][LATTICE_Y][LATTICE_Z],int i_jump, int j_jump, int k_jump,short age_jump[LATTICE_X][LATTICE_Y][LATTICE_Z],
 	int cell_number, int lattice_points_element[LATTICE_X][LATTICE_Y][LATTICE_Z], int iter);
 bool Neighbour_presence(char cell_neighbour[LATTICE_X][LATTICE_Y][LATTICE_Z], int i_source, int j_source, int k_source, int i_dest, int j_dest, int k_dest);
 
 void Write_raw_lattice_file(char const raw_cell[LATTICE_X][LATTICE_Y][LATTICE_Z], int td);
 
-bool Update_model(char lattice[LATTICE_X][LATTICE_Y][LATTICE_Z],float Young_modulus_prop[NUMBER_ELEMS][NUMBER_ITERATIONS], float Poison_ratio_prop[NUMBER_ELEMS][NUMBER_ITERATIONS], 
+bool Update_model(char lattice[LATTICE_X][LATTICE_Y][LATTICE_Z],float Young_modulus_prop[NUMBER_ELEMS][NUMBER_ITERATIONS], float Poison_ratio_prop[NUMBER_ELEMS][NUMBER_ITERATIONS],
 	int t_prop,int element_local_min[NUMBER_ELEMS][3], int element_local_max[NUMBER_ELEMS][3],int lattice_point_element[LATTICE_X][LATTICE_Y][LATTICE_Z]);
 bool Write_ccx_input(const float* Young_mod_elem, const float* Poison_rat_elem); // [CCX]
 void Cell_age(short age[LATTICE_X][LATTICE_Y][LATTICE_Z]);
 
 void Write_statistics(char const lattice[LATTICE_X][LATTICE_Y][LATTICE_Z], int lattice_point_element[LATTICE_X][LATTICE_Y][LATTICE_Z],
-	char const stimulus[NUMBER_ELEMS], int iter); // [CCX] gunluk hucre sayilari (istatistik.csv)
+	char const stimulus[NUMBER_ELEMS], int iter); // [CCX] daily cell counts (statistics.csv)
 
 struct Point {
 	int x, y, z;
 };
-

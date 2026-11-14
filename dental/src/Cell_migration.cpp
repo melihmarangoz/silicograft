@@ -1,4 +1,5 @@
-// Modified by Melih Marangoz in 2026 for the CalculiX port (changes marked [CCX]; see NOTICE).
+// Modified by Melih Marangoz in 2026 for the CalculiX port and the dental socket model
+// (changes marked [CCX] and [DENTAL]; see NOTICE).
 /************************************************************
     Algorithm to migrate cells
         7 jumps each iteration (for lattice point size 100µm)
@@ -18,7 +19,9 @@
 
 using namespace std;
 
-void Cell_migration(char cells_migration[LATTICE_X][LATTICE_Y][LATTICE_Z], short age_migration[LATTICE_X][LATTICE_Y][LATTICE_Z], 
+// [DENTAL] Upstream also migrated the MSCs of the long-bone marrow cavity (a hard-coded ellipse in the bone
+// ends). The socket model has no marrow reservoir: only MSCs inside socket elements migrate.
+void Cell_migration(char cells_migration[LATTICE_X][LATTICE_Y][LATTICE_Z], short age_migration[LATTICE_X][LATTICE_Y][LATTICE_Z],
 	int lattice_points_element[LATTICE_X][LATTICE_Y][LATTICE_Z], int iter)
 {
     int i,j,k;
@@ -32,60 +35,47 @@ void Cell_migration(char cells_migration[LATTICE_X][LATTICE_Y][LATTICE_Z], short
     for (i=0;i<max_jumps;i++) {
     	migration_histo[i] = 0;
 	}
-    
+
     // Get total number of MSCs
-    int a,b,h;
-	h = int(5/CELL_DIAMETER)+1;
-    a = int(3.75/CELL_DIAMETER)+1; // long axis bone marrow
-	b = int(4.4/CELL_DIAMETER)+1; // small axis bone marrow
     for (i=0;i<LATTICE_X;i++) {
         for (j=0;j<LATTICE_Y;j++) {
             for (k=0;k<LATTICE_Z;k++) {
-                if (cells_migration[i][j][k]==1) { // it is an MSC
-					if (lattice_points_element[i][j][k]!=0 || ((k<h || k>=LATTICE_Z-h) && (pow(i-(LATTICE_X-1)/2,2)/pow(a,2)+pow(j-(LATTICE_Y-1)/2,2)/pow(b,2)<=1))) { 
-						// it is in an element or in the marrow cavity
-						MSCs += 1;
-						Point temp = {i,j,k};
-						indices.push_back(temp);
-					}
+                if (cells_migration[i][j][k]==1 && lattice_points_element[i][j][k]!=0) { // [DENTAL] an MSC in the socket
+					MSCs += 1;
+					Point temp = {i,j,k};
+					indices.push_back(temp);
 				}
             }
         }
     }
-    
-//    cout << "    Number of MSCs: " << MSCs << endl;
-    std::shuffle(indices.begin(), indices.end(), rng()); // [CCX] random_shuffle C++17'de kaldirildi; ortak motor
-    
+
+    std::shuffle(indices.begin(), indices.end(), rng()); // [CCX] random_shuffle was removed in C++17; shared engine
+
 	for(Point& p:indices) {
 	    i = p.x;
 	    j = p.y;
 	    k = p.z;
-	    
-	    if (cells_migration[i][j][k]==1) {    
-		    if (lattice_points_element[i][j][k]!=0 || ((k<h && h-k<=h/3 || k>=LATTICE_Z-h && k-LATTICE_Z+h<h/3) && 
-				(pow(i-(LATTICE_X-1)/2,2)/pow(a,2)+pow(j-(LATTICE_Y-1)/2,2)/pow(b,2)<=1))) {  
-		        //cout<<"i,j,k: "<<i<<" ,"<<j<<" ,"<<k<<endl;
-		        cell_type=1;
-		        jumps = Jump_migration(cells_migration,i,j,k,age_migration,cell_type,lattice_points_element, iter);
-		        migrated += 1;
-		        if (jumps>-1) { // add to histogram table
-		        	migration_histo[jumps]++;
-				}
-		        //system("PAUSE");
-		    }
+
+	    if (cells_migration[i][j][k]==1 && lattice_points_element[i][j][k]!=0) { // [DENTAL]
+	        cell_type=1;
+	        jumps = Jump_migration(cells_migration,i,j,k,age_migration,cell_type,lattice_points_element, iter);
+	        migrated += 1;
+	        if (jumps>-1 && jumps<max_jumps) { // add to histogram table
+	        	migration_histo[jumps]++;
+			}
 		}
 	}
-	
+
 	// Replace 6 by 1 for all migrated MSCs
     for (i=0;i<LATTICE_X;i++) {
         for (j=0;j<LATTICE_Y;j++) {
             for (k=0;k<LATTICE_Z;k++) {
                 if (cells_migration[i][j][k]==6)
-					cells_migration[i][j][k]=1;                      
+					cells_migration[i][j][k]=1;
             }
         }
     }
-    
+
     // Write migration distribution to a file
     ofstream myfile;
 	myfile.open("migration_distribution.txt", ios::app);
@@ -94,5 +84,5 @@ void Cell_migration(char cells_migration[LATTICE_X][LATTICE_Y][LATTICE_Z], short
 	}
 	myfile << endl;
 	myfile.close();
-    
+
 }

@@ -1,3 +1,4 @@
+// Modified by Melih Marangoz in 2026 for the dental socket model (changes marked [DENTAL]; see NOTICE).
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
@@ -94,14 +95,14 @@ void Cell_differentiation(char cells_dif[LATTICE_X][LATTICE_Y][LATTICE_Z],short 
         
 		MSCs += cells_to_differentiate;
 		if (iter<ACTIVITY_MAX)
-        	cells_to_differentiate=int(cells_to_differentiate*0.3);
+        	cells_to_differentiate=sg_count(cells_to_differentiate,0.3); // [DENTAL] sg_count: stochastic rounding
         else
-        	cells_to_differentiate=int(cells_to_differentiate*0.06); // lower activity after lateny period
+        	cells_to_differentiate=sg_count(cells_to_differentiate,0.06); // lower activity after lateny period [DENTAL]
 		to_diff += cells_to_differentiate;
         
-        mature_osteoblasts_apoptosis=int(mature_osteoblasts*apoptosis_rate_osteoblasts);
-        chondrocytes_apoptosis=int(chondrocytes*apoptosis_rate_chondrocytes);
-        fibroblasts_apoptosis=int(fibroblasts*apoptosis_rate_fibroblasts);
+        mature_osteoblasts_apoptosis=sg_count(mature_osteoblasts,apoptosis_rate_osteoblasts); // [DENTAL]
+        chondrocytes_apoptosis=sg_count(chondrocytes,apoptosis_rate_chondrocytes); // [DENTAL]
+        fibroblasts_apoptosis=sg_count(fibroblasts,apoptosis_rate_fibroblasts); // [DENTAL]
         chondrocytes_removed=fibroblasts_removed=mature_osteoblasts_removed=0;
         
         /*********************************************************************************************************

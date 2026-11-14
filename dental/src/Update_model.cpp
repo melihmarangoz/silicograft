@@ -1,4 +1,5 @@
-// Modified by Melih Marangoz in 2026 for the CalculiX port (changes marked [CCX]; see NOTICE).
+// Modified by Melih Marangoz in 2026 for the CalculiX port and the dental socket model
+// (changes marked [CCX] and [DENTAL]; see NOTICE).
 /************************************************************
 
     Algorithm to update material properties
@@ -146,17 +147,16 @@ bool Update_model(char lattice[LATTICE_X][LATTICE_Y][LATTICE_Z], float Young_mod
 	return ok;
 }
 
-// [CCX] CalculiX girdi dosyasi: model_sablon.inp (dugumler, elemanlar, korteks/ilik/plak/vida malzemeleri,
-// rijit govde, BC-1/BC-2) + kallus malzemeleri + adim (yukler, *EL PRINT).
-// Orijinal her kallus elemanina ayri "material_<n>" yaziyordu (26 215 malzeme). Burada ayni (E, nu) metnine
-// sahip elemanlar tek malzemede toplaniyor: degerler orijinaldeki gibi varsayilan ostream hassasiyetiyle
-// (6 anlamli basamak) yazildigi icin sonuc birebir ayni, sadece dosya kucuk.
+// [CCX] CalculiX input deck. [DENTAL] model_template.inp (nodes, elements, native bone materials, node sets,
+// fixed supports) + socket materials + the load step: the distal face of the bone block is displaced towards
+// the mesial face (fixed in x), which imposes a nominal mesio-distal compressive strain FARFIELD_STRAIN on the
+// block. Elements with the same (E, nu) text share one material, as in the long-bone port.
 bool Write_ccx_input(const float* Young_mod_elem, const float* Poison_rat_elem)
 {
 	namespace fs = std::filesystem;
 	const int first_element = FIRST_CALLUS_ELEMENT;
-	if (!fs::exists("model_sablon.inp")) {
-		cerr << "HATA: model_sablon.inp yok (geometri/uzun_kemik_geometri.py ile uretin)." << endl;
+	if (!fs::exists("model_template.inp")) {
+		cerr << "ERROR: model_template.inp missing (run dental/geometry/socket_geometry.py)." << endl;
 		return false;
 	}
 	map<string, vector<int>> groups;
@@ -165,28 +165,27 @@ bool Write_ccx_input(const float* Young_mod_elem, const float* Poison_rat_elem)
 		key << Young_mod_elem[elem] << "," << Poison_rat_elem[elem];
 		groups[key.str()].push_back(elem + first_element);
 	}
-	const string tmp = "without_scaffold.inp.tmp";
-	fs::copy_file("model_sablon.inp", tmp, fs::copy_options::overwrite_existing);
+	const string tmp = "socket.inp.tmp";
+	fs::copy_file("model_template.inp", tmp, fs::copy_options::overwrite_existing);
 	ofstream myfile(tmp, ios::app);
 	int g = 0;
 	for (const auto& kv : groups) {
 		g++;
 		myfile << "*MATERIAL, NAME=material_" << g << "\n*ELASTIC\n" << kv.first << "\n";
-		myfile << "*ELSET, ELSET=KALLUS_" << g << "\n";
+		myfile << "*ELSET, ELSET=SOCKET_" << g << "\n";
 		const vector<int>& v = kv.second;
 		for (size_t n = 0; n < v.size(); n++)
 			myfile << v[n] << ((n + 1) % 16 && n + 1 < v.size() ? ", " : "\n");
-		myfile << "*SOLID SECTION, ELSET=KALLUS_" << g << ", MATERIAL=material_" << g << "\n";
+		myfile << "*SOLID SECTION, ELSET=SOCKET_" << g << ", MATERIAL=material_" << g << "\n";
 	}
-	myfile << "**\n** STEP: Step-1 (orijinal main Update_model.cpp ile ayni yukler)\n";
+	const double ux = -FARFIELD_STRAIN * BLOCK_LENGTH_X;
+	myfile << "**\n** STEP: far-field mesio-distal strain " << FARFIELD_STRAIN << " (distal face ux = " << ux << " mm)\n";
 	myfile << "*STEP\n*STATIC\n1., 1., 1e-05, 1.\n";
-	myfile << "** Load-1: m_Set-2, 3, -823. (N)\n*CLOAD\nREF, 3, -823.\n";
-	myfile << "** Load-2: m_Set-2, 5, 9777. (N.mm) -> rotasyon dugumunun 2. DOF'u\n*CLOAD\nROT, 2, 9777.\n";
-	myfile << "*EL PRINT, ELSET=KALLUS\nS, E\n";
-	myfile << "*NODE PRINT, NSET=REF\nU\n";
+	myfile << "*BOUNDARY\nDISTAL, 1, 1, " << ux << "\n";
+	myfile << "*EL PRINT, ELSET=SOCKET\nS, E\n";
 	myfile << "*END STEP\n";
 	myfile.close();
-	if (!myfile) { cerr << "HATA: " << tmp << " yazilamadi." << endl; return false; }
-	fs::rename(tmp, "without_scaffold.inp");
+	if (!myfile) { cerr << "ERROR: could not write " << tmp << endl; return false; }
+	fs::rename(tmp, "socket.inp");
 	return true;
 }
