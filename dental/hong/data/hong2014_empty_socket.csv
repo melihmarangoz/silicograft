@@ -1,0 +1,20 @@
+# Hong et al. 2014, Clin Oral Implants Res, doi:10.1111/clr.12041. Empty (control) beagle P3 root sockets.
+# Outcome: % of the socket area on the central mesio-distal histological section (H&E), socket split into
+# apical, middle and coronal thirds of equal height (crest line to fundus). n: 2 dogs at 2 and 4 weeks,
+# 4 dogs at 8 weeks; measured per root (mesial and distal) in randomly assigned sockets.
+# total: Results text (mean +/- SD). The control has no graft, so FCT = 100 - NB (Fig. 7 bars reach 100 %).
+# zones: digitized from Fig. 8 panel "C" (pixel heights at 400 dpi, about +/- 1 percentage point); the figure
+#        shows no error bars and Table S1 (zone values with SD) is in the online supplement, not available here.
+week,day,zone,NB_mean,NB_sd,FCT_mean,FCT_sd,source
+2,14,total,26.03,2.94,73.97,2.94,text
+4,28,total,47.68,3.60,52.32,3.60,text
+8,56,total,62.01,17.11,37.99,17.11,text
+2,14,apical,37.0,,63.0,,fig8_digitized
+2,14,middle,27.7,,72.3,,fig8_digitized
+2,14,coronal,19.6,,80.4,,fig8_digitized
+4,28,apical,46.6,,53.4,,fig8_digitized
+4,28,middle,46.8,,53.2,,fig8_digitized
+4,28,coronal,49.0,,51.0,,fig8_digitized
+8,56,apical,61.6,,38.4,,fig8_digitized
+8,56,middle,60.5,,39.5,,fig8_digitized
+8,56,coronal,62.5,,37.5,,fig8_digitized

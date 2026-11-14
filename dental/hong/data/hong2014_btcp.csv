@@ -1,0 +1,16 @@
+# Hong et al. 2014, beta-TCP arm (Cerasorb, 500-1000 um, packed to the crest). For the later beta-TCP stage;
+# not used in milestone 1. Same outcome definition as hong2014_empty_socket.csv.
+# total: Results text (mean +/- SD); FCT total = 100 - NB - RB (derived). zones: digitized from Fig. 8 panel "TCP".
+week,day,zone,NB_mean,NB_sd,RB_mean,RB_sd,FCT_mean,source
+2,14,total,5.02,3.01,38.31,2.35,56.67,text
+4,28,total,11.07,6.35,25.80,15.25,63.13,text
+8,56,total,48.55,5.94,10.28,4.14,41.17,text
+2,14,apical,10.6,,36.8,,52.6,fig8_digitized
+2,14,middle,3.6,,42.1,,54.3,fig8_digitized
+2,14,coronal,2.5,,36.3,,61.2,fig8_digitized
+4,28,apical,13.8,,34.9,,51.3,fig8_digitized
+4,28,middle,10.1,,25.3,,64.6,fig8_digitized
+4,28,coronal,9.7,,21.2,,69.1,fig8_digitized
+8,56,apical,47.1,,10.6,,42.3,fig8_digitized
+8,56,middle,48.0,,14.2,,37.8,fig8_digitized
+8,56,coronal,48.6,,8.1,,43.3,fig8_digitized
