@@ -1,0 +1,3 @@
+flags: -DCLAES_HEIGELE_BASMA_POZITIF
+mesh: /home/ubuntu/sg/meshes/m08
+source: 5cdc365

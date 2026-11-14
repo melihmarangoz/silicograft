@@ -1,0 +1,77 @@
+{
+ "parameters": {
+  "out": "meshes/m08",
+  "socket_size": 0.8,
+  "bone_size": 1.0,
+  "trab_size": 1.5,
+  "depth": 8.5,
+  "crest_diameter": 3.6,
+  "apex_ratio": 0.5,
+  "buccal_crest": 0.6,
+  "buccal_5mm": 1.55,
+  "lingual": 1.5,
+  "block_x": 10.0,
+  "below_apex": 3.5,
+  "trab_top_below_apex": 0.5,
+  "shell": 1.2,
+  "E_compact": 13700.0,
+  "E_trab": 375.0,
+  "lattice_margin": 0.3
+ },
+ "nodes": 7368,
+ "socket_elements": 521,
+ "elements": 4502,
+ "volumes_mm3": {
+  "SOCKET": 46.65265090580843,
+  "TRABECULAR": 109.73684210526312,
+  "COMPACT": 561.6105069889286
+ },
+ "socket_volume_from_mesh": 44.486610747468596,
+ "socket_element_volume_mm3": {
+  "mean": 0.08538696880512206,
+  "min": 0.01625926349234901,
+  "max": 0.20733404668359282
+ },
+ "lattice": {
+  "size": [
+   43,
+   43,
+   92
+  ],
+  "origin": [
+   -2.1,
+   -2.1,
+   -8.850000000000001
+  ],
+  "crest_k": 88,
+  "centre_ij": 21,
+  "socket_points_analytic": 46637
+ },
+ "socket": {
+  "z_crest": 0.0,
+  "z_apex": -8.5,
+  "crest_radius": 1.8,
+  "apex_radius": 0.9,
+  "taper_half_angle_deg": 6.753574035530994
+ },
+ "block": {
+  "x": [
+   -5.0,
+   5.0
+  ],
+  "y_buccal_crest": -2.4,
+  "y_buccal_below_5mm": -2.757894736842105,
+  "y_lingual": 3.3,
+  "z": [
+   -12.0,
+   0.0
+  ],
+  "z_trabecular_top": -9.0
+ },
+ "nsets": {
+  "mesial": 419,
+  "distal": 419,
+  "pin_a": 19,
+  "pin_b": 14
+ }
+}

@@ -1,0 +1,4 @@
+case,seed,flags,exit,wall_s,max_rss_kb
+mesh06_baseline_s1,1,,0,38.35,158672
+rerun_baseline_s1,1,,0,25.94,119488
+mesh06_biology_only_s1,1,-DFORCE_STIMULUS=2,0,38.13,158728

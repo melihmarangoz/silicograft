@@ -1,0 +1,14 @@
+Volumes (mm3): {'SOCKET': 46.65, 'TRABECULAR': 109.74, 'COMPACT': 561.61}
+Nodes 9115, socket elements 1139, all elements 5788, mesial 419, distal 419, PIN_A 19 [ -5.    3.3 -12. ], PIN_B 14 [-5.   3.3  0. ]
+Lattice 43 x 43 x 92, origin (-2.1, -2.1, -8.850000000000001), socket points 46637 (46.64 mm3)
+{
+ "nodes": 9115,
+ "socket_elements": 1139,
+ "elements": 5788,
+ "socket_volume_from_mesh": 45.38583742668578,
+ "socket_element_volume_mm3": {
+  "mean": 0.03984709168277944,
+  "min": 0.01017261704436987,
+  "max": 0.1019027194751528
+ }
+}

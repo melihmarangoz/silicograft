@@ -1,0 +1,3 @@
+flags: 
+mesh: /home/ubuntu/sg/meshes/m06
+source: 5cdc365
