@@ -20,7 +20,7 @@ const TISSUES = {
 const MAXCODE = 8;
 const SOCKET_LABEL = { "32": "empty", "33": "β-TCP" };
 // human biopsy expectations (central core) at 3 and 6 months, used only when series.json brings none
-// (dental/literature/HUMAN_SOCKET_PARAMS_2026-11-16.md, section 0)
+// (the human socket parameters report in dental/literature/, section 0)
 const LIT_FALLBACK = {
   "32": { nb: [{ day: 91, low: 25, high: 45, mid: 35 }, { day: 182, low: 40, high: 60, mid: 50 }] },
   "33": { nb: [{ day: 91, low: 15, high: 30, mid: 22 }, { day: 182, low: 25, high: 45, mid: 35 }],
@@ -30,7 +30,7 @@ const LIT_FALLBACK = {
 const state = {
   day: 0, playing: false, speed: 14, touchedTime: false,
   vis: { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true },
-  show: { "32": true, "33": true }, teeth: true, opacity: 0.3,
+  show: { "32": true, "33": true }, teeth: true, opacity: 0.2,
   section: "off", flip: false, pos: { md: 0, bl: 0 },
 };
 let manifest = null, FD = [0], NF = 1, series = null;
@@ -65,8 +65,8 @@ controls.addEventListener("change", requestRender);
 controls.addEventListener("start", () => { tween = null; });
 
 // jaw: bone is drawn twice (back faces, then front faces) so the see-through shell sorts correctly
-const jawFront = new THREE.MeshLambertMaterial({ color: 0xd9ccb0, transparent: true, opacity: 0.3, depthWrite: false, side: THREE.FrontSide });
-const jawBack = new THREE.MeshLambertMaterial({ color: 0xb9ab90, transparent: true, opacity: 0.3, depthWrite: false, side: THREE.BackSide });
+const jawFront = new THREE.MeshLambertMaterial({ color: 0xd9ccb0, transparent: true, opacity: 0.2, depthWrite: false, side: THREE.FrontSide });
+const jawBack = new THREE.MeshLambertMaterial({ color: 0xb9ab90, transparent: true, opacity: 0.2, depthWrite: false, side: THREE.BackSide });
 const teethMat = new THREE.MeshLambertMaterial({ color: 0xf2ede3, side: THREE.DoubleSide });
 const jawGroup = new THREE.Group(), teethGroup = new THREE.Group();
 scene.add(jawGroup, teethGroup);
@@ -315,7 +315,7 @@ function cameraTo(name, instant) {
   } else {
     const all = new THREE.Box3(); sockets.forEach((S) => all.union(S.box));
     target = all.getCenter(new THREE.Vector3());
-    r = all.getSize(new THREE.Vector3()).length() / 2 + 2.5;
+    r = all.getSize(new THREE.Vector3()).length() / 2 * 1.25 + 4;  // some jaw and the neighbouring teeth around the sockets
     dir = state.section !== "off" ? removedDir().add(section.UP.clone().multiplyScalar(0.18)).normalize()
       : section.BL.clone().add(section.UP.clone().multiplyScalar(0.55)).add(section.MD.clone().multiplyScalar(-0.15)).normalize();
   }
@@ -451,35 +451,26 @@ async function loadFrames(S, onFrame) {
   S.loaded = NF; onFrame(S);
 }
 
-// series.json -> { "32": { days, nb, rb, msc, soft, cnb, crb, bands: { nb: [lo, hi], ... } }, ... }, literature boxes
-const ALIAS = {
-  nb: ["new_bone", "nb", "new_bone_pct", "NB"], rb: ["residual_graft", "rb", "residual_graft_pct", "graft", "RB"],
-  msc: ["stem_cells", "msc", "stem_cell", "MSC"], soft: ["soft_tissue", "soft", "SOFT"],
-  cnb: ["core_new_bone", "core_nb", "virtual_core_new_bone"], crb: ["core_residual_graft", "core_rb", "virtual_core_residual_graft"],
-};
-function pick(o, keys) { for (const k of keys) if (o && Array.isArray(o[k])) return o[k]; return null; }
+// series.json (the case pipeline's format): per socket "days", "whole" {new_bone, residual_graft, stem_cells, soft_tissue,
+// cartilage, clot_or_marrow; sum 100}, "core" {new_bone, residual_graft}, "expected" {core_new_bone, core_residual_graft:
+// [{day, value, low, high}]}; root "bands" {"x2.5"|"x5": {id: {days, whole_new_bone}}}. Normalized to
+// { s: { id: { days, nb, rb, msc, soft, cart, clot, cnb, crb, bands: { nb: [faster, slower] } } }, lit: { id: { nb, rb } } }
 function normSeries(raw) {
-  const out = { s: {}, lit: {} };
-  const root = raw.sockets || raw;
+  const out = { s: {}, lit: {}, seeds: raw.seeds, framesSeed: raw.frames_seed };
+  const root = raw.sockets || {};
+  const arr = (a) => (Array.isArray(a) ? a.map(Number) : null);
   for (const S of sockets) {
-    const o = root[S.id] || root["S" + S.id];
+    const o = root[S.id];
     if (!o) continue;
-    const e = { days: o.days || raw.days || null };
-    for (const [k, keys] of Object.entries(ALIAS)) e[k] = pick(o, keys) || (o.core && pick(o.core, ALIAS[k.slice(1)] || [])) || null;
-    e.bands = {};
-    const b = o.bands || o.band;
-    if (b) for (const k of ["nb", "rb", "cnb", "crb"]) {
-      const lo = pick(b.lo || b["x5"] || b["x5.0"] || {}, ALIAS[k]), hi = pick(b.hi || b["x2.5"] || {}, ALIAS[k]);
-      if (lo && hi) e.bands[k] = [lo, hi];
-    }
-    if (!e.days && e.nb) e.days = e.nb.map((_, i) => i);
+    const W = o.whole || {}, C = o.core || {};
+    const e = { days: arr(o.days), nb: arr(W.new_bone), rb: arr(W.residual_graft), msc: arr(W.stem_cells), soft: arr(W.soft_tissue),
+      cart: arr(W.cartilage), clot: arr(W.clot_or_marrow), cnb: arr(C.new_bone), crb: arr(C.residual_graft), bands: {} };
+    const fast = raw.bands && raw.bands["x2.5"] && raw.bands["x2.5"][S.id], slow = raw.bands && raw.bands["x5"] && raw.bands["x5"][S.id];
+    if (fast && slow && fast.whole_new_bone && slow.whole_new_bone)
+      e.bands.nb = [{ days: arr(fast.days), v: arr(fast.whole_new_bone) }, { days: arr(slow.days), v: arr(slow.whole_new_bone) }];
     out.s[S.id] = e;
-  }
-  const lit = raw.literature || raw.expectations || {};
-  for (const id of Object.keys(LIT_FALLBACK)) {
-    const L = lit[id] || lit["S" + id] || {};
-    const fix = (a) => Array.isArray(a) ? a.map((x) => ({ day: +x.day, low: +x.low, high: +x.high, mid: x.mid != null ? +x.mid : null })) : null;
-    out.lit[id] = { nb: fix(pick(L, ALIAS.nb)) || LIT_FALLBACK[id].nb || null, rb: fix(pick(L, ALIAS.rb)) || (LIT_FALLBACK[id].rb || null) };
+    const X = o.expected || {}, fix = (a) => (Array.isArray(a) ? a.map((q) => ({ day: +q.day, low: +q.low, high: +q.high, mid: q.value != null ? +q.value : null })) : null);
+    out.lit[S.id] = { nb: fix(X.core_new_bone) || (LIT_FALLBACK[S.id] || {}).nb || null, rb: fix(X.core_residual_graft) || (LIT_FALLBACK[S.id] || {}).rb || null };
   }
   return out;
 }
@@ -497,9 +488,12 @@ function readout(d) {
   $("read-title").textContent = `Day ${d}, % of the socket`;
   if (!series) { $("read").innerHTML = ""; return; }
   const ids = sockets.map((S) => S.id);
-  const rows = [["New bone", "nb", false], ["virtual core", "cnb", true], ["β-TCP", "rb", false], ["virtual core", "crb", true], ["Stem cells", "msc", false], ["Soft tissue", "soft", false]];
+  const rows = [["New bone", "nb", false], ["virtual core", "cnb", true], ["β-TCP", "rb", false], ["virtual core", "crb", true],
+    ["Stem cells", "msc", false], ["Fibrous tissue", "soft", false], ["Cartilage", "cart", false], ["Clot or marrow", "clot", false]];
   const head = `<thead><tr><th></th>${ids.map((id) => `<th scope="col">${id} · ${SOCKET_LABEL[id] || ""}</th>`).join("")}</tr></thead>`;
-  const body = rows.filter(([, k]) => ids.some((id) => series.s[id] && series.s[id][k])).map(([name, k, sub]) =>
+  // a tissue that never forms in this run (all zero in both sockets) gets no row
+  const used = (k) => ids.some((id) => { const a = series.s[id] && series.s[id][k]; return a && a.some((v) => v > 0.05); });
+  const body = rows.filter(([, k]) => used(k) || (k === "nb" || k === "cnb")).map(([name, k, sub]) =>
     `<tr><th scope="row" class="${sub ? "sub" : ""}">${name}</th>${ids.map((id) => {
       const e = series.s[id]; const graftless = (k === "rb" || k === "crb") && /empty/i.test(sockets.find((S) => S.id === id).arm || "");
       return `<td>${graftless ? "–" : fmt(valueAt(e, k, d))}</td>`;
@@ -520,7 +514,12 @@ function chart(id, k, kc, ids, ymin) {
   const x = c.getContext("2d"); x.setTransform(dpr, 0, 0, dpr, 0, 0); x.clearRect(0, 0, w, h);
   const D = FD[NF - 1] || 182;
   let ymax = ymin;
-  for (const sid of ids) { const e = series.s[sid]; if (!e) continue; for (const kk of [k, kc]) if (e[kk]) for (const v of e[kk]) ymax = Math.max(ymax, v); }
+  for (const sid of ids) {
+    const e = series.s[sid]; if (!e) continue;
+    for (const kk of [k, kc]) if (e[kk]) for (const v of e[kk]) ymax = Math.max(ymax, v);
+    if (e.bands && e.bands[k]) for (const b of e.bands[k]) for (const v of b.v) ymax = Math.max(ymax, v);
+    const lit = series.lit[sid] && series.lit[sid][k]; if (lit) for (const L0 of lit) ymax = Math.max(ymax, L0.high);
+  }
   ymax = Math.min(100, Math.ceil(ymax / 20) * 20);
   const L = 30, R = 10, T = 6, B = 18, X = (d) => L + (w - L - R) * d / D, Y = (v) => T + (h - T - B) * (1 - v / ymax);
   x.font = `11px ${css("--font-ui") || "sans-serif"}`; x.lineWidth = 1;
@@ -531,12 +530,13 @@ function chart(id, k, kc, ids, ymin) {
   ids.forEach((sid, n) => {
     const e = series.s[sid]; if (!e) return;
     const col = css(`--s${sid}`) || css("--accent");
-    // time-scale band (x2.5 to x5), when the package has one
-    for (const kk of [k, kc]) {
-      const b = e.bands && e.bands[kk]; if (!b) continue;
-      x.globalAlpha = 0.14; x.fillStyle = col; x.beginPath();
-      e.days.forEach((d, i) => (i ? x.lineTo(X(d), Y(b[1][i])) : x.moveTo(X(d), Y(b[1][i]))));
-      for (let i = e.days.length - 1; i >= 0; i--) x.lineTo(X(e.days[i]), Y(b[0][i]));
+    // time-scale band (whole socket at x2.5 and x5 instead of x3.5), when the package has one; each curve has its own days
+    const band = e.bands && e.bands[k];
+    if (band) {
+      const [f, sl] = band;
+      x.globalAlpha = 0.13; x.fillStyle = col; x.beginPath(); x.moveTo(X(0), Y(0));
+      f.days.forEach((d, i) => x.lineTo(X(d), Y(f.v[i])));
+      for (let i = sl.days.length - 1; i >= 0; i--) x.lineTo(X(sl.days[i]), Y(sl.v[i]));
       x.closePath(); x.fill(); x.globalAlpha = 1;
     }
     // literature boxes (human biopsy cores, 3 and 6 months), side by side when both sockets have one
@@ -565,7 +565,7 @@ function legend() {
   let h = sockets.map((S) => `<span>${line(`var(--s${S.id}, var(--accent))`)}${S.id} · ${SOCKET_LABEL[S.id] || S.arm}</span>`).join("");
   h += `<span>${line(fg)}whole socket</span><span>${line(fg, true)}virtual core</span>`;
   h += `<span style="grid-column:1/-1"><svg viewBox="0 0 22 10" aria-hidden="true"><rect x="7" y="0.5" width="8" height="9" style="fill:none;stroke:${fg}"/></svg>human biopsy cores, 3 and 6 months</span>`;
-  if (series && Object.values(series.s).some((e) => e && Object.keys(e.bands).length)) h += `<span style="grid-column:1/-1"><svg viewBox="0 0 22 10" aria-hidden="true"><rect x="1" y="1" width="20" height="8" style="fill:${fg}" opacity="0.25"/></svg>time scale ×2.5 to ×5</span>`;
+  if (series && Object.values(series.s).some((e) => e && Object.keys(e.bands).length)) h += `<span style="grid-column:1/-1"><svg viewBox="0 0 22 10" aria-hidden="true"><rect x="1" y="1" width="20" height="8" style="fill:${fg}" opacity="0.25"/></svg>whole socket at time scale ×2.5 to ×5</span>`;
   $("legend").innerHTML = h;
 }
 for (const id of ["chart-nb", "chart-rb"]) {
@@ -616,6 +616,17 @@ function applyJaw() {
   jawGroup.children.forEach((me) => { if (me.material === jawBack) me.visible = !solid; });
   teethGroup.visible = state.teeth;
   requestRender();
+}
+// a tissue with no voxel in any frame keeps its toggle, dimmed and last, with a short note
+function markAbsentTissues() {
+  const seen = new Uint8Array(256);
+  for (const S of sockets) if (S.frames) for (let i = 0; i < S.frames.length; i++) seen[S.frames[i]] = 1;
+  const box = $("tissues");
+  box.querySelectorAll("input[data-code]").forEach((i) => {
+    if (seen[+i.dataset.code]) return;
+    const l = i.closest("label"); l.classList.add("absent"); l.title = "No voxel holds this tissue in this run";
+    l.insertAdjacentHTML("beforeend", ' <small>(none in this run)</small>'); box.appendChild(l);
+  });
 }
 function tissueToggles() {
   const codes = manifest && manifest.codes ? Object.keys(manifest.codes).map(Number).filter((c) => TISSUES[c]) : Object.keys(TISSUES).map(Number);
@@ -691,8 +702,12 @@ ticks(phone.matches); applyJaw(); applyTime(); requestAnimationFrame(loop);
     for (const m of manifest.sockets) sockets.push(makeSocket(m));
     U.uVox.value = sockets[0].vox;
     sectionFrame(); applySection(); tissueToggles();
-    if (manifest.setting) $("setting").textContent = `This run: ${manifest.setting}`;
-    getJSON(manifest.series).then((raw) => { series = normSeries(raw); legend(); readout(Math.floor(state.day)); drawCharts(true); })
+    if (manifest.setting) $("setting").textContent = `Run setting: ${manifest.setting}.`;
+    if (manifest.voxel_rule) { $("voxel-rule").textContent = manifest.voxel_rule.replace(/^./, (c) => c.toUpperCase()) + "."; $("voxel-rule-box").hidden = false; }
+    getJSON(manifest.series).then((raw) => {
+      series = normSeries(raw); legend(); readout(Math.floor(state.day)); drawCharts(true);
+      if (series.seeds) $("seeds").textContent = `The charts and the table are the mean of ${series.seeds} runs with different random seeds; the cubes show one of them${series.framesSeed ? ` (seed ${series.framesSeed})` : ""}.`;
+    })
       .catch((e) => { $("chart-note").textContent = `The charts could not load (${e.message}).`; });
     legend();
     // the jaw first, then the frames
@@ -712,6 +727,7 @@ ticks(phone.matches); applyJaw(); applyTime(); requestAnimationFrame(loop);
     };
     await Promise.all(sockets.map((S) => loadFrames(S, onFrame).then(() => { done++; })));
     status("");
+    markAbsentTissues();
     if (!state.touchedTime && !reducedMotion) { state.day = 0; applyTime(); setPlaying(true); }
   } catch (e) {
     console.error(e);

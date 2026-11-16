@@ -89,6 +89,8 @@ select { background: var(--bg); border: 1px solid var(--line-2); padding: 4px 6p
 .seg button[aria-pressed=true] { background: var(--accent); color: var(--accent-ink); }
 label.check { display: flex; align-items: center; gap: 9px; cursor: pointer; font-size: 0.9rem; min-height: 28px; }
 label.check input { accent-color: var(--accent); width: 16px; height: 16px; margin: 0; flex: none; }
+label.check.absent { grid-column: 1 / -1; color: var(--muted); font-size: 0.82rem; min-height: 24px; }
+label.check.absent small { font-size: 0.72rem; }
 .swatch { width: 12px; height: 12px; flex: none; display: inline-block; box-shadow: inset 0 0 0 1px oklch(0% 0 0 / 0.25); }
 .swatch.bar { width: 4px; height: 14px; }
 .cols2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; }
@@ -118,6 +120,8 @@ table.read tbody tr + tr > * { border-top: 1px solid var(--line); }
 .notes p { margin: 0; }
 .notes ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
 .notes .setting { color: var(--muted); font-size: 0.8rem; }
+.notes details p { margin-top: 4px; color: var(--muted); font-size: 0.8rem; }
+.notes summary { cursor: pointer; }
 .notes a { color: var(--fg); }
 @media (max-width: 75rem) { .notes { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .notes section:last-child { grid-column: 1 / -1; } }
 @media (max-width: 60rem) { .layout { grid-template-columns: minmax(0, 1fr); } #stage { height: min(70vh, 640px); } .notes { grid-template-columns: minmax(0, 1fr); } }
@@ -220,7 +224,7 @@ table.read tbody tr + tr > * { border-top: 1px solid var(--line); }
       </div>
       <div class="group">
         <h2>Jaw</h2>
-        <label class="slider" for="opacity"><span>Bone opacity</span><input id="opacity" type="range" min="0" max="1" step="0.05" value="0.3"><output id="opacity-out" class="num">30 %</output></label>
+        <label class="slider" for="opacity"><span>Bone opacity</span><input id="opacity" type="range" min="0" max="1" step="0.05" value="0.2"><output id="opacity-out" class="num">20 %</output></label>
         <label class="check"><input type="checkbox" id="show-teeth" checked>Remaining teeth</label>
       </div>
       <div class="group">
@@ -264,19 +268,22 @@ table.read tbody tr + tr > * { border-top: 1px solid var(--line); }
     <section>
       <h2>What is simulated</h2>
       <p>The jaw comes from an anonymized patient's cone-beam CT. The lower left lateral incisor (32) and canine (33) were removed virtually, which leaves two sockets. Socket 32 stays empty; socket 33 is filled with β-TCP granules of 0.5 to 1 mm, about half of its volume (a Cerasorb M-like product, assumed). Both heal under a closed soft-tissue cover.</p>
-      <p>Stem cells line the bony wall at day 0. They divide, migrate and turn into fibroblasts, chondrocytes or bone-forming cells by SilicoGraft's agent-based rules, with the mechanical stimulus from a finite-element model of the jaw. The granules dissolve and bone grows along them. Each cube is one 0.2 mm voxel of the result.</p>
+      <p>The scan's field of view cuts through the rami, so each ramus ends in a flat face. The labial walls of both sockets are thinner than the scan's resolution, so the sockets are open toward the lip.</p>
+      <p>Stem cells line the bony wall at day 0. They divide, migrate and turn into fibroblasts, chondrocytes or bone-forming cells by SilicoGraft's agent-based rules, with the mechanical stimulus from a finite-element model of the jaw. In this run the stimulus stays in the bone-forming range everywhere, so no fibrous tissue or cartilage forms. The granules dissolve and bone grows along them. Each cube is one 0.2 mm voxel of the result.</p>
     </section>
     <section>
       <h2>The human setting</h2>
       <p>The cell kinetics were calibrated on beagle sockets (Hong et al. 2014, eight weeks). Here they run 3.5 times slower, as the human literature suggests (range 2.5 to 5). Woven bone is not yet turned into marrow within six months, and the granules lose about 1 % of their volume a day. In the grafted socket the cells start slower where granules are packed, so it forms about 0.6 of the empty socket's bone at two to three months.</p>
       <p>The charts show the whole socket and a virtual core: a 2.3 × 6 mm cylinder from the crest down the socket axis, the trephine biopsy that human histology comes from. The boxes are the ranges human biopsies report at 3 and 6 months.</p>
       <p class="setting" id="setting"></p>
+      <p class="setting" id="seeds"></p>
+      <details class="setting" id="voxel-rule-box" hidden><summary>How the cubes are drawn</summary><p id="voxel-rule"></p></details>
     </section>
     <section>
       <h2>Limitations</h2>
       <ul>
         <li>The socket walls do not resorb: no loss of ridge width or crest height, no soft-tissue collapse. Thin labial plates usually lose height after an extraction.</li>
-        <li>The labial plates of both sockets are thinner than the scan's voxels, so the model leaves them out: no cells come from the labial side.</li>
+        <li>With the labial walls below the scan's resolution, the model has no bone there: no cells come from the labial side.</li>
         <li>The human time scale, the graft product, its packing and its resorption rate come from the literature and are assumed, not fitted to this patient.</li>
         <li>The virtual core fills later than human biopsy cores at any single time scale; read the core curves as the slow end.</li>
         <li>Illustrative, not clinical: a model result for one anonymized case, not a prediction for the patient or advice on treatment.</li>
