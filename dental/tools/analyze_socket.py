@@ -218,10 +218,11 @@ for first in (a.maps or [list(cases)[0]]):
         h.append(plt.Line2D([], [], marker="s", ls="", color=RED, mfc="white", mew=2)); l.append("Hong 2014 residual graft")
     if thesis:
         h.append(plt.Line2D([], [], marker="D", ls="", color=INK, mfc="#b8b6ae", mew=1.2)); l.append("Hong 2010 thesis, total")
-    fig.legend(h, l, loc="upper center", ncol=3, frameon=False, bbox_to_anchor=(0.5, 1.04 + (0.06 if hong_rb else 0)))
+    extra = 0.07 * ((len(l) + 2) // 3 - 1)  # one more legend row per three entries
+    fig.legend(h, l, loc="upper center", ncol=3, frameon=False, bbox_to_anchor=(0.5, 1.04 + extra))
     nr = len(cases[first])
     fig.suptitle(f"{'β-TCP socket' if hong_rb else 'Empty socket'}, case '{first}'" + (f" (mean ± SD of {nr} seeds)" if nr > 1 else ""),
-                 x=0.01, y=1.10 + (0.08 if hong_rb else 0), ha="left", fontsize=11, color=INK)
+                 x=0.01, y=1.10 + extra, ha="left", fontsize=11, color=INK)
     fig.savefig(os.path.join(a.out, f"nb_time_{first}.png"), dpi=150, bbox_inches="tight")
     plt.close(fig)
 

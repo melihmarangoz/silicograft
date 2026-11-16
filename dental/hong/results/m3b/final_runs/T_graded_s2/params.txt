@@ -1,0 +1,15 @@
+force_stimulus 2
+raw_daily 1
+late_factor 0.25
+activity_days 15
+remodel_rate 0.03
+remodel_day 28
+remodel_rate2 0.005
+remodel_day2 60
+granule_fraction 0.52
+tcp_k 0.031
+tcp_lag 6
+tcp_diff_mult 0.1
+tcp_inhibit_days 1000
+tcp_inhibit_graded 1
+tcp_inhibit_prolif 1

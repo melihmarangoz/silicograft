@@ -1,11 +1,12 @@
 # Hong 2014 calibration: the empty socket
 
-**Status (2026-11-16):** three milestones are done.
+**Status (2026-11-16):** four milestones are done.
 - Milestone 1: model built, no fitting.
 - Milestone 2: empty socket calibrated, soft-tissue stimulus checked.
 - Milestone 3: β-TCP arm calibrated.
+- Milestone 3b: both arms refitted with the literature values of `../literature/SOCKET_PARAMS_2026-11-16.md` and Hong's 2010 thesis.
 
-Milestone 1 follows first, then [Milestone 2](#milestone-2-calibration-on-the-empty-socket) and [Milestone 3](#milestone-3-the-β-tcp-arm).
+**The current calibrated setting is milestone 3b's**: [Milestone 3b](#milestone-3b-refit-with-the-literature-values). Milestones 1-3 follow in order, as the record of how it was reached: [Milestone 2](#milestone-2-calibration-on-the-empty-socket), [Milestone 3](#milestone-3-the-β-tcp-arm).
 
 
 Stage 1 of the dental plan ([../DESIGN.md](../DESIGN.md)) calibrates SG-Bone on Hong et al. 2014, beagle P3 root sockets left empty or grafted with β-TCP. Milestone 1 built the socket model and ran the **empty-socket arm** end to end against Hong, without fitting. The model itself is described in [../README.md](../README.md).
@@ -330,6 +331,134 @@ J = 18.1 ± 14.7 over 5 seeds (totals 9.5, thirds 8.6); the seed-to-seed spread 
 6. **The single central section is noisy for RB** (SD 5-10 points between packings at 2-4 weeks, against 0.1-2 in the volume). Hong's SDs come from 2 dogs at weeks 2 and 4.
 7. **The 0.42 envelope is a decision.** If the literature agent finds a packing density for Cerasorb in a socket, that is a one-number change.
 
+## Milestone 3b: refit with the literature values
+
+### What changed and why (coordinator's decisions, 2026-11-16, delegated by Melih)
+The literature check (`../literature/SOCKET_PARAMS_2026-11-16.md`) found Hong's 2010 PhD thesis: the same animals, analysed again with its own SDs. It also gave literature values for remodelling, granule packing and the β-TCP delay. Both arms were refitted:
+1. **What Hong measured.** NB is the bone region with marrow counted as soft tissue; RB is the decalcified granule outline. The model already outputs these: marrow points freed by remodelling are empty and count with the FCT, and the granule points are the envelope. Documented in [../README.md](../README.md#lattice-and-cells).
+2. **Granule envelope at day 0:** 0.52 instead of 0.42. Literature range 0.50-0.62; Hong's non-resorbing HA arm covers 52.7 %. k stays at 0.031 /day and the resorption lag is refitted.
+3. **Remodelling** starts on day 28 instead of 14 (literature 21-30) at 0.03 /day (0.02-0.045), and slows to 0.005 /day from day 60 (beyond our 8 weeks, but implemented). The empty socket is refitted with it.
+4. **β-TCP delay:** the literature says early bone is reduced, not absent. The β-TCP / empty ratio of new bone is 0.19-0.46 at 2 weeks, 0.23-0.37 at 4 weeks and 0.69-0.78 at 8 weeks. Three rules were compared:
+   - the milestone-3 pause;
+   - the pause with the wall cells exempt;
+   - a graded activity factor in granule-rich regions.
+5. **Error band:** σ = max(paper SD, |paper − thesis|) per week and measure ([data/](data/)). The fit is to the paper (totals and thirds), and J against the thesis totals is reported too.
+
+| | Paper 2014 | Thesis 2010 | σ used |
+|---|---|---|---|
+| Empty NB, weeks 2 / 4 / 8 | 26.0 / 47.7 / 62.0 (SD 2.9 / 3.6 / 17.1) | 26.0 / 54.6 / 74.5 (SD 2.6 / 4.3 / 4.3) | 2.9 / 6.9 / 17.1 |
+| β-TCP NB | 5.0 / 11.1 / 48.6 (SD 3.0 / 6.4 / 5.9) | 11.9 / 20.2 / 51.1 | 6.9 / 9.1 / 5.9 |
+| β-TCP RB | 38.3 / 25.8 / 10.3 (SD 2.4 / 15.3 / 4.1) | 33.7 / 28.3 / 10.8 | 4.6 / 15.3 / 4.1 |
+
+### Empty socket
+720 runs (240 sets × 3 seeds, 208 s): remodelling start 21/24/28/30 days, rate 0.02/0.03/0.045 /day, activity 15/18/21/25 days, late factor 0.2-0.5.
+- **J is flat over the literature ranges of remodelling** (best J 2.17-2.47 for every start and rate), so remodelling is fixed at the literature values (day 28, 0.03 /day).
+- **Fitted:** activity 15 days (the upstream value; 18 J 2.19, 21 J 2.96, 25 J 10.2) and late factor 0.25 (0.2-0.3 fit, ≥ 0.4 worse).
+- **Paper and thesis pull apart at week 4.** The fitted point gives J 2.29 against the paper and 2.33 against the thesis. Activity 18 days with late factor 0.25 fits the thesis almost exactly (J_thesis 0.25: NB 26.1 / 51.9 / 70.4 against 26.0 / 54.6 / 74.5) but the paper less well (J 3.97).
+
+| Day | Third | Hong paper | Hong thesis | Model, section (5 seeds) | Model, volume |
+|---|---|---|---|---|---|
+| 14 | apical / middle / coronal | 37.0 / 27.7 / 19.6 | – | 39.5 / 24.5 / 19.9 | 55.7 / 41.9 / 34.1 |
+| 14 | **total** | 26.0 | 26.0 | **26.0 ± 0.5** | 40.0 |
+| 28 | apical / middle / coronal | 46.6 / 46.8 / 49.0 | – | 62.8 / 43.3 / 35.5 | 79.7 / 65.1 / 54.8 |
+| 28 | **total** | 47.7 | 54.6 | **44.5 ± 0.6** | 62.1 |
+| 56 | apical / middle / coronal | 61.6 / 60.5 / 62.5 | – | 79.9 / 67.3 / 55.5 | 84.6 / 79.8 / 72.5 |
+| 56 | **total** | 62.0 | 74.5 | **65.2 ± 0.9** | 76.8 |
+
+- J = 2.48 ± 0.31 against the paper and 2.45 against the thesis (5 seeds). The milestone-2 fit, rescored with the new band, is 2.31 / 2.00, so the later remodelling start changes the fit very little.
+- The apico-coronal gradient at 4 weeks stays (63 / 43 / 36 against 47 / 47 / 49). Starting remodelling later does not remove it; this was accepted in milestone 3.
+
+![Empty socket, milestone 3b](results/m3b/final_empty/nb_time_E_fitted.png)
+
+### β-TCP arm
+- **Grid:** 300 runs (100 sets × 3 seeds, 83 s) over three rules × resorption lag 0-8 days:
+  - pause of 6-14 days (R1);
+  - the same with wall elements exempt (R2);
+  - graded factor 0.2-0.7 until day 21 or 28 (R3).
+- **Scan:** 135 runs with the graded factor kept as long as granules remain (factor 0.1-0.4, until day 35/42/56).
+- **Refinement:** 90 runs, 5 seeds. Final: 5 seeds.
+
+| Rule (5 seeds) | NB section, wk 2 / 4 / 8 | RB section, wk 2 / 4 / 8 | J paper | J thesis | NB β-TCP / empty |
+|---|---|---|---|---|---|
+| Hong paper | 5.0 / 11.1 / 48.6 | 38.3 / 25.8 / 10.3 | | | 0.19 / 0.23 / 0.78 |
+| Hong thesis | 11.9 / 20.2 / 51.1 | 33.7 / 28.3 / 10.8 | | | 0.46 / 0.37 / 0.69 |
+| **Graded factor 0.1, while granules remain, lag 6 d (chosen)** | **7.0 / 19.3 / 47.1** | **37.4 / 24.3 / 10.4** | **4.4 ± 1.4** | **2.3** | **0.27 / 0.43 / 0.72** |
+| Pause 12 d, lag 7 d (milestone-3 rule) | 0.0 / 8.5 / 47.9 | 38.8 / 24.9 / 10.7 | 3.8 ± 1.5 | 6.6 | 0 / 0.19 / 0.73 |
+| Graded factor 0.4 until day 28 (literature form as stated) | 12.9 / 30.8 / 64.0 | 37.4 / 24.3 / 10.4 | 22.4 | 7.2 | 0.50 / 0.69 / 0.98 |
+| Pause with wall elements exempt (best, R2) | 22.8 / 44.2 / 69.1 | 39.5 / 25.2 / 11.0 | 51.8 | 20.6 | – |
+
+- **The graded factor is the calibrated rule.**
+  - It fits the paper about as well as the pause (4.4 vs 3.8, within the seed spread of ±1.4).
+  - It fits the thesis much better (2.3 vs 6.6) and is the literature-backed form.
+  - It is the only rule that makes bone at 2 weeks, with Hong's apical-first pattern: thirds 10.6 / 5.9 / 5.9 against 10.6 / 3.6 / 2.5.
+  - Its ratios to the empty socket (0.27 / 0.43 / 0.72) sit in the literature ranges at weeks 2 and 8, and slightly above at week 4.
+- **The factor's value:** 0.1 is the factor where granules are fully packed. It scales with each element's current granule share, which resorption lowers. With the volume RB of 41.5 / 27.9 / 12.0 %, the factor the cells actually feel is about 0.28 at 2 weeks, 0.52 at 4 weeks and 0.79 at 8 weeks. That is the literature's "about 0.4 (0.3-0.7) for the first 3-4 weeks", fading out as the granules go.
+  - The literature form taken literally (0.4 for 28 days, then nothing) makes far too much bone at 4 and 8 weeks.
+- **Wall exemption** fails at the model's resolution: 412 of 521 socket elements hold wall-lining points, so exempting them removes most of the delay. A point-level clock would be needed.
+- **Resorption:** k 0.031 /day (kept) from day 6 (fitted; 4-8 days fit within the seed spread). The analytic curve of the literature check, 0.52·exp(−0.031(t − 4)), is reproduced by the model's *volume* RB with lag 4 (39.4 / 26.2 / 11.5 against 38.1 / 24.7 / 10.4). The central *section* has 4-5 points less granule than the volume: the random packing is denser near the wall, where spheres are cut. The section-based fit therefore moves the lag to 6.
+
+| Day | Third | Hong NB | Model NB, section | Hong RB | Model RB, section | Model NB / RB, volume |
+|---|---|---|---|---|---|---|
+| 14 | apical | 10.6 | 10.6 ± 4.2 | 36.8 | 35.6 ± 6.6 | 13.2 / 42.1 |
+| 14 | middle | 3.6 | 5.9 ± 1.9 | 42.1 | 41.7 ± 6.2 | 9.5 / 40.5 |
+| 14 | coronal | 2.5 | 5.9 ± 1.2 | 36.3 | 34.9 ± 3.9 | 7.5 / 42.0 |
+| 14 | **total** | 5.0 (thesis 11.9) | 7.0 ± 1.3 | 38.3 (thesis 33.7) | 37.4 ± 2.7 | 9.1 / 41.5 |
+| 28 | apical | 13.8 | 26.6 ± 7.7 | 34.9 | 21.7 ± 7.8 | 30.9 / 28.6 |
+| 28 | middle | 10.1 | 18.2 ± 3.7 | 25.3 | 28.4 ± 5.6 | 25.5 / 27.1 |
+| 28 | coronal | 9.7 | 16.3 ± 3.0 | 21.2 | 22.4 ± 3.0 | 20.6 / 28.3 |
+| 28 | **total** | 11.1 (thesis 20.2) | 19.3 ± 3.0 | 25.8 (thesis 28.3) | 24.3 ± 2.5 | 23.8 / 27.9 |
+| 56 | apical | 47.1 | 53.7 ± 7.6 | 10.6 | 8.3 ± 4.8 | 54.0 / 12.2 |
+| 56 | middle | 48.0 | 47.3 ± 4.7 | 14.2 | 12.1 ± 3.5 | 52.3 / 11.7 |
+| 56 | coronal | 48.6 | 43.4 ± 3.1 | 8.1 | 10.1 ± 1.9 | 47.8 / 12.2 |
+| 56 | **total** | 48.6 (thesis 51.1) | 47.1 ± 2.7 | 10.3 (thesis 10.8) | 10.4 ± 0.8 | 50.2 / 12.0 |
+
+![β-TCP, milestone 3b](results/m3b/final_btcp/nb_time_T_graded.png)
+![β-TCP sections](results/m3b/final_btcp/sections_T_graded.png)
+
+### Mechanics back on
+With the soft-tissue-phase stimulus and no lower window, at 150, 300 and 1000 µε, both arms give the same cells as the forced-bone runs: 18 of 18 runs identical (seeds 1-3). The largest element strain is 2.3 % in the empty socket and 0.7 % in the β-TCP socket at 1000 µε, below the 5 % limit.
+
+### Calibrated parameters and literature ranges (milestone 3b)
+| Parameter | Value | Literature | Status |
+|---|---|---|---|
+| `activity_days` | 15 | – (upstream 15) | fitted, identified (≥ 21 clearly worse) |
+| `late_factor` | 0.25 | – (upstream 0.2) | fitted, 0.2-0.3 equivalent |
+| `remodel_day` / `remodel_rate` | 28 d / 0.03 /day | 21-30 d / 0.02-0.045 /day (net, dog) | literature; not identifiable from Hong |
+| `remodel_day2` / `remodel_rate2` | 60 d / 0.005 /day | plateau after about day 60, ≤ 0.005 /day | literature; acts after our 8 weeks |
+| `granule_fraction` (envelope) | 0.52 | 0.50-0.62 | decision |
+| `tcp_k` | 0.031 /day | 0.027-0.034 | Hong paper; kept |
+| `tcp_lag` | 6 d | 0-4 d (analytic, whole socket) | fitted on the section; 4 d on the volume |
+| `tcp_diff_mult` (at full packing, graded) | 0.1 | about 0.4 (0.3-0.7) for the first 3-4 weeks | fitted; effective 0.28 / 0.52 / 0.79 at weeks 2 / 4 / 8 |
+| `tcp_inhibit_days` | no limit (fades with resorption) | 3-4 weeks | form chosen by fit |
+
+### Changes versus milestone 3
+- **Empty socket:** activity 18 → 15 days. Remodelling from day 14 → day 28, with a slower second phase. The late factor stays at 0.25. The fit is the same (paper J 2.5 vs 2.3, thesis 2.5 vs 2.0 under the new band).
+- **β-TCP arm:**
+  - granule envelope 0.42 → 0.52;
+  - resorption lag 10 → 6 days;
+  - the 12-day pause → a graded activity factor.
+  - Paper J 5.8 → 4.4 and thesis J 7.6 → 2.3 under the new band. New bone at 2 weeks 0 → 7 % (Hong 5, thesis 12). At 4 weeks it rises from 9.9 to 19.3 % (Hong 11, thesis 20).
+- **Code:** per-element clocks, the graded factor, two-phase remodelling, σ and the thesis in scoring. Milestones 1, 2 and 3 are still reproduced bit for bit.
+
+### Run times (phoenix, 15 in parallel)
+| Stage | Runs | Wall time |
+|---|---|---|
+| Regression (m1, m2, m3) | 3 | 26 s |
+| Empty-socket grid | 720 | 208 s |
+| β-TCP rule grid | 300 | 83 s |
+| Graded-factor scan | 135 | 38 s |
+| 5-seed refinement | 90 | 25 s |
+| Final: both arms, rules, soft-phase check | 38 | 71 s |
+
+### Open issues
+1. **Paper vs thesis:** the empty socket at 4 weeks (47.7 vs 54.6) and the β-TCP bone at 2-4 weeks (5 / 11 vs 12 / 20) differ more than their SDs. Our fit sits between them for β-TCP and nearer the paper for the empty socket.
+2. **Apico-coronal gradient** in the empty socket at 4 weeks: unchanged and accepted.
+3. **Graded factor at 4 weeks:** the model has slightly more bone than the paper (19 vs 11) and matches the thesis (20).
+4. **Section vs volume packing:** RSA packing is denser near the walls, so the central section shows 4-5 points less granule than the volume. A packing that settles granules (gravity or compaction) would remove this artefact.
+5. **Wall exemption** needs a point-level clock if it is wanted later.
+6. **Remodelling and the 8-week marrow** come from dog point-counting studies that measure differently from Hong. They are used for timing only; the 8-week NB stays Hong's bone-region measure.
+7. **Table S1** (thirds with SDs) is still missing: Wiley's bot check. Melih can download it in his own Firefox.
+
 ## Reproduce
 On a Linux machine with CalculiX, gmsh, meshio, numpy, matplotlib and g++ (the runs here used hwpool lease 56ea on phoenix: Ubuntu, ccx 2.21 from apt, gmsh 4.15.2 from pip):
 
@@ -395,7 +524,25 @@ python3 $T/analyze_socket.py --out ana_final --hong $H --case A_fitted=$(s5 A_fi
  --maps A_fitted --maps V_nodelay --maps V_frac02
 ```
 
+Milestone 3b (lease, build in `m3b/build`):
+
+```bash
+python3 $T/make_sets_m3b.py empty > empty_grid.csv && python3 $T/run_sets.py --build build --sets empty_grid.csv --out empty/grid
+python3 $T/score_hong.py --hong ../dental/hong/data/hong2014_empty_socket.csv --out empty_scores.csv empty/grid
+python3 $T/aggregate_seeds.py empty_scores.csv empty_agg.csv
+python3 $T/make_sets_m3b.py btcp empty_fitted_params.json > btcp_grid.csv && python3 $T/run_sets.py --build build --sets btcp_grid.csv --out btcp/grid
+# graded-factor scan and refinement: results/m3b/sets/btcp_r3x.csv and btcp_r3f.csv, run the same way
+python3 $T/make_sets_m3b.py final empty_fitted_params.json btcp_fitted_params.json > final3b.csv
+python3 $T/run_sets.py --build build --sets final3b.csv --out btcp/final
+```
+then `analyze_socket.py` once with the empty-socket file (cases `E_fitted`, `B_empty_*`) and once with the β-TCP file (`T_graded`, `T_pause`, `T_graded_lit`, `B_btcp_*`), as in milestone 3.
+
 ## Files
+- Milestone 3b, `results/m3b/`:
+  - `empty_fitted_params.json`, `btcp_fitted_params.json`, `build_info.txt`, `final_run.log`
+  - `empty_grid/`, `btcp_grid/`, `btcp_graded_scan/`, `btcp_refine/` (scores, seed averages), `sets/` (parameter CSVs)
+  - `final_empty/`, `final_btcp/` (tables, figures, scores)
+  - `final_runs/<run>/`; `section_daily.bin` for `E_fitted_s1` and `T_graded_s1`
 - Milestone 3, `results/m3/`:
   - `fitted_params.json`, `build_info.txt`
   - `grid/`, `variant_scan/`, `refine/` (scores and seed averages), `sets/` (parameter CSVs)

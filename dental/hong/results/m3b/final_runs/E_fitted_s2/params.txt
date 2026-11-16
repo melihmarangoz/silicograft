@@ -1,0 +1,8 @@
+force_stimulus 2
+raw_daily 1
+late_factor 0.25
+activity_days 15
+remodel_rate 0.03
+remodel_day 28
+remodel_rate2 0.005
+remodel_day2 60
