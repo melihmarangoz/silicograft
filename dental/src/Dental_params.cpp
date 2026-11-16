@@ -45,6 +45,7 @@ bool Load_params(const char* file)
 		{"tcp_inhibit_days", [](istringstream& s) { s >> P.tcp_inhibit_days; }},
 		{"tcp_delay", [](istringstream& s) { s >> P.tcp_delay; }},
 		{"tcp_delay_all", [](istringstream& s) { s >> P.tcp_delay_all; }},
+		{"tcp_delay_activity", [](istringstream& s) { s >> P.tcp_delay_activity; }},
 	};
 #ifdef FORCE_STIMULUS
 	P.force_stimulus = FORCE_STIMULUS; // milestone-1 compile flag
@@ -76,7 +77,7 @@ bool Load_params(const char* file)
 	  << "\ntcp_k " << P.tcp_k << "\ntcp_lag " << P.tcp_lag << "\ntcp_E " << P.tcp_E << "\ntcp_nu " << P.tcp_nu
 	  << "\ntcp_guides " << P.tcp_guides << "\ntcp_guide_day " << P.tcp_guide_day << "\ntcp_late_mult " << P.tcp_late_mult
 	  << "\ntcp_diff_mult " << P.tcp_diff_mult << "\ntcp_inhibit_days " << P.tcp_inhibit_days
-	  << "\ntcp_delay " << P.tcp_delay << "\ntcp_delay_all " << P.tcp_delay_all << "\n";
+	  << "\ntcp_delay " << P.tcp_delay << "\ntcp_delay_all " << P.tcp_delay_all << "\ntcp_delay_activity " << P.tcp_delay_activity << "\n";
 	cout << "  Parameters: " << n << " set in " << file << " (all values in params_used.txt)" << endl;
 	return true;
 }

@@ -79,7 +79,9 @@ struct Params {
 	int tcp_delay = 0;             // with granules, the healing biology runs this many days late (Hong 2014: grafts
 	                               // "delay rather than arrest" bone formation); see main.cpp
 	int tcp_delay_all = 1;         // 1: proliferation, migration and differentiation all wait; 0: only differentiation
+	int tcp_delay_activity = 1;    // 1: the high-activity period also starts late; 0: it ends on the real clock
 };
+extern int g_activity_days; // [DENTAL] high-activity period on the biological clock (main.cpp)
 extern Params P;
 bool Load_params(const char* file);
 extern unsigned int g_run_seed; // [DENTAL] run seed (main.cpp), for the granule packing

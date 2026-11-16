@@ -5,7 +5,9 @@ Copyright 2026 Melih Marangoz. Part of SilicoGraft; GNU AGPL-3.0 (see LICENSE).
 The biology is milestone 2's calibrated setting (biology-only stimulus; activity_days 18, late_factor 0.25,
 remodel_rate 0.03). Only the granule parameters vary.
   python3 make_sets_m3.py grid > grid.csv           tcp_delay x tcp_lag x tcp_k x granule fraction x TCP stimulation,
-                                                    seeds 1-3 (each seed also packs its own granules)
+                                                    seeds 1-3 (each seed also packs its own granules), activity
+                                                    period shifted with the delay (tcp_delay_activity 1)
+  The follow-up scans with tcp_delay_activity 0 (var3.csv, refine3.csv) are kept in results/m3/sets.
   python3 make_sets_m3.py final FIT_JSON > final.csv  the fitted point and the variants with 5 seeds and daily
                                                     output, plus the soft-phase stimulus check under load
 """
@@ -13,7 +15,8 @@ import itertools, json, sys
 
 BIO = dict(force_stimulus=2, late_factor=0.25, activity_days=18, remodel_rate=0.03)
 COLS = ["name", "seed", "force_stimulus", "raw_daily", "stimulus_mode", "lower_window", "farfield_strain", "late_factor",
-        "activity_days", "remodel_rate", "granule_fraction", "tcp_k", "tcp_lag", "tcp_delay", "tcp_delay_all", "tcp_late_mult"]
+        "activity_days", "remodel_rate", "granule_fraction", "tcp_k", "tcp_lag", "tcp_delay", "tcp_delay_all",
+        "tcp_delay_activity", "tcp_late_mult"]
 
 
 def out(rows):
@@ -42,6 +45,7 @@ elif mode == "final":
         rows.append(dict(name=f"V_stim_s{s}", seed=s, raw_daily=1, **dict(base, tcp_late_mult=2.5)))
         rows.append(dict(name=f"V_frac02_s{s}", seed=s, raw_daily=1, **dict(base, granule_fraction=0.2)))
         rows.append(dict(name=f"V_nodelay_s{s}", seed=s, raw_daily=1, **dict(base, tcp_delay=0)))
+        rows.append(dict(name=f"V_shiftedactivity_s{s}", seed=s, raw_daily=1, **dict(base, tcp_delay=18, tcp_delay_activity=1)))
     for s in range(1, 4):  # mechanics back on: soft-tissue phase, no lower window (milestone-2 recommendation)
         for eps, lab in [(1.5e-4, "150"), (3e-4, "300"), (1e-3, "1000")]:
             b = dict(base); b.pop("force_stimulus")

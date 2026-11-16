@@ -115,7 +115,7 @@ void Cell_differentiation(char cells_dif[LATTICE_X][LATTICE_Y][LATTICE_Z],short 
 			const bool tcp = P.granule_fraction > 0;
 			const double late = P.late_factor * (tcp ? P.tcp_late_mult : 1.0);
 			const double inhib = (tcp && iter < P.tcp_inhibit_days) ? P.tcp_diff_mult : 1.0;
-			if (iter<P.activity_days) // [DENTAL] runtime length of the high-activity period (upstream ACTIVITY_MAX = 15)
+			if (iter<g_activity_days) // [DENTAL] runtime length of the high-activity period (upstream ACTIVITY_MAX = 15)
 				cells_to_differentiate=sg_count(cells_to_differentiate,0.3*inhib); // [DENTAL] sg_count: stochastic rounding
 			else
 				cells_to_differentiate=sg_count(cells_to_differentiate,0.3*late*inhib); // lower activity after lateny period [DENTAL] upstream 0.06 = 0.3/5

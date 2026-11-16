@@ -36,6 +36,7 @@ using namespace std;
 
 unsigned int g_run_seed = 0; // [DENTAL]
 int g_iter = 0;              // [DENTAL]
+int g_activity_days = ACTIVITY_MAX; // [DENTAL]
 
 int main(int argc, char** argv)
 {
@@ -162,6 +163,7 @@ int main(int argc, char** argv)
         // (with tcp_delay_all 0 only differentiation waits). Resorption, ageing and mechanics keep the real clock.
         const int bio = (P.granule_fraction > 0) ? iteration - P.tcp_delay : iteration;
         const bool cells_act = bio >= 0 || !P.tcp_delay_all;
+        g_activity_days = (P.granule_fraction > 0 && !P.tcp_delay_activity) ? P.activity_days - P.tcp_delay : P.activity_days;
         cout<<"Read stimulus"<<endl;
         if (!Read_stimulus(stimulus,elements)) { // [CCX]
             cerr << "Iterasyon " << iteration << ": stimulus okunamadi, simulasyon durduruldu." << endl;

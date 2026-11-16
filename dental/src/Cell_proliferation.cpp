@@ -80,7 +80,7 @@ void Cell_proliferation(char cells_prol[LATTICE_X][LATTICE_Y][LATTICE_Z], short 
 				}
 			}
 		}
-			if (iter < P.activity_days) { // [DENTAL] runtime (upstream ACTIVITY_MAX = 15)
+			if (iter < g_activity_days) { // [DENTAL] runtime (upstream ACTIVITY_MAX = 15)
 				MSCs_to_prol=sg_count(MSCs,0.6); // [DENTAL]
 				fibroblasts_to_prol=sg_count(fibroblasts,0.55); // [DENTAL]
 				chondrocytes_to_prol=sg_count(chondrocytes,0.20); // [DENTAL]
