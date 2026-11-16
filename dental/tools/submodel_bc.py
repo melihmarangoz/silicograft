@@ -10,7 +10,10 @@ SOCKET elements that face coronally (outward normal within 60 degrees of the cre
 
 Field file (npz): origin (3), h, node_grid (n, 3) integer node indices, names (cases), u (cases, n, 3), in a frame that
 is the socket model's block frame plus --offset (mm).
-Steps: --step NAME=CASE[*w][+CASE[*w]...][@P_MPa], e.g. "bite=incisal", "bite_ovate=incisal+ovate@0.01".
+Steps: --step NAME=CASE[*w][+CASE[*w]...][@P_MPa | @d=DELTA_MM], e.g. "bite=incisal", "bite_p=incisal+ovate@0.01",
+"bite_ovate=incisal@d=0.5". With @d= the nodes of those coronal faces (except nodes shared with bone or tooth
+elements) are moved DELTA_MM along the apical socket axis on top of the field: a pontic seated into the soft tissue
+over the socket (displacement-controlled interference; the tissue's own stiffness then sets the pressure).
 The output holds one *STEP per --step, each ending with *EL PRINT, ELSET=SOCKET / S, E (as the C++ reader expects).
 
 usage: submodel_bc.py --template model_template.inp --field fields.npz --offset ox oy oz --sockets sockets.json
@@ -57,15 +60,20 @@ def interp(P):
         w[:, c] = np.prod(np.where(o == 1, f, 1 - f), 1)
     w[idx < 0] = 0; sw = w.sum(1)
     bad = sw < 1e-9
-    if bad.any(): raise SystemExit(f"{int(bad.sum())} cut-face nodes lie outside the field")
+    if bad.any():   # no field node around (e.g. soft tissue that the larger model leaves out): nearest field node
+        from scipy.spatial import cKDTree
+        dd, nn_ = cKDTree(G - gl).query(g[bad])
+        if dd.max() * h > 2.0: raise SystemExit(f"{int(bad.sum())} nodes lie outside the field (up to {dd.max() * h:.2f} mm)")
+        idx[bad] = -1; idx[bad, 0] = nn_; w[bad] = 0; w[bad, 0] = 1; sw[bad] = 1
+        print(f"  {int(bad.sum())} nodes outside the field's elements: nearest field node (up to {dd.max() * h:.2f} mm)")
     return idx, w / sw[:, None]
-Pc = X[cut]; idx, w = interp(Pc)
-def disp(case_w):
-    u = np.zeros((len(Pc), 3))
+def disp(case_w, P):
+    idx, w = interp(P); u = np.zeros((len(P), 3))
     for name, wt in case_w:
         Uc = Ucases[names.index(name)]
         u += wt * np.einsum("nk,nkd->nd", w, Uc[np.maximum(idx, 0)])
     return u
+Pc = X[cut]
 
 # coronal free faces of SOCKET elements near the crest (C3D10 faces by corner nodes: CalculiX numbering)
 S = json.load(open(a.sockets))["sockets"]
@@ -74,7 +82,11 @@ count = {}
 for e, (es, cn) in elems.items():
     for fi, fc in enumerate(FACES):
         key = tuple(sorted(cn[i] for i in fc)); count[key] = count.get(key, 0) + 1
-press = []
+press = []; press_nodes = {}
+FACE_NODES = [(0, 1, 2, 4, 5, 6), (0, 3, 1, 7, 8, 4), (1, 3, 2, 8, 9, 5), (2, 3, 0, 9, 7, 6)]   # corners + midsides
+nonsock = set()
+for e, (es, cn) in elems.items():
+    if es != "SOCKET": nonsock.update(cn)
 for e, (es, cn) in elems.items():
     if es != "SOCKET": continue
     P4 = np.array([nodes[n] for n in cn[:4]]); ce = P4.mean(0)
@@ -87,26 +99,42 @@ for e, (es, cn) in elems.items():
         for s_ in S:
             cr, ap = np.array(s_["crest"]), np.array(s_["apex"]); axv = (ap - cr) / np.linalg.norm(ap - cr)
             t = (fcen - cr) @ axv; r = np.linalg.norm((fcen - cr) - t * axv)
-            if t <= a.crest_depth and r <= 6.0 and nrm @ (-axv) > 0.5: best = s_["name"]
-        if best: press.append((e, fi + 1))
-print(f"{len(press)} coronal socket faces for pressure loads")
+            if t <= a.crest_depth and r <= 6.0 and nrm @ (-axv) > 0.5: best = (s_["name"], axv)
+        if best:
+            press.append((e, fi + 1))
+            for k_ in FACE_NODES[fi]:
+                n_ = cn[k_]
+                if n_ not in nonsock: press_nodes[n_] = best[1]
+print(f"{len(press)} coronal socket faces for pressure loads, {len(press_nodes)} of their nodes free of bone and tooth")
+pn_ids = np.array(sorted(press_nodes)); pn_ax = np.array([press_nodes[n] for n in pn_ids]) if len(pn_ids) else np.zeros((0, 3))
+pn_cut = np.isin(pn_ids, ids[cut]); pn_ids, pn_ax = pn_ids[~pn_cut], pn_ax[~pn_cut]
 
 with open(a.out, "w") as f:
     f.write("** load steps from a larger model (dental/tools/submodel_bc.py)\n")
     for st in a.step:
         name, rest = st.split("=", 1)
-        pr = 0.0
-        if "@" in rest: rest, prs = rest.split("@"); pr = float(prs)
+        pr = 0.0; dl = 0.0
+        if "@" in rest:
+            rest, prs = rest.split("@")
+            if prs.startswith("d="): dl = float(prs[2:])
+            else: pr = float(prs)
         cw = []
         for term in rest.split("+"):
-            n_, wt = (term.split("*") + ["1"])[:2]; cw.append((n_.strip(), float(wt)))
-        u = disp(cw)
-        f.write(f"** STEP {name}: {' + '.join(f'{w_}*{n_}' for n_, w_ in cw)}" + (f", coronal socket pressure {pr} MPa" if pr else "") + "\n")
+            n_, wt = (term.split("*") + ["1"])[:2]
+            if n_.strip(): cw.append((n_.strip(), float(wt)))
+        u = disp(cw, Pc)
+        f.write(f"** STEP {name}: {' + '.join(f'{w_}*{n_}' for n_, w_ in cw) or 'no field'}" + (f", coronal socket pressure {pr} MPa" if pr else "")
+                + (f", coronal socket surface moved {dl} mm apically" if dl else "") + "\n")
         f.write("*STEP\n*STATIC\n1., 1., 1e-05, 1.\n*BOUNDARY\n")
         for nid_, uu in zip(ids[cut], u):
             for d in range(3): f.write(f"{nid_}, {d + 1}, {d + 1}, {uu[d]:.6e}\n")
+        if dl:
+            ud = disp(cw, np.array([nodes[n] for n in pn_ids])) + dl * pn_ax
+            for nid_, uu in zip(pn_ids, ud):
+                for d in range(3): f.write(f"{nid_}, {d + 1}, {d + 1}, {uu[d]:.6e}\n")
         if pr:
             f.write("*DLOAD\n")
             for e, fi in press: f.write(f"{e}, P{fi}, {pr:.6e}\n")
         f.write("*EL PRINT, ELSET=SOCKET\nS, E\n*END STEP\n")
-        print(f"step {name}: max |u| on the cut faces {np.linalg.norm(u, axis=1).max():.3e} mm" + (f", pressure {pr} MPa on {len(press)} faces" if pr else ""))
+        print(f"step {name}: max |u| on the cut faces {np.linalg.norm(u, axis=1).max():.3e} mm" + (f", pressure {pr} MPa on {len(press)} faces" if pr else "")
+              + (f", {len(pn_ids)} coronal nodes moved {dl} mm" if dl else ""))
