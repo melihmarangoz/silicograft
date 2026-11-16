@@ -37,6 +37,7 @@ p.add_argument("--cbct"); p.add_argument("--labels")
 p.add_argument("--case", action="append", required=True)
 p.add_argument("--days", default="14,28,56"); p.add_argument("--vct-days", default="")
 p.add_argument("--maps", action="append", default=[])
+p.add_argument("--core-start", type=float, default=0.0, help="depth of the virtual core's top below the crest, mm")
 a = p.parse_args()
 os.makedirs(a.out, exist_ok=True)
 DAYS = [int(x) for x in a.days.split(",") if x]
@@ -62,8 +63,9 @@ if a.cbct:
 def params(run):
     return {l.split()[0]: l.split()[1] for l in open(os.path.join(run, "params_used.txt"))}
 def it_of(run, day):
-    """iteration whose end is closest to the real day (time_scale real days per iteration)"""
-    ts = float(params(run).get("time_scale", 1)); return max(int(round(day / ts)) - 1, 0), ts
+    """iteration whose end is closest to the real day (time_scale real days per iteration), within the run"""
+    P_ = params(run); ts = float(P_.get("time_scale", 1)); last = int(P_.get("iterations", 10 ** 6)) - 1
+    return min(max(int(round(day / ts)) - 1, 0), last), ts
 def lattice(run, day):
     it, ts = it_of(run, day)
     f = os.path.join(run, f"lattice_{it}.raw")
@@ -112,7 +114,7 @@ CORE = {}
 for n_, s_ in enumerate(SO):
     cr, apx = np.array(s_["crest"]), np.array(s_["apex"]); ax = (apx - cr) / np.linalg.norm(apx - cr)
     rel = GP - cr; t = rel @ ax; rr = np.linalg.norm(rel - t[..., None] * ax, axis=-1)
-    cyl = (t >= 0) & (t <= CORE_L) & (rr <= CORE_D / 2)
+    cyl = (t >= a.core_start) & (t <= a.core_start + CORE_L) & (rr <= CORE_D / 2)
     CORE[s_["name"]] = dict(mask=cyl & (SMAP == n_ + 1), outside_pct=round(100 * float((cyl & (SMAP != n_ + 1)).sum()) / max(int(cyl.sum()), 1), 1))
 del GP
 def core_fracs(lat, name):
@@ -123,7 +125,7 @@ core_daily = []
 for case, runs in cases.items():
     for run in runs:
         Z = zones_of(run)
-        it_all = sorted(int(f[8:-4]) for f in os.listdir(run) if f.startswith("lattice_") and f != "lattice_999.raw")
+        it_all = sorted(int(f[8:-4]) for f in os.listdir(run) if re.fullmatch(r"lattice_\d+\.raw", f) and f != "lattice_999.raw")
         ts = float(params(run).get("time_scale", 1))
         for it in it_all:   # core over time (every stored lattice)
             lat = np.fromfile(os.path.join(run, f"lattice_{it}.raw"), np.uint8).reshape(LN)
