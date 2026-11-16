@@ -1,0 +1,6 @@
+{"chosen": "graded",
+ "rules": {
+  "graded": {"granule_fraction": 0.52, "tcp_k": 0.031, "tcp_lag": 6, "tcp_diff_mult": 0.1, "tcp_inhibit_days": 1000, "tcp_inhibit_graded": 1, "tcp_inhibit_prolif": 1},
+  "pause": {"granule_fraction": 0.52, "tcp_k": 0.031, "tcp_lag": 7, "tcp_delay": 12, "tcp_delay_all": 1, "tcp_delay_activity": 0},
+  "graded_lit": {"granule_fraction": 0.52, "tcp_k": 0.031, "tcp_lag": 6, "tcp_diff_mult": 0.4, "tcp_inhibit_days": 28, "tcp_inhibit_graded": 1, "tcp_inhibit_prolif": 1}
+ }}
