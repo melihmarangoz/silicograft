@@ -13,5 +13,6 @@ g++ -O2 -std=c++17 -w -I"$MESH" "$@" "$DENTAL"/src/*.cpp -o "$RUN/mechanobio"
 cp "$MESH"/model_template.inp "$MESH"/node_file.txt "$MESH"/element_file.txt "$MESH"/model_info.h \
    "$MESH"/lattice_init.raw "$MESH"/mesh_summary.json "$RUN"/
 cp "$DENTAL"/tools/run.sh "$RUN"/
+for f in zone_map.raw zone_names.txt graft_mask.raw socket_map.raw; do [ -f "$MESH/$f" ] && cp "$MESH/$f" "$RUN"/; done  # models from masks
 { echo "flags: $*"; echo "mesh: $MESH"; echo "source: ${SG_SOURCE:-$(cd "$DENTAL" && git rev-parse --short HEAD 2>/dev/null || echo unknown)}"; } > "$RUN/build_info.txt"
 echo "Ready: $RUN ($*)"

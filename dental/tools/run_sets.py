@@ -21,7 +21,8 @@ a = p.parse_args()
 build = os.path.abspath(a.build)
 os.makedirs(a.out, exist_ok=True)
 LINK = ["mechanobio", "model_template.inp", "node_file.txt", "element_file.txt", "model_info.h",
-        "lattice_init.raw", "mesh_summary.json", "run.sh", "build_info.txt"]
+        "lattice_init.raw", "mesh_summary.json", "run.sh", "build_info.txt",
+        "zone_map.raw", "zone_names.txt", "graft_mask.raw", "socket_map.raw"]  # the last four only if the build has them
 rows = list(csv.DictReader(open(a.sets)))
 
 
@@ -32,7 +33,7 @@ def run(row):
     os.makedirs(d, exist_ok=True)
     for f in LINK:
         dst = os.path.join(d, f)
-        if not os.path.lexists(dst):
+        if not os.path.lexists(dst) and os.path.exists(os.path.join(build, f)):
             os.symlink(os.path.join(build, f), dst)
     with open(os.path.join(d, "params.txt"), "w") as f:
         for k, v in row.items():

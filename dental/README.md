@@ -91,6 +91,25 @@ A run folder may hold `params.txt` with `name value` lines; the values used are 
 | β-TCP graft | scaffold branch: a fixed PCL-TCP cylinder (code 12, separate FE part, never resorbed), activity / 2 instead of / 5 | explicit random-packed granules (code 12, guiding), shrinking first-order, in the rule of mixtures at 3.5 GPa; no stimulation | Hong's Cerasorb granules resorb within 8 weeks and *delay* bone (milestone 3) |
 | Grafted-socket timing | – | milestone 3b: a graded activity factor (0.1 at full packing, fading with the element's granule share) on differentiation and proliferation. Milestone 3: a 12-day pause of the cell biology (`tcp_delay`), kept as a variant | β-TCP sockets form 0.2-0.45 of the empty socket's bone at 2 weeks, 0.25-0.4 at 4 weeks and 0.7-0.8 at 8 weeks (Hong paper and thesis, Araújo 2010; literature/SOCKET_PARAMS_2026-11-16.md). The graded rule fits Hong's paper as well as the pause, fits the thesis better, and gives bone at 2 weeks |
 
+### Socket models from segmentation masks (`geometry/socket_from_masks.py`)
+For a real case (a "patient case"), sockets come from CBCT segmentations instead of the idealized geometry. The builder is generic and takes:
+- a label volume: soft tissue / air, bone, remaining teeth, one label per socket;
+- a JSON with each socket's crest and apex (for the thirds).
+
+It writes the same run inputs, plus `zone_map.raw` (socket × third), `graft_mask.raw` (sockets to graft) and `socket_map.raw`:
+- **FE:** a block around the sockets, cut out of the bone. It is meshed as 0.8 mm cubes split into six C3D10 tetrahedra each.
+  - Socket elements are the cubes holding any socket point.
+  - Bone is cortical within 1.5 mm of soft tissue (shell rule), trabecular deeper; teeth are dentine (18 GPa, assumed).
+  - The far-field strain acts along x.
+- **Lattice:** 0.1 mm, a sub-block of a fine grid shared with the cubes, so every socket lattice point lies in a socket element.
+- **`SG_INIT_DECIDES`:** native bone and soft tissue inside the coarser socket elements stay occupied, count as native bone in the element stiffness (`native_E`), and are not socket points in any statistics.
+- **Several sockets:** they run in one model. The granules go only into `graft_mask.raw`, and `granule_fraction` refers to that region. `zones.csv` then reports per socket and third.
+- **`time_scale`** (real days per iteration) gives a provisional slower, human time course. The biology then runs in biological days, while `tcp_k` and `tcp_lag` stay in real days.
+- **Tools:**
+  - `tools/analyze_mask_model.py`: tables per socket, third and plane; central mesio-distal and bucco-lingual sections along each socket axis; and a virtual CBCT. The virtual CBCT keeps the pre-operative scan outside the sockets and draws new bone and graft with assumed grey values.
+  - `tools/live_panel.py --patient`: replays such runs.
+- **Privacy:** patient inputs, meshes, lattices and results never go into this repository.
+
 ### Outputs of a run
 `statistics.csv` (daily counts), `zones.csv` (Hong's outcome per day: socket points and tissue counts per third and in total, on the central section and in the volume), `section_daily.bin` (the central section every day, 43 × 92 bytes per day), `lattice_<it>.raw` (daily lattice, uint8; with `raw_daily 0` only days 14, 28 and 56), `lattice_element.bin` (element of each lattice point, int32), `mech_<it>.bin` and `mechanics.csv` (element hydrostatic pressure and minimum principal strain), `stimulus_<it>.bin`, plus the upstream `proliferation.txt`, `differentiation.txt` and `migration_distribution.txt`. Day d is the lattice after d daily iterations (`lattice_<d−1>.raw`).
 

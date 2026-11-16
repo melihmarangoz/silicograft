@@ -19,6 +19,9 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+if "--patient" in sys.argv:  # models from masks: live_panel_patient.py runs the panel and exits
+    import live_panel_patient  # noqa: F401
+    sys.exit(0)
 import score_hong as sh
 
 p = argparse.ArgumentParser()
@@ -26,6 +29,7 @@ p.add_argument("--root", required=True)
 p.add_argument("--hong", required=True, help="Hong file for empty sockets")
 p.add_argument("--hong-btcp", help="Hong file for grafted runs (granule_fraction > 0); default: --hong")
 p.add_argument("--day-seconds", type=float, default=0.3)
+p.add_argument("--patient", action="store_true", help="models from masks: per-socket curves from zones.csv, no Hong data")
 a = p.parse_args()
 HONG_E, SD_E = sh.load_hong(a.hong)
 HONG_B, SD_B = sh.load_hong(a.hong_btcp or a.hong)
