@@ -1,6 +1,9 @@
-# Hong 2014 calibration, milestone 1: the empty socket
+# Hong 2014 calibration: the empty socket
 
-Stage 1 of the dental plan ([../DESIGN.md](../DESIGN.md)) calibrates SG-Bone on Hong et al. 2014, beagle P3 root sockets left empty or grafted with β-TCP. Milestone 1 builds the socket model and runs the **empty-socket arm** end to end against Hong. Nothing is fitted yet, and the β-TCP arm has not been started. The model itself is described in [../README.md](../README.md).
+**Status (2026-11-16):** milestone 1 (model built, no fitting) and milestone 2 (empty socket calibrated, soft-tissue stimulus checked) are done. The β-TCP arm has not been started. The milestone-2 results are in [Milestone 2](#milestone-2-calibration-on-the-empty-socket); milestone 1 follows first.
+
+
+Stage 1 of the dental plan ([../DESIGN.md](../DESIGN.md)) calibrates SG-Bone on Hong et al. 2014, beagle P3 root sockets left empty or grafted with β-TCP. Milestone 1 built the socket model and ran the **empty-socket arm** end to end against Hong, without fitting. The model itself is described in [../README.md](../README.md).
 
 ## Target: Hong et al. 2014
 Clin Oral Implants Res, doi:10.1111/clr.12041. Eight beagles; P3 in all four quadrants was sectioned into mesial and distal roots and extracted. Each root socket was randomly left empty or filled to the crest with HA, β-TCP (Cerasorb, 500-1000 µm) or BCP. The flap was coronally advanced and closed, and the dogs ate soft food for 2 weeks. Two dogs were killed at 2 weeks, two at 4 and four at 8 weeks. On the most central mesio-distal H&E section, the socket (below the line joining the mesial and distal crests) was split into apical, middle and coronal thirds of equal height, and new bone (NB), residual biomaterial (RB) and fibrovascular connective tissue (FCT) were measured as % of socket area.
@@ -88,6 +91,8 @@ FCT on the section, total: baseline 79.5 / 74.8 / 71.2 %, biology-only 73.9 / 58
 8. **Reproducibility:** a rerun with the same seed is bit-identical (statistics and the day-56 lattice). The same seed with CalculiX 2.17 (laptop) and 2.21 (pool) gives identical daily statistics. CalculiX runs on one thread (`run.sh`).
 
 ## Decisions needed before fitting and the β-TCP arm
+*Melih's answers (2026-11-16): fit in the biology-only setting first, then implement and check the soft-tissue-phase stimulus; the dental model may depart from the long-bone rules; central section totals with SDs primary, thirds secondary; one generic root; keep stochastic rounding; few free parameters, report identifiability. See milestone 2.*
+
 1. **Mechanoregulation in the socket (the main one).** As implemented, the 0.15 MPa pressure limit applied to element averages caps the socket at about 25 % bone under any load that keeps the clot out of the resorption window. The long-bone model has the same rule; in the socket it shows because 60 % of a strained cavity has to ossify. Options:
    - evaluate the stimulus in the soft-tissue phase only (for example element strain × granulation-tissue modulus), or stop re-classifying elements once they are mostly bone;
    - use a strain-based rule (Claes-Heigele strain limits only, or Prendergast's shear strain);
@@ -104,6 +109,128 @@ FCT on the section, total: baseline 79.5 / 74.8 / 71.2 %, biology-only 73.9 / 58
    - Which Cerasorb variant Hong used. The literature review found that a residual graft of 38 % at 2 weeks needs the dense variant (solid fraction about 0.42) or a granule-envelope measurement.
    - How granules enter the lattice. The upstream `scaffold_presence` branch marks scaffold points with lattice code 12. They are a separate FE part (callus elements numbered after the scaffold's) and a guiding surface for migration and differentiation, and they are never resorbed. Its "stimulation by TCP" divides the cell activity by 2 instead of 5 after day 15 (proliferation 0.3 / 0.275 / 0.1 / 0.15, differentiation 0.15). It uses linear tets with one integration point and 35 stiffness bins.
    - The resorption rate (k = 0.031 /day from Hong) and whether β-TCP slows early bone formation, as Hong saw at 2-4 weeks.
+
+## Milestone 2: calibration on the empty socket
+
+### Method
+- **Setting A, biology-only:** every element gets the bone stimulus (`force_stimulus 2`), so only the cell rules act. FE solves are skipped; a run takes about 4 s.
+- **Objective** (on the central section, as Hong measured): J = Σ_w ((NB_total − Hong_total)/SD_w)² + (1/6) Σ_w Σ_thirds ((NB_third − Hong_third)/SD_w)², over weeks 2, 4 and 8, with SD_w Hong's SD of the total (2.94, 3.60, 17.11). Hong gives no SD for the thirds, so they borrow the week's SD and together weigh half as much as the totals. J ≈ 1 per data point would be a fit within one SD.
+- **Candidate parameters and rules:** the high-activity period (`activity_days`, upstream 15) and the late reduction (`late_factor`, upstream 0.2), woven-bone remodelling (`remodel_rate` from day 14), MSC entry into the clot (`matrix_day`), the soft-tissue cover as a cell source (`cover_source`), and the wall seeding (`seed_fraction` 0.3, `lining_voxels` 2, kept fixed in the search). The early rates stay at the upstream values.
+- **Search:**
+  1. A 540-run coarse grid (seed 1): `late_factor` 0.2-1.0, `activity_days` 10/15/21, `remodel_rate` 0-0.05, `matrix_day` off/3/7, `cover_source` 0/1.
+  2. A 240-run refinement at the grid edges: `activity_days` 15-28, `remodel_rate` 0.03-0.1.
+  3. The 10 best candidates of the simplest adequate sub-model, rerun with 5 seeds.
+  4. One-at-a-time steps around the chosen point with 5 seeds, for local identifiability.
+  5. The fitted point with 5 seeds and daily output.
+- **Setting B:** the fitted biology with mechanics switched back on. The cells sense the soft-tissue phase (`stimulus_mode 1`), with and without the lower resorption window, at 150, 300 and 1000 µε (3 seeds each), plus the upstream element-average stimulus at 300 µε for contrast.
+
+### Which rules the data need
+Best J of each sub-model in the grid (seed 1; AIC ≈ J + 2 × fitted parameters):
+
+| Sub-model | Fitted parameters | Best J (totals + thirds) | AIC |
+|---|---|---|---|
+| Upstream biology (15 days, × 0.2), nothing added | 0 | 9.3 (3.3 + 6.0) | 9.3 |
+| M0: activity period and late factor fitted | 2 | 9.3 (best point is the upstream one) | 13.3 |
+| M1: M0 + remodelling | 3 | 6.1 (1.1 + 5.0) | 12.1 |
+| M2: M0 + clot entry | 3 | 9.3 (clot entry never improves J) | 15.3 |
+| M3: M0 + cover source | 3 (incl. a switch) | 8.0 (3.4 + 4.6) | 14.0 |
+| All rules | 5 | 5.9 (1.2 + 4.8) | 15.9 |
+
+- **Remodelling** is the only addition that helps clearly: it brings the 8-week total and the 8-week apical third down.
+- **Clot entry** does not help. With migration through the clot, MSCs spread away from the walls and slightly less bone forms at 2 weeks; the gradient is unchanged.
+- **The cover source** lifts the coronal third (week 4: 44 % instead of 36 %) but overshoots the coronal third and the total at 2 weeks (29 % and 31 % against 20 % and 26 %).
+
+With the rates re-fitted, all rules together reach about the same J as M1. The calibrated setting is therefore **M1**: the clot-entry and cover-source rules stay in the code, switched off.
+
+### Fitted parameters (setting A, M1)
+| Parameter | Upstream | Fitted | Identifiability (Hong's 3 totals + 9 thirds) |
+|---|---|---|---|
+| `activity_days` (days of high cell activity) | 15 | **18** | identified: ±5 days (local relative SE 28 %); 10 days is clearly worse (grid profile) |
+| `late_factor` (rates after that period, × early rates) | 0.2 | **0.25** | bounded above only: values ≥ 0.5 are excluded (J ≥ 10.9), 0.15-0.4 fit about equally (local SE ±0.26) |
+| `remodel_rate` (woven bone removed per day, from day 14) | – (none) | **0.03 /day** | not identified: J changes by about 1 between 0 and 0.1, local SE ±0.09, correlation 0.89 with `late_factor` (more late activity and more remodelling compensate) |
+| `seed_fraction`, `lining_voxels` | 0.3, 2 | kept at 0.3, 2 | they alone set day 14, which already matches. Day 14 pins only the product of early supply and early rates (`seed_fraction` and `lining_voxels` correlate −1.0), so they cannot be fitted separately from the early rates |
+| `matrix_day`, `cover_source` | – | off | flipping either at the fitted point costs ΔJ = 4.5 and 3.8 (5 seeds); with rates re-fitted they reach the same J, so the data do not need them |
+
+Local Fisher analysis of the three fitted parameters (relative scaling): eigenvalues 266, 4.3 and 0.10. The best-determined direction is almost pure `activity_days`, the middle one mostly `late_factor`, and the flat one mostly `remodel_rate`. In short, Hong's data pin the length of the active phase and an upper bound on late activity, not the remodelling rate. Day 14 does not depend on any fitted parameter. The thirds carry little extra information because their SD is unknown. Profiles: [results/m2/grid/profiles/profiles.png](results/m2/grid/profiles/profiles.png); local analysis: [results/m2/local/local_identifiability.json](results/m2/local/local_identifiability.json).
+
+![Grid profiles](results/m2/grid/profiles/profiles.png)
+*Lowest J over the other parameters at each value of one parameter (coarse grid, seed 1); dotted line: best J + 1.*
+
+### Results of the fitted model (setting A, 5 seeds, mean ± SD)
+| Day | Third | Hong 2014 | Fitted, section | Fitted, volume | Fitted FCT, section |
+|---|---|---|---|---|---|
+| 14 | apical | 37.0 | 39.5 ± 0.4 | 55.7 ± 0.2 | 60.5 ± 0.4 |
+| 14 | middle | 27.7 | 24.5 ± 1.4 | 41.9 ± 0.2 | 75.5 ± 1.4 |
+| 14 | coronal | 19.6 | 19.9 ± 0.6 | 34.1 ± 0.1 | 80.1 ± 0.6 |
+| 14 | **total** | 26.0 ± 2.9 | 26.0 ± 0.5 | 40.0 ± 0.1 | 74.0 ± 0.5 |
+| 28 | apical | 46.6 | 62.0 ± 1.6 | 77.4 ± 0.7 | 38.0 ± 1.6 |
+| 28 | middle | 46.8 | 45.3 ± 1.5 | 65.0 ± 0.5 | 54.7 ± 1.5 |
+| 28 | coronal | 49.0 | 36.1 ± 0.7 | 55.2 ± 0.2 | 63.9 ± 0.7 |
+| 28 | **total** | 47.7 ± 3.6 | 45.2 ± 0.7 | 61.9 ± 0.2 | 54.8 ± 0.7 |
+| 56 | apical | 61.6 | 79.9 ± 2.0 | 85.1 ± 0.5 | 20.1 ± 2.0 |
+| 56 | middle | 60.5 | 71.6 ± 1.4 | 80.9 ± 0.4 | 28.4 ± 1.4 |
+| 56 | coronal | 62.5 | 58.1 ± 1.4 | 74.7 ± 0.1 | 41.9 ± 1.4 |
+| 56 | **total** | 62.0 ± 17.1 | 67.8 ± 0.5 | 78.4 ± 0.1 | 32.2 ± 0.5 |
+
+J = 6.5 ± 0.2 over 5 seeds (totals 0.6, thirds 5.9). For comparison: milestone-1 biology-only (upstream biology) 9.4, milestone-1 baseline (upstream mechanics at 300 µε) 94.8.
+- **The totals now sit within Hong's SDs:** 26.0 / 45.2 / 67.8 against 26.0 / 47.7 / 62.0 (z = 0.0, −0.7, +0.3). No cartilage forms.
+- **The thirds keep an apical-to-coronal gradient after week 2.** At week 4 the model has 62 / 45 / 36 against 47 / 47 / 49; at week 8 it has 80 / 72 / 58 against 62 / 60 / 63. None of the tested rules removed it without spoiling week 2 or the totals (above).
+  - Possible causes: a coronal supply that starts after week 2 (the periosteum of the flap); a cap on how much of a region woven bone can fill (vascular and marrow spaces); or simply the uncertainty of Hong's thirds (2 dogs at week 4, no SD, read from a figure).
+  - None of these was added. Each needs another parameter that the data cannot pin.
+- **The volume** has 10-17 points more bone than the section, as in milestone 1.
+
+![Fitted model by third](results/m2/final_analysis/nb_time_A_fitted.png)
+![Fitted model, sections](results/m2/final_analysis/sections_A_fitted.png)
+
+### Setting B: mechanics back on, cells sense the soft-tissue phase
+Fitted biology from A, far-field load on the block, 3 seeds (section and volume totals, % new bone):
+
+| Stimulus | Load | NB section, d14 / d28 / d56 | NB volume, d14 / d28 / d56 |
+|---|---|---|---|
+| none (A, biology-only, 5 seeds) | – | 26.0 / 45.2 / 67.8 | 40.0 / 61.9 / 78.4 |
+| soft phase, no lower window | 150 µε | 26.1 / 45.1 / 68.0 | 40.0 / 61.9 / 78.3 |
+| soft phase, no lower window | 300 µε | 26.1 / 45.1 / 68.0 | 40.0 / 61.9 / 78.3 |
+| soft phase, no lower window | 1000 µε | 26.1 / 45.1 / 68.0 | 40.0 / 61.9 / 78.3 |
+| soft phase, with lower window | 150 µε | 2.8 / 1.0 / 1.0 | 7.8 / 3.8 / 3.1 |
+| soft phase, with lower window | 300 µε | 14.2 / 11.6 / 23.7 | 29.3 / 26.8 / 37.2 |
+| soft phase, with lower window | 1000 µε | 19.5 / 38.6 / 65.0 | 36.4 / 59.6 / 77.3 |
+| element average (upstream), with window | 300 µε | 19.0 / 17.2 / 17.9 | 27.3 / 23.4 / 16.1 |
+
+- **Soft phase without the lower window reproduces the calibrated result at all three loads.** Every element keeps the bone stimulus for 56 days, and the runs are bit-identical to the biology-only runs with the same seeds (statistics compared). The soft tissue's pressure stays tiny (median |HP| 6 × 10⁻⁶ to 4 × 10⁻⁵ MPa against the 0.15 MPa limit). Its strain equals the imposed far-field strain once the socket has stiffened. The largest element strain in any of these runs is 2.3 % (day 7, 1000 µε), under the 5 % limit. Mechanics stays in the model: the upper limits (5 % strain, 0.15 MPa) are those an implant gap's micromotion will meet.
+- **With the lower window it fails at physiological loads.** As the socket fills, its strain falls to the far-field strain. At 150 and 300 µε that is below the 400 µε limit, so elements fall into the resorption window, and osteoblasts die at 16 % a day there.
+  - At 150 µε bone is almost absent (69 % of the elements are in the window at day 56).
+  - At 300 µε bone oscillates (14 → 12 → 24 % on the section): forming bone stiffens the socket and lowers its strain, which resorbs the bone, which raises the strain again.
+  - At 1000 µε the result is close to A (65 vs 68 % at day 56). Only a few strain-shielded elements dip below the limit between days 10 and 28.
+
+  A habitual jaw strain below 400 µε would then make healthy bone "resorb". The upstream lower limit (chosen for a sheep tibia under walking load) is inconsistent with the assumed jaw strains. We recommend dropping it for the socket (Claes & Heigele 1999 have no lower limit) and modelling disuse resorption of the ridge separately when that is needed.
+- **The upstream element-average stimulus** still caps the socket at 300 µε (18 % section, 16 % volume at day 56; 416 of 521 elements fibrous) even with the fitted biology: the milestone-1 finding.
+
+![Setting B, totals](results/m2/final_analysis/cases_total.png)
+*Totals of the B runs. The three soft-phase runs without the lower window lie on the A curve.*
+
+**Recommended dental setting:** `stimulus_mode 1`, `lower_window 0`, `activity_days 18`, `late_factor 0.25`, `remodel_rate 0.03` (from day 14), wall seeding 30 % over 0.2 mm, no clot entry, no cover source, far-field load as the scenario requires.
+
+### Run times (phoenix, 15 runs in parallel, one CalculiX thread each)
+| Stage | Runs | Wall time | Per run |
+|---|---|---|---|
+| Coarse grid (biology-only, no FE, sparse output) | 540 | 162 s | 4.4 s |
+| Refinement | 240 | 72 s | 4.4 s |
+| Candidates × 5 seeds | 50 | 16 s | 4.3 s |
+| Local identifiability (13 points × 5 seeds) | 65 | 20 s | 4.2 s |
+| Fitted (5 seeds, daily lattice) + setting B (21 runs with FE) | 26 | 69 s | 30.5 s mean |
+
+All milestone-2 runs used one build of commit 19b8224 (its `build_info.txt` says `e6be8b4+fix`: the same source, built just before it was committed). A first grid with remodelling before differentiation hung in 5 of 540 runs: removing osteoblasts left fewer eligible MSCs than the precomputed target. Remodelling now acts after differentiation, and the differentiation target is capped at the MSCs still eligible. The defaults stay bit-identical to milestone 1 (checked). The whole grid was rerun on the fixed code.
+
+### Decisions needed before the β-TCP arm
+1. **Accept the recommended setting** (soft-phase stimulus without the lower window). Then the empty-socket result does not depend on the jaw load, which seems right for a closed, unloaded socket, and mechanics acts only through the upper limits. The alternative is to keep a lower window scaled below the habitual jaw strain; that needs a jaw-strain value we do not have.
+2. **Remodelling:** keep 0.03 /day, knowing that Hong's data cannot pin it, or fix it from another source (woven-bone turnover in dog sockets, e.g. Cardaropoli 2003's later time points).
+3. **The remaining gradient in the thirds:** accept it, or test one more rule (a delayed coronal source or a cap on local bone fraction) against data with SDs for the thirds (Hong's Table S1, in the online supplement).
+4. **β-TCP granules:**
+   - lattice representation (explicit spheres of 500-1000 µm as an occupied, guiding code like the upstream scaffold's 12);
+   - initial solid fraction (Cerasorb variant: about 0.2 or 0.42; Hong's 38 % residual at 2 weeks needs the denser one or a granule-envelope measurement);
+   - resorption (k = 0.031 /day from Hong's residual graft; the next step will check it per third against Fig. 8);
+   - and whether β-TCP gets the upstream "TCP stimulation" (activity / 2 instead of / 5 after the active phase). Hong's β-TCP sockets had *less* bone at 2-4 weeks, so a stimulation is not supported for this arm.
+5. **Which β-TCP outputs to fit:** new bone and residual graft per third at 2/4/8 weeks (digitized, [data/hong2014_btcp.csv](data/hong2014_btcp.csv)). The only free parameters would be the granule-related ones; the biology stays as fitted here.
 
 ## Reproduce
 On a Linux machine with CalculiX, gmsh, meshio, numpy, matplotlib and g++ (the runs here used hwpool lease 56ea on phoenix: Ubuntu, ccx 2.21 from apt, gmsh 4.15.2 from pip):
@@ -125,11 +252,43 @@ python3 tools/analyze_socket.py --out ~/sg/ana_m1 --hong hong/data/hong2014_empt
 
 Run times on phoenix (16 threads, one CalculiX thread per run): meshing under a second; one 56-day run 26 s and 120 MB (0.8 mm mesh) or 38 s and 160 MB (0.6 mm); the 11-run batch about 2 minutes including compilation. Times per run are in `results/m1/timing*.csv`.
 
+Milestone 2 (on a lease with the mesh in `~/sg/meshes/m08`):
+
+```bash
+cd ~/sg && dental/tools/prepare_run.sh meshes/m08 m2/build          # one build; parameters are runtime
+cd m2 && T=../dental/tools && H=../dental/hong/data/hong2014_empty_socket.csv
+python3 $T/make_sets_m2.py grid > grid.csv && python3 $T/run_sets.py --build build --sets grid.csv --out grid
+python3 $T/score_hong.py --hong $H --out grid_scores.csv grid && python3 $T/identifiability.py profile grid_scores.csv ana_grid
+python3 $T/make_sets_m2.py refine > refine.csv && python3 $T/run_sets.py --build build --sets refine.csv --out refine
+python3 $T/score_hong.py --hong $H --out refine_scores.csv refine
+python3 $T/candidates_m2.py grid_scores.csv refine_scores.csv > cand.csv && python3 $T/run_sets.py --build build --sets cand.csv --out cand
+python3 $T/make_sets_m2.py local fitted_params.json > local.csv && python3 $T/run_sets.py --build build --sets local.csv --out local
+python3 $T/score_hong.py --hong $H --out local_scores.csv local && python3 $T/identifiability.py local local_scores.csv ana_local
+python3 $T/make_sets_m2.py final fitted_params.json > final.csv && python3 $T/run_sets.py --build build --sets final.csv --out final
+```
+then the tables and figures:
+
+```bash
+F=final; s3(){ echo $F/$1_s1,$F/$1_s2,$F/$1_s3; }
+python3 $T/analyze_socket.py --out ana_final --hong $H \
+ --case A_fitted=$F/A_fitted_s1,$F/A_fitted_s2,$F/A_fitted_s3,$F/A_fitted_s4,$F/A_fitted_s5 \
+ --case soft_nowindow_150=$(s3 B_soft_lw0_150) --case soft_nowindow_300=$(s3 B_soft_lw0_300) --case soft_nowindow_1000=$(s3 B_soft_lw0_1000) \
+ --case soft_window_150=$(s3 B_soft_lw1_150) --case soft_window_300=$(s3 B_soft_lw1_300) --case soft_window_1000=$(s3 B_soft_lw1_1000) \
+ --case element_300=$(s3 B_elem_lw1_300) --maps A_fitted --maps soft_window_150 --maps soft_window_300 --maps element_300
+```
+`live_panel.py --root m2 --hong $H` (on the lease display, `on-desktop -d`) replays finished runs day by day.
+
 ## Files
+- Milestone 2, `results/m2/`:
+  - `fitted_params.json`, `build_info.txt`
+  - `grid/` (sets, scores, profiles, sub-models), `refine/`, `candidates/`, `local/` (scores and `local_identifiability.json`), `sets/` (the parameter CSVs)
+  - `final_analysis/` (tables, figures, `final_scores.csv`)
+  - `final_runs/<run>/`: statistics, zones, mechanics, parameters, logs; `section_daily.bin` for two runs
 - `data/`: Hong 2014 reference values (empty and β-TCP).
-- `results/m1/analysis/`: `summary.csv` (case means and SDs at days 14 / 28 / 56), `daily.csv` (every run, day, region and third), `comparison.md` (tables for every case), figures.
-- `results/m1/analysis_mesh_check/`: the 0.6 vs 0.8 mm comparison.
-- `results/m1/runs/<case>/`: per-run `statistics.csv`, `mechanics.csv`, upstream counters, `build_info.txt`, `log.txt`, `time.txt`.
-- `results/m1/mesh/`: mesh summaries and `model_info.h` of both meshes.
+- Milestone 1:
+  - `results/m1/analysis/`: `summary.csv` (case means and SDs at days 14 / 28 / 56), `daily.csv` (every run, day, region and third), `comparison.md` (tables for every case), figures.
+  - `results/m1/analysis_mesh_check/`: the 0.6 vs 0.8 mm comparison.
+  - `results/m1/runs/<case>/`: per-run `statistics.csv`, `mechanics.csv`, upstream counters, `build_info.txt`, `log.txt`, `time.txt`.
+  - `results/m1/mesh/`: mesh summaries and `model_info.h` of both meshes.
 
 The daily lattices (`lattice_<it>.raw`, 170 kB each) were not kept: every run can be reproduced bit-identically from its seed and flags.

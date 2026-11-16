@@ -1,0 +1,464 @@
+  Parameters: 9 set in params.txt (all values in params_used.txt)
+Random number seed: 1
+Read nodes
+Read elements
+Calculate dimensions lattice
+Calculate extreme dimensions element (cube that contains it)
+Calculate lattice points inside each tissue element and make them free
+Initialize lattice
+  Socket lattice points: 44486 (44.486 mm3), wall lining 11342, seeded MSCs: 3383
+  Reconciled with the mesh: 0 points inside socket elements were bone/cover in lattice_init.raw, 2129 socket points of lattice_init.raw lie outside the elements and became bone.
+Write results file
+  Lattice 43 x 43 x 92, origin (-2.1, -2.1, -8.85), far-field strain 0.0003
+Initial FE solution (CalculiX)
+Read stimulus
+Cell proliferation
+Cell migration
+Write results files
+Increase_age
+Iteration no.0 completed!
+Read stimulus
+Cell proliferation
+Cell migration
+Write results files
+Increase_age
+Iteration no.1 completed!
+Read stimulus
+Cell proliferation
+Cell migration
+Write results files
+Increase_age
+Iteration no.2 completed!
+Read stimulus
+Cell proliferation
+Cell migration
+Write results files
+Increase_age
+Iteration no.3 completed!
+Read stimulus
+Cell proliferation
+Cell migration
+Write results files
+Increase_age
+Iteration no.4 completed!
+Read stimulus
+Cell proliferation
+Cell migration
+Write results files
+Increase_age
+Iteration no.5 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+run FE (CalculiX)
+Iteration no.6 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+Iteration no.7 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+Iteration no.8 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+run FE (CalculiX)
+Iteration no.9 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+Iteration no.10 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+Iteration no.11 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+run FE (CalculiX)
+Iteration no.12 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+Iteration no.13 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+Iteration no.14 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+run FE (CalculiX)
+Iteration no.15 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+Iteration no.16 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+Iteration no.17 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+run FE (CalculiX)
+Iteration no.18 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+Iteration no.19 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+Iteration no.20 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+run FE (CalculiX)
+Iteration no.21 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+Iteration no.22 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+Iteration no.23 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+run FE (CalculiX)
+Iteration no.24 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+Iteration no.25 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+Iteration no.26 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+run FE (CalculiX)
+Iteration no.27 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+Iteration no.28 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+Iteration no.29 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+run FE (CalculiX)
+Iteration no.30 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+Iteration no.31 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+Iteration no.32 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+run FE (CalculiX)
+Iteration no.33 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+Iteration no.34 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+Iteration no.35 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+run FE (CalculiX)
+Iteration no.36 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+Iteration no.37 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+Iteration no.38 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+run FE (CalculiX)
+Iteration no.39 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+Iteration no.40 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+Iteration no.41 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+run FE (CalculiX)
+Iteration no.42 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+Iteration no.43 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+Iteration no.44 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+run FE (CalculiX)
+Iteration no.45 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+Iteration no.46 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+Iteration no.47 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+run FE (CalculiX)
+Iteration no.48 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+Iteration no.49 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+Iteration no.50 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+run FE (CalculiX)
+Iteration no.51 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+Iteration no.52 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+Iteration no.53 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Update model
+Increase_age
+run FE (CalculiX)
+Iteration no.54 completed!
+Read stimulus
+Cell differentiation
+Cell proliferation
+Cell migration
+Write results files
+Iteration no.55 completed!

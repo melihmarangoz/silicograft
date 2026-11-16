@@ -1,0 +1,14 @@
+farfield_strain 0.001
+force_stimulus 0
+skip_fe_when_forced 1
+stimulus_mode 1
+lower_window 0
+activity_days 18
+late_factor 0.25
+seed_fraction 0.3
+lining_voxels 2
+cover_source 0
+matrix_day -1
+remodel_rate 0.03
+remodel_day 14
+raw_daily 1

@@ -6,10 +6,11 @@ This folder holds the dental branch of SG-Bone. The plan and the literature behi
 |---|---|
 | `geometry/socket_geometry.py` | gmsh script: idealized single-root socket in a block of alveolar bone, CalculiX template and initial lattice |
 | `src/` | C++ model: a copy of `long_bone/src` with the socket changes marked `[DENTAL]` |
-| `tools/` | build (`prepare_run.sh`), CalculiX call (`run.sh`), the milestone-1 batch (`run_hong_m1.sh`) and the analysis (`analyze_socket.py`) |
+| `tools/` | build (`prepare_run.sh`), CalculiX call (`run.sh`), batches (`run_hong_m1.sh`, `run_sets.py`, `make_sets_m2.py`), scoring and fitting (`score_hong.py`, `identifiability.py`, `submodels.py`, `candidates_m2.py`), analysis (`analyze_socket.py`) and a live replay panel (`live_panel.py`) |
 | `hong/` | Hong 2014 calibration: reference data, results, figures |
 
 ## The socket model
+The model started as the validated long-bone model with only the geometry, the cell source and the load changed (milestone 1). In milestone 2 Melih allowed the dental model to depart from the long-bone rules where the socket needs it (2026-11-16). Every departure is listed in [Departures from the long-bone model](#departures-from-the-long-bone-model); all of them are runtime parameters, and the defaults reproduce milestone 1 bit for bit. The **calibrated dental setting** (Hong 2014, empty socket) is in [hong/README.md](hong/README.md#milestone-2-calibration-on-the-empty-socket).
 
 ### Geometry (`geometry/socket_geometry.py`)
 Coordinates in mm: x mesio-distal, y bucco-lingual (buccal negative), z vertical with the alveolar crest at z = 0. The plane y = 0 is the central mesio-distal section that Hong et al. measured.
@@ -35,17 +36,37 @@ Mesh: quadratic tetrahedra (C3D10) with straight edges, 0.8 mm in the socket (52
 - **Initial content:** the socket is clot / granulation tissue (empty lattice points, E 0.2 MPa), as the long-bone callus.
 - **Cell source:** MSCs in 30 % of the socket points within 2 lattice points (0.2 mm) of the bony wall, with a fixed pattern seed. This stands for the periodontal-ligament remnants and wall marrow openings from which new bone starts at the socket base and walls [cardaropoli2003; Hong 2014]. 30 % is the long-bone seeding density; the 0.2 mm lining (PDL width) is assumed. There is no further supply of cells after day 0.
 - **Soft-tissue cover (closed flap):** occupied, no cell source, and not a guiding surface for migration or differentiation. Hong 2014 report a closed, coronally advanced flap and a periosteum-like tissue over the socket only at 8 weeks, so a fibrous source was left out of the baseline. `-DSG_COVER_GUIDES` makes the cover a guiding surface.
-- **Cell rules:** unchanged from the long-bone port: rates, 15-day high-activity period, surface-guided migration and differentiation, apoptosis, rule-of-mixtures stiffness averaged over 10 days, FE every 3 days from day 6.
+- **Cell rules:** the long-bone rates, surface-guided migration and differentiation, apoptosis, rule-of-mixtures stiffness averaged over 10 days and FE every 3 days from day 6. The high-activity period (upstream 15 days) and the late reduction (upstream rates / 5) are parameters; the calibrated values are 18 days and × 0.25. Calibrated runs also use woven-bone remodelling (below).
 - **Per-element counts:** with about 85 lattice points per element, upstream `int(n * rate)` is 0 whenever n·rate < 1 (for example fewer than 17 eligible MSCs at the post-day-15 differentiation rate 0.06). The fork rounds n·rate stochastically, which keeps the expected count at n·rate whatever the element size. `-DSG_UPSTREAM_COUNTING` restores the truncation.
 
 ### Mechanics
-- **Mechanoregulation:** unchanged (Claes-Heigele with the resorption window: |HP| < 0.0016 MPa and |ε_min| < 0.0004 no differentiation; |HP| < 0.15 MPa and |ε_min| < 0.05 bone; HP < −0.15 MPa (original sign) cartilage; otherwise fibrous). `-DCLAES_HEIGELE_BASMA_POZITIF` gives the Claes-Heigele sign.
+- **Mechanoregulation thresholds:** as upstream (Claes-Heigele with the resorption window: |HP| < 0.0016 MPa and |ε_min| < 0.0004 no differentiation; |HP| < 0.15 MPa and |ε_min| < 0.05 bone; HP < −0.15 MPa (original sign) cartilage; otherwise fibrous). `-DCLAES_HEIGELE_BASMA_POZITIF` gives the Claes-Heigele sign.
+- **What the cells sense** (`stimulus_mode`): 0 = the element-average hydrostatic pressure (upstream); 1 = the soft-tissue phase. Under the rule of mixtures every phase of an element has the element strain (iso-strain), so the soft phase's pressure is −K_soft·tr(ε), with K_soft from the modulus of the element's non-bone points (granulation 0.2, fibrous 2, cartilage 10 MPa; ν 0.167). For an element without bone this is the upstream value. With bone, the stiff matrix no longer sets the pressure the cells feel. The minimum principal strain is the element's either way.
+- **Resorption window** (`lower_window`): 1 = upstream; 0 = no lower window (as in Claes & Heigele 1999), so low strain is permissive for bone. The recommended dental setting is soft phase without the lower window (see the check in hong/README.md).
 - **Load:** the socket is not loaded directly (closed flap, soft diet for 2 weeks in Hong). The bone block carries a nominal mesio-distal compressive strain, applied as a displacement of the distal face (mesial face fixed in x, two pins against rigid-body motion). It stands for the bending of the mandibular body during mastication. Default **300 µε** (`-DFARFIELD_STRAIN=3e-4`): assumed. In vivo corpus strains during chewing are tens to a few hundred µε in the macaque (mean 50-90, maximum about 200 µε on nuts; Panagiotopoulou 2017, PMC5792078), and peak functional strains in bone reach 2000-3500 µε. No dog value for a soft diet was found.
 - Granulation tissue in the socket amplifies the far-field strain about 2.6 times: at 300 µε the day-0 socket sees |ε_min| ≈ 730-860 µε, inside the bone window. At 150 µε the day-0 strain sits on the 400 µε threshold of the resorption window (median 390 µε) and three quarters of the elements start without differentiation; with no load none differentiates.
-- `-DFORCE_STIMULUS=2` gives every element the bone stimulus whatever the mechanics: a biology-only baseline.
+- `force_stimulus 2` (or `-DFORCE_STIMULUS=2`) gives every element the bone stimulus whatever the mechanics: the biology-only setting used for the calibration. The FE solves are then skipped (`skip_fe_when_forced`), and a run takes about 4 s instead of 30 s.
+
+### Runtime parameters
+A run folder may hold `params.txt` with `name value` lines; the values used are written to `params_used.txt`. Names and defaults (struct `Params` in `src/header.h`): `farfield_strain` 3e-4, `force_stimulus` 0, `skip_fe_when_forced` 1, `stimulus_mode` 0, `lower_window` 1, `activity_days` 15, `late_factor` 0.2, `seed_fraction` 0.3, `lining_voxels` 2, `cover_source` 0, `matrix_day` −1, `remodel_rate` 0, `remodel_day` 14, `raw_daily` 1.
+
+### Departures from the long-bone model
+| Rule | Long-bone model | Dental model | Why |
+|---|---|---|---|
+| Cell source | marrow and periosteum seeding | 30 % of a 0.2 mm lining on the socket wall (PDL remnants); optional cover source | socket anatomy (milestone 1) |
+| Soft-tissue cover | none | lattice code 14, not a guiding surface | closed flap (milestone 1) |
+| Per-element counts | `int(n·rate)` | stochastic rounding | small socket elements switch off low rates otherwise (milestone 1; Melih kept it as default) |
+| Load | 823 N + moment on the bone | far-field strain on the block | the socket itself is not loaded |
+| High-activity period, late reduction | 15 days, rates / 5 | parameters; calibrated 18 days, rates × 0.25 | fitted to Hong 2014 |
+| Woven-bone remodelling | none (osteoblasts die only under the resorption stimulus) | from day 14, `remodel_rate` of the osteoblasts per day are removed; the point becomes marrow / vascular space and can fill again; calibrated 0.03 /day | Hong's osteoclast counts rise from week 2 (1.3 → 17.7 → 26.3 per section); woven bone gives way to marrow and lamellar bone in dog sockets [cardaropoli2003]. Its rate is not identifiable from Hong (hong/README.md) |
+| Clot entry | MSCs migrate only next to a guiding neighbour | option: from `matrix_day`, also into free socket points (provisional matrix); off in the calibrated setting | tested; not needed by Hong's data |
+| Cover as a source | – | option `cover_source`; off in the calibrated setting | tested; not needed by Hong's data |
+| Mechanical stimulus | element-average pressure, with resorption window | option: soft-tissue phase, without the lower window (recommended) | bone-containing elements no longer turn fibrous because the stiff matrix carries pressure, and the 400 µε lower limit no longer resorbs bone at physiological jaw strains (hong/README.md) |
+| Differentiation target | `n·rate` eligible MSCs, picked at random | capped at the MSCs still eligible after that day's apoptosis | the upstream loop can hang when apoptosis removes the only guiding neighbour (seen with remodelling) |
+| FE when the stimulus is forced | always | skipped | speed |
 
 ### Outputs of a run
-`statistics.csv` (daily counts), `lattice_<it>.raw` (daily lattice, uint8), `lattice_element.bin` (element of each lattice point, int32), `mech_<it>.bin` and `mechanics.csv` (element hydrostatic pressure and minimum principal strain), `stimulus_<it>.bin`, plus the upstream `proliferation.txt`, `differentiation.txt` and `migration_distribution.txt`. Day d is the lattice after d daily iterations (`lattice_<d−1>.raw`).
+`statistics.csv` (daily counts), `zones.csv` (Hong's outcome per day: socket points and tissue counts per third and in total, on the central section and in the volume), `section_daily.bin` (the central section every day, 43 × 92 bytes per day), `lattice_<it>.raw` (daily lattice, uint8; with `raw_daily 0` only days 14, 28 and 56), `lattice_element.bin` (element of each lattice point, int32), `mech_<it>.bin` and `mechanics.csv` (element hydrostatic pressure and minimum principal strain), `stimulus_<it>.bin`, plus the upstream `proliferation.txt`, `differentiation.txt` and `migration_distribution.txt`. Day d is the lattice after d daily iterations (`lattice_<d−1>.raw`).
 
 ## Running it
 Needs CalculiX `ccx`, Python 3 with `gmsh`, `meshio`, `numpy`, `matplotlib`, and a C++17 compiler. The model is small: one 56-day run takes about a minute.
@@ -57,4 +78,4 @@ tools/prepare_run.sh ~/sg/meshes/m08 ~/sg/runs/baseline            # build; add 
 cd ~/sg/runs/baseline && ./mechanobio 1 > log.txt 2>&1             # seed 1, 56 days
 python3 tools/analyze_socket.py --out out --hong hong/data/hong2014_empty_socket.csv --case baseline=~/sg/runs/baseline --maps baseline
 ```
-`tools/run_hong_m1.sh <mesh> <runs>` builds and runs all milestone-1 cases in parallel. `run.sh` pins CalculiX to one thread (`SG_CCX_THREADS`), since reruns are only bit-identical with the same thread count.
+`tools/run_hong_m1.sh <mesh> <runs>` builds and runs all milestone-1 cases in parallel. For many parameter sets, build once and use `tools/run_sets.py --build <build> --sets <sets.csv> --out <runs>` (one folder per row of the CSV, linked to the build, with its own `params.txt`). `run.sh` pins CalculiX to one thread (`SG_CCX_THREADS`), since reruns are only bit-identical with the same thread count.

@@ -1,0 +1,7 @@
+force_stimulus 2
+raw_daily 1
+late_factor 0.25
+activity_days 18
+remodel_rate 0.03
+matrix_day -1
+cover_source 0
