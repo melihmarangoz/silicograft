@@ -15,7 +15,7 @@ for r in rows:
     name = os.path.basename(r["run"])
     key = name[:name.rindex("_s")] if "_s" in name else name
     groups.setdefault(key, []).append(r)
-num = [k for k in rows[0] if k.startswith(("sec_", "vol_")) or k in ("J", "J_totals", "J_thirds")]
+num = [k for k in rows[0] if k.startswith(("sec_", "vol_")) or k in ("J", "J_totals", "J_thirds", "J_thesis")]
 par = [k for k in rows[0] if k not in num and k not in ("run", "seed")]
 out = []
 for key, g in groups.items():
@@ -30,6 +30,7 @@ with open(dst, "w", newline="") as f:
     w = csv.DictWriter(f, fieldnames=list(out[0].keys())); w.writeheader(); w.writerows(out)
 has_rb = "sec_rb_tot_14" in out[0]
 for o in out[:top]:
-    print(f"J {o['J']:7.2f} ± {o['J_sd']:5.2f} (tot {o['J_totals']:6.2f}, thirds {o['J_thirds']:6.2f}) {o['set']:52s} "
+    print(f"J {o['J']:7.2f} ± {o['J_sd']:5.2f} (tot {o['J_totals']:6.2f}, thirds {o['J_thirds']:6.2f}"
+          + (f", thesis {o['J_thesis']:6.2f}" if "J_thesis" in o else "") + f") {o['set']:52s} "
           f"NB {o['sec_tot_14']:.1f}/{o['sec_tot_28']:.1f}/{o['sec_tot_56']:.1f}"
           + (f"  RB {o['sec_rb_tot_14']:.1f}/{o['sec_rb_tot_28']:.1f}/{o['sec_rb_tot_56']:.1f}" if has_rb else ""))

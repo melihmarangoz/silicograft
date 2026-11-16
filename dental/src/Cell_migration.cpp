@@ -57,8 +57,10 @@ void Cell_migration(char cells_migration[LATTICE_X][LATTICE_Y][LATTICE_Z], short
 	    k = p.z;
 
 	    if (cells_migration[i][j][k]==1 && lattice_points_element[i][j][k]!=0) { // [DENTAL]
+	        const int t = iter - g_elem_start[lattice_points_element[i][j][k]-1]; // [DENTAL] the cell's element clock
+	        if (P.tcp_delay_all && t < 0) continue; // [DENTAL] cells of a delayed element wait
 	        cell_type=1;
-	        jumps = Jump_migration(cells_migration,i,j,k,age_migration,cell_type,lattice_points_element, iter);
+	        jumps = Jump_migration(cells_migration,i,j,k,age_migration,cell_type,lattice_points_element, std::max(t, 0));
 	        migrated += 1;
 	        if (jumps>-1 && jumps<max_jumps) { // add to histogram table
 	        	migration_histo[jumps]++;

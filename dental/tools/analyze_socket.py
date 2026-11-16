@@ -85,6 +85,9 @@ def analyse_run(run):
 hong = [r for r in csv.DictReader(l for l in open(a.hong) if not l.startswith("#"))]
 hong_nb = {(int(r["day"]), r["zone"]): (float(r["NB_mean"]), float(r["NB_sd"]) if r["NB_sd"] else None) for r in hong}
 hong_rb = {(int(r["day"]), r["zone"]): (float(r["RB_mean"]), float(r["RB_sd"]) if r["RB_sd"] else None) for r in hong} if "RB_mean" in hong[0] else {}
+# thesis totals (Hong 2010, same animals), drawn as grey diamonds
+thesis = {(m, int(r["day"])): float(r[f"{m}_thesis"]) for r in hong for m in ("NB", "RB")
+          if r["zone"] == "total" and r.get(f"{m}_thesis")}
 
 cases = {}
 for spec in a.case:
@@ -187,6 +190,10 @@ def hong_points(ax, zone, nb=True, rb=True):
         if rv:
             ax.errorbar([day], [rv[0]], yerr=[rv[1]] if rv[1] else None, fmt="s", ms=6, color=RED, mfc="white",
                         mew=2, capsize=3, lw=1.5, zorder=5)
+        if zone == "total":
+            for m, ok, c in [("NB", nb, INK), ("RB", rb, RED)]:
+                if ok and (m, day) in thesis:
+                    ax.plot([day + 1.2], [thesis[(m, day)]], "D", ms=5, color=c, mfc="#b8b6ae", mew=1.2, zorder=6)
 
 
 for first in (a.maps or [list(cases)[0]]):
@@ -209,6 +216,8 @@ for first in (a.maps or [list(cases)[0]]):
     h.append(plt.Line2D([], [], marker="o", ls="", color=INK, mfc="white", mew=2)); l.append("Hong 2014 NB (zones: Fig. 8, total: text ± SD)")
     if hong_rb:
         h.append(plt.Line2D([], [], marker="s", ls="", color=RED, mfc="white", mew=2)); l.append("Hong 2014 residual graft")
+    if thesis:
+        h.append(plt.Line2D([], [], marker="D", ls="", color=INK, mfc="#b8b6ae", mew=1.2)); l.append("Hong 2010 thesis, total")
     fig.legend(h, l, loc="upper center", ncol=3, frameon=False, bbox_to_anchor=(0.5, 1.04 + (0.06 if hong_rb else 0)))
     nr = len(cases[first])
     fig.suptitle(f"{'β-TCP socket' if hong_rb else 'Empty socket'}, case '{first}'" + (f" (mean ± SD of {nr} seeds)" if nr > 1 else ""),

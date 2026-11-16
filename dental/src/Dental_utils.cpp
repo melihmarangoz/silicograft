@@ -1,6 +1,7 @@
 // Copyright 2026 Melih Marangoz. Part of SilicoGraft's dental socket model; GNU AGPL-3.0 (see LICENSE and NOTICE).
 // [DENTAL] Helpers shared by the cell rules.
 #include <cmath>
+#include <algorithm>
 #include "header.h"
 
 // Number of cells, out of n, that proliferate, differentiate or die in one element at the given daily rate.
@@ -31,4 +32,19 @@ bool Neighbour_guides(char v)
 	if (v == LATTICE_GRANULE && (!P.tcp_guides || g_iter < P.tcp_guide_day)) return false;
 	if (P.cover_source) return v > 1 && v != 6;
 	return v > 1 && v != 6 && v != LATTICE_COVER;
+}
+
+// Early activity factor in a grafted socket (literature check 2026-11-16: beta-TCP sockets form 0.2-0.45 of the
+// empty socket's bone at 2 weeks). While iter < tcp_inhibit_days the differentiation (and, with
+// tcp_inhibit_prolif, the proliferation) rates of an element are multiplied by
+//   1 - (1 - tcp_diff_mult) * min(1, granule share of the element / granule_fraction)   (tcp_inhibit_graded 1)
+// so the factor is tcp_diff_mult where the granules are still packed and rises to 1 as they resorb.
+int g_elem_start[NUMBER_ELEMS] = {0};
+
+double tcp_activity_factor(long granule_points, long element_points, int iter)
+{
+	if (P.granule_fraction <= 0 || iter >= P.tcp_inhibit_days || P.tcp_diff_mult >= 1.0) return 1.0;
+	if (!P.tcp_inhibit_graded) return P.tcp_diff_mult;
+	const double share = element_points > 0 ? (double)granule_points / element_points : 0.0;
+	return 1.0 - (1.0 - P.tcp_diff_mult) * std::min(1.0, share / P.granule_fraction);
 }

@@ -23,11 +23,14 @@ import score_hong as sh
 
 p = argparse.ArgumentParser()
 p.add_argument("--root", required=True)
-p.add_argument("--hong", required=True)
+p.add_argument("--hong", required=True, help="Hong file for empty sockets")
+p.add_argument("--hong-btcp", help="Hong file for grafted runs (granule_fraction > 0); default: --hong")
 p.add_argument("--day-seconds", type=float, default=0.3)
 a = p.parse_args()
-HONG, SD = sh.load_hong(a.hong)
-HRB, SDRB = sh.load_hong(a.hong, "RB")  # beta-TCP arm only
+HONG_E, SD_E = sh.load_hong(a.hong)
+HONG_B, SD_B = sh.load_hong(a.hong_btcp or a.hong)
+HRB, SDRB = sh.load_hong(a.hong_btcp or a.hong, "RB")  # beta-TCP arm only
+HONG, SD = (HONG_B, SD_B) if a.hong_btcp is None and HRB else (HONG_E, SD_E)
 
 INK, MUTED, GRID, BLUE, ORANGE = "#0b0b0b", "#52514e", "#e4e2dc", "#2a78d6", "#eb6834"
 CODES = [(0, "empty (clot)", "#ece9e2"), (1, "MSC", "#eda100"), (5, "fibroblast", "#1baf7a"), (4, "chondrocyte", "#6250d6"),
@@ -92,7 +95,9 @@ def scan():
             continue
         if v is None:
             continue
-        scored[run] = (os.path.getmtime(t), sh.objective(v, HONG, SD, hr=HRB, sdr=SDRB)[0])
+        grafted = float(sh.params(run).get("granule_fraction", 0) or 0) > 0
+        J = sh.objective(v, HONG_B, SD_B, hr=HRB, sdr=SDRB)[0] if grafted else sh.objective(v, HONG_E, SD_E)[0]
+        scored[run] = (os.path.getmtime(t), J)
         order.append(run)
         new.append(run)
     new.sort(key=lambda r: scored[r][0])

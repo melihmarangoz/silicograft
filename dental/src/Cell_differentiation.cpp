@@ -64,6 +64,9 @@ void Cell_differentiation(char cells_dif[LATTICE_X][LATTICE_Y][LATTICE_Z],short 
     
     for (elem=0;elem<NUMBER_ELEMS;elem++)
     {
+        const int t = iter - g_elem_start[elem]; // [DENTAL] the element's biological day (iter without granules)
+        if (t <= 5) continue;                    // differentiation from biological day 6, as upstream
+        long elem_points = 0, granule_points = 0; // [DENTAL] for the graded early factor
         cells_to_differentiate=0;
         cells_differentiated=0;
 
@@ -86,7 +89,8 @@ void Cell_differentiation(char cells_dif[LATTICE_X][LATTICE_Y][LATTICE_Z],short 
                 {
                     if (lattice_point_element[i][j][k]==elem+1)
                     {
-                        
+                        elem_points++; // [DENTAL]
+                        if (cells_dif[i][j][k]==LATTICE_GRANULE) granule_points++;
                         if (cells_dif[i][j][k]==1 && age_dif[i][j][k]>=age_mature_cell && Neighbour_presence(cells_dif, i,j,k,i,j,k))
                         {
                             cells_to_differentiate=cells_to_differentiate+1;
@@ -114,8 +118,9 @@ void Cell_differentiation(char cells_dif[LATTICE_X][LATTICE_Y][LATTICE_Z],short 
 			// differentiation x P.tcp_diff_mult (inhibition variant); both 1 by default
 			const bool tcp = P.granule_fraction > 0;
 			const double late = P.late_factor * (tcp ? P.tcp_late_mult : 1.0);
-			const double inhib = (tcp && iter < P.tcp_inhibit_days) ? P.tcp_diff_mult : 1.0;
-			if (iter<g_activity_days) // [DENTAL] runtime length of the high-activity period (upstream ACTIVITY_MAX = 15)
+			const double inhib = tcp_activity_factor(granule_points, elem_points, iter); // [DENTAL] real clock
+			const int tact = P.tcp_delay_activity ? t : iter; // [DENTAL] high-activity period on the element's or the real clock
+			if (tact<P.activity_days) // [DENTAL] runtime length of the high-activity period (upstream ACTIVITY_MAX = 15)
 				cells_to_differentiate=sg_count(cells_to_differentiate,0.3*inhib); // [DENTAL] sg_count: stochastic rounding
 			else
 				cells_to_differentiate=sg_count(cells_to_differentiate,0.3*late*inhib); // lower activity after lateny period [DENTAL] upstream 0.06 = 0.3/5
@@ -375,14 +380,16 @@ void Cell_differentiation(char cells_dif[LATTICE_X][LATTICE_Y][LATTICE_Z],short 
         }//end for bone resorption
 	        // system("PAUSE");
         /*********************************************************************************************************
-            [DENTAL] WOVEN-BONE REMODELLING: from P.remodel_day, osteoblasts are removed at P.remodel_rate per day in
+            [DENTAL] WOVEN-BONE REMODELLING: from P.remodel_day, osteoblasts are removed at P.remodel_rate per day
+            (P.remodel_rate2 from P.remodel_day2) in
             elements that are not under the resorption stimulus (which already removes them at 0.16). The freed
             point is a marrow / vascular space (empty), which cells may occupy again. It acts after the element's
             differentiation, so that it cannot change the eligible MSCs while they are being picked.
         **********************************************************************************************************/
-        if (P.remodel_rate > 0 && iter >= P.remodel_day && stimulus_dif[elem] != 1)
+        if (P.remodel_rate > 0 && t >= P.remodel_day && stimulus_dif[elem] != 1)
         {
-            const int to_remove = sg_count(mature_osteoblasts, P.remodel_rate);
+            // [DENTAL] two phases: remodel_rate from remodel_day, remodel_rate2 from remodel_day2 (biological days)
+            const int to_remove = sg_count(mature_osteoblasts, t >= P.remodel_day2 ? P.remodel_rate2 : P.remodel_rate);
             int removed = 0;
             while (removed < to_remove)
             {

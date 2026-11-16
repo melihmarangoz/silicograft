@@ -5,16 +5,19 @@
 # total: Results text (mean +/- SD). The control has no graft, so FCT = 100 - NB (Fig. 7 bars reach 100 %).
 # zones: digitized from Fig. 8 panel "C" (pixel heights at 400 dpi, about +/- 1 percentage point); the figure
 #        shows no error bars and Table S1 (zone values with SD) is in the online supplement, not available here.
-week,day,zone,NB_mean,NB_sd,FCT_mean,FCT_sd,source
-2,14,total,26.03,2.94,73.97,2.94,text
-4,28,total,47.68,3.60,52.32,3.60,text
-8,56,total,62.01,17.11,37.99,17.11,text
-2,14,apical,37.0,,63.0,,fig8_digitized
-2,14,middle,27.7,,72.3,,fig8_digitized
-2,14,coronal,19.6,,80.4,,fig8_digitized
-4,28,apical,46.6,,53.4,,fig8_digitized
-4,28,middle,46.8,,53.2,,fig8_digitized
-4,28,coronal,49.0,,51.0,,fig8_digitized
-8,56,apical,61.6,,38.4,,fig8_digitized
-8,56,middle,60.5,,39.5,,fig8_digitized
-8,56,coronal,62.5,,37.5,,fig8_digitized
+# 2026-11-16: NB_thesis and NB_thesis_sd from Hong's 2010 PhD thesis (same animals, n = 4/4/5 specimens, 4 central
+# sections at x20; Table 1), via dental/literature/SOCKET_PARAMS_2026-11-16.md. NB_sigma = max(paper SD, |paper - thesis|):
+# the error band used in the objective. Both analyses count bone marrow with the soft tissue (NB = bone region).
+week,day,zone,NB_mean,NB_sd,FCT_mean,FCT_sd,source,NB_thesis,NB_thesis_sd,NB_sigma
+2,14,total,26.03,2.94,73.97,2.94,text,26.01,2.6,2.94
+4,28,total,47.68,3.60,52.32,3.60,text,54.61,4.3,6.93
+8,56,total,62.01,17.11,37.99,17.11,text,74.48,4.3,17.11
+2,14,apical,37.0,,63.0,,fig8_digitized,,,
+2,14,middle,27.7,,72.3,,fig8_digitized,,,
+2,14,coronal,19.6,,80.4,,fig8_digitized,,,
+4,28,apical,46.6,,53.4,,fig8_digitized,,,
+4,28,middle,46.8,,53.2,,fig8_digitized,,,
+4,28,coronal,49.0,,51.0,,fig8_digitized,,,
+8,56,apical,61.6,,38.4,,fig8_digitized,,,
+8,56,middle,60.5,,39.5,,fig8_digitized,,,
+8,56,coronal,62.5,,37.5,,fig8_digitized,,,

@@ -6,8 +6,10 @@ Usage: python3 score_hong.py --hong hong2014_empty_socket.csv --out scores.csv R
 
 Objective (central mesio-distal section, as Hong measured):
   J = sum_w ((NB_total - Hong_total) / SD_w)^2  +  (1/6) sum_w sum_thirds ((NB_third - Hong_third) / SD_w)^2
-with w = weeks 2, 4, 8 (days 14, 28, 56) and SD_w Hong's SD of the total (2.94, 3.60, 17.11). Hong gives no SD
-for the thirds (digitized from Fig. 8), so they borrow the week's SD and together weigh half as much as the totals.
+with w = weeks 2, 4, 8 (days 14, 28, 56). SD_w is the column NB_sigma when the Hong file has it (from 2026-11-16:
+max of the paper's SD and the paper-thesis difference), else the paper's SD of the total. Hong gives no SD for the
+thirds (digitized from Fig. 8), so they borrow the week's value and together weigh half as much as the totals.
+J_thesis: the same objective against the thesis totals (no thirds).
 With the beta-TCP file (columns RB_mean, RB_sd) the residual graft (RB, granule points) enters J the same way,
 with Hong's RB SDs. One row per run: its parameters (params_used.txt), seed, the section and volume values, J and its parts.
 """
@@ -18,13 +20,21 @@ ZONES = ["apical", "middle", "coronal", "total"]
 W_THIRDS = 1.0 / 6.0
 
 
-def load_hong(path, measure="NB"):
-    """Hong means per (day, zone) and the SD of the total per day, for NB or RB (RB only in the beta-TCP file)."""
+def load_hong(path, measure="NB", source="paper"):
+    """Hong means per (day, zone) and the uncertainty of the total per day, for NB or RB (RB only in the beta-TCP
+    file). The uncertainty is the column <measure>_sigma when present (max of the paper's SD and the paper-thesis
+    difference), else the paper's SD. source="thesis" gives the thesis totals (no thirds) with the same sigma."""
     rows = [r for r in csv.DictReader(l for l in open(path) if not l.startswith("#"))]
     if f"{measure}_mean" not in rows[0]:
         return None, None
+    tot = [r for r in rows if r["zone"] == "total"]
+    sig = f"{measure}_sigma" if f"{measure}_sigma" in rows[0] else f"{measure}_sd"
+    sd = {int(r["day"]): float(r[sig]) for r in tot}
+    if source == "thesis":
+        if f"{measure}_thesis" not in rows[0]:
+            return None, None
+        return {(int(r["day"]), "total"): float(r[f"{measure}_thesis"]) for r in tot}, sd
     h = {(int(r["day"]), r["zone"]): float(r[f"{measure}_mean"]) for r in rows}
-    sd = {int(r["day"]): float(r[f"{measure}_sd"]) for r in rows if r["zone"] == "total"}
     return h, sd
 
 
@@ -44,11 +54,13 @@ def run_values(d):
 
 def objective(v, h, sd, region="section", hr=None, sdr=None):
     """J for new bone; with hr/sdr (beta-TCP arm) the residual-graft terms are added the same way."""
+    thirds = (DAYS[0], "apical") in h  # the thesis has totals only
     jt = sum(((v[(region, d, "total")] - h[(d, "total")]) / sd[d]) ** 2 for d in DAYS)
-    jz = W_THIRDS * sum(((v[(region, d, z)] - h[(d, z)]) / sd[d]) ** 2 for d in DAYS for z in ZONES[:3])
+    jz = W_THIRDS * sum(((v[(region, d, z)] - h[(d, z)]) / sd[d]) ** 2 for d in DAYS for z in ZONES[:3]) if thirds else 0.0
     if hr is not None:
         jt += sum(((v[(region, d, "total", "rb")] - hr[(d, "total")]) / sdr[d]) ** 2 for d in DAYS)
-        jz += W_THIRDS * sum(((v[(region, d, z, "rb")] - hr[(d, z)]) / sdr[d]) ** 2 for d in DAYS for z in ZONES[:3])
+        if thirds:
+            jz += W_THIRDS * sum(((v[(region, d, z, "rb")] - hr[(d, z)]) / sdr[d]) ** 2 for d in DAYS for z in ZONES[:3])
     return jt + jz, jt, jz
 
 
@@ -70,6 +82,8 @@ if __name__ == "__main__":
     a = p.parse_args()
     h, sd = load_hong(a.hong)
     hr, sdr = load_hong(a.hong, "RB")  # None for the empty-socket file
+    ht, sdt = load_hong(a.hong, "NB", "thesis")
+    hrt, sdrt = load_hong(a.hong, "RB", "thesis")
     rows = []
     for top in a.dirs:
         for d in sorted(glob.glob(os.path.join(top, "*"))):
@@ -79,6 +93,8 @@ if __name__ == "__main__":
             J, jt, jz = objective(v, h, sd, hr=hr, sdr=sdr)
             seed = open(os.path.join(d, "log.txt")).readline().split()[-1] if os.path.exists(os.path.join(d, "log.txt")) else ""
             r = dict(run=os.path.relpath(d), seed=seed, **params(d), J=round(J, 4), J_totals=round(jt, 4), J_thirds=round(jz, 4))
+            if ht is not None:  # fit against the thesis totals (same sigma band)
+                r["J_thesis"] = round(objective(v, ht, sdt, hr=hrt, sdr=sdrt)[0], 4)
             for region in ["section", "volume"]:
                 for day in DAYS:
                     for z in ZONES:

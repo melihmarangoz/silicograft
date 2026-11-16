@@ -28,6 +28,11 @@ bool Load_params(const char* file)
 		{"matrix_day", [](istringstream& s) { s >> P.matrix_day; }},
 		{"remodel_rate", [](istringstream& s) { s >> P.remodel_rate; }},
 		{"remodel_day", [](istringstream& s) { s >> P.remodel_day; }},
+		{"remodel_day2", [](istringstream& s) { s >> P.remodel_day2; }},
+		{"remodel_rate2", [](istringstream& s) { s >> P.remodel_rate2; }},
+		{"tcp_inhibit_graded", [](istringstream& s) { s >> P.tcp_inhibit_graded; }},
+		{"tcp_inhibit_prolif", [](istringstream& s) { s >> P.tcp_inhibit_prolif; }},
+		{"tcp_wall_exempt", [](istringstream& s) { s >> P.tcp_wall_exempt; }},
 		{"raw_daily", [](istringstream& s) { s >> P.raw_daily; }},
 		{"granule_fraction", [](istringstream& s) { s >> P.granule_fraction; }},
 		{"granule_dmin", [](istringstream& s) { s >> P.granule_dmin; }},
@@ -77,7 +82,9 @@ bool Load_params(const char* file)
 	  << "\ntcp_k " << P.tcp_k << "\ntcp_lag " << P.tcp_lag << "\ntcp_E " << P.tcp_E << "\ntcp_nu " << P.tcp_nu
 	  << "\ntcp_guides " << P.tcp_guides << "\ntcp_guide_day " << P.tcp_guide_day << "\ntcp_late_mult " << P.tcp_late_mult
 	  << "\ntcp_diff_mult " << P.tcp_diff_mult << "\ntcp_inhibit_days " << P.tcp_inhibit_days
-	  << "\ntcp_delay " << P.tcp_delay << "\ntcp_delay_all " << P.tcp_delay_all << "\ntcp_delay_activity " << P.tcp_delay_activity << "\n";
+	  << "\ntcp_delay " << P.tcp_delay << "\ntcp_delay_all " << P.tcp_delay_all << "\ntcp_delay_activity " << P.tcp_delay_activity
+	  << "\nremodel_day2 " << P.remodel_day2 << "\nremodel_rate2 " << P.remodel_rate2 << "\ntcp_inhibit_graded " << P.tcp_inhibit_graded
+	  << "\ntcp_inhibit_prolif " << P.tcp_inhibit_prolif << "\ntcp_wall_exempt " << P.tcp_wall_exempt << "\n";
 	cout << "  Parameters: " << n << " set in " << file << " (all values in params_used.txt)" << endl;
 	return true;
 }

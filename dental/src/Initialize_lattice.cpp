@@ -54,6 +54,7 @@ bool Initialize_lattice(char initial_lattice[LATTICE_X][LATTICE_Y][LATTICE_Z], s
     std::mt19937 pattern(SEED_PATTERN);
     std::uniform_real_distribution<double> U(0.0, 1.0);
     const int L = P.lining_voxels;
+    vector<char> wall_elem(NUMBER_ELEMS, 0);
     long lining = 0;
     for (int i = 0; i < LATTICE_X; i++)
         for (int j = 0; j < LATTICE_Y; j++)
@@ -70,8 +71,18 @@ bool Initialize_lattice(char initial_lattice[LATTICE_X][LATTICE_Y][LATTICE_Z], s
                         }
                 if (!near_bone) continue;
                 lining++;
+                wall_elem[lattice_point_element[i][j][k] - 1] = 1; // [DENTAL] element at the bony wall
                 if (U(pattern) < P.seed_fraction) { initial_lattice[i][j][k] = 1; initial_age[i][j][k] = 1; seeded++; } // MSC, age 1 as upstream
             }
+    // [DENTAL] biological start of each element (main.cpp): a grafted socket's cells wait tcp_delay days, except in the
+    // elements at the bony wall with tcp_wall_exempt
+    long n_wall = 0, n_delayed = 0;
+    for (int e = 0; e < NUMBER_ELEMS; e++) {
+        n_wall += wall_elem[e];
+        g_elem_start[e] = (P.granule_fraction > 0 && !(P.tcp_wall_exempt && wall_elem[e])) ? P.tcp_delay : 0;
+        if (g_elem_start[e] > 0) n_delayed++;
+    }
+    cout << "  Wall elements: " << n_wall << " of " << NUMBER_ELEMS << "; delayed elements: " << n_delayed << endl;
     cout << "  Socket lattice points: " << socket << " (" << socket * 1e-3 << " mm3), wall lining " << lining
          << ", seeded MSCs: " << seeded << endl;
     cout << "  Reconciled with the mesh: " << socket_was_bone << " points inside socket elements were bone/cover in lattice_init.raw, "

@@ -62,6 +62,8 @@ struct Params {
 	                               // guiding neighbour (the clot has become provisional matrix); -1 = never (upstream)
 	double remodel_rate = 0.0;     // daily fraction of osteoblasts removed (woven-bone resorption -> marrow space)
 	int remodel_day = 14;          // iteration from which remodelling acts
+	int remodel_day2 = 60;         // from this (biological) day the rate is remodel_rate2 (plateau, dog sockets)
+	double remodel_rate2 = 0.005;
 	int raw_daily = 1;             // 1: lattice every day; 0: only the initial lattice and days 14, 28, 56
 	// beta-TCP granules (Granules.cpp); granule_fraction 0 = empty socket
 	double granule_fraction = 0.0; // target share of socket points occupied by granules at day 0 (envelope)
@@ -74,14 +76,21 @@ struct Params {
 	int tcp_guides = 1;            // 1: granules guide migration and differentiation (upstream scaffold code 12)
 	int tcp_guide_day = 0;         // iteration from which they guide
 	double tcp_late_mult = 1.0;    // with granules, late_factor x this (upstream "TCP stimulation" = 2.5: /2 instead of /5)
-	double tcp_diff_mult = 1.0;    // with granules, differentiation rate x this while iter < tcp_inhibit_days
-	int tcp_inhibit_days = 0;
+	double tcp_diff_mult = 1.0;    // with granules, differentiation rate x this while iter < tcp_inhibit_days, graded
+	int tcp_inhibit_days = 0;      //   by the element's current granule share (tcp_inhibit_graded 1; 0 = uniform)
+	int tcp_inhibit_graded = 1;
+	int tcp_inhibit_prolif = 1;    //   1: the factor also scales proliferation (an activity factor)
 	int tcp_delay = 0;             // with granules, the healing biology runs this many days late (Hong 2014: grafts
 	                               // "delay rather than arrest" bone formation); see main.cpp
 	int tcp_delay_all = 1;         // 1: proliferation, migration and differentiation all wait; 0: only differentiation
 	int tcp_delay_activity = 1;    // 1: the high-activity period also starts late; 0: it ends on the real clock
+	int tcp_wall_exempt = 0;       // 1: elements at the bony wall (holding wall-lining points) are not delayed
 };
-extern int g_activity_days; // [DENTAL] high-activity period on the biological clock (main.cpp)
+// [DENTAL] biological clock of each element: day of iteration it = it - g_elem_start[elem] (0 without granules;
+// tcp_delay in a grafted socket, 0 again for wall elements with tcp_wall_exempt). Set in Initialize_lattice.
+extern int g_elem_start[NUMBER_ELEMS];
+// [DENTAL] activity factor of a grafted element early on (tcp_diff_mult, graded by its granule share)
+double tcp_activity_factor(long granule_points, long element_points, int iter);
 extern Params P;
 bool Load_params(const char* file);
 extern unsigned int g_run_seed; // [DENTAL] run seed (main.cpp), for the granule packing

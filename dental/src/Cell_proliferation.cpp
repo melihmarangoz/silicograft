@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <time.h>
+#include <algorithm>
 #include "header.h"
 
 using namespace std;
@@ -41,6 +42,9 @@ void Cell_proliferation(char cells_prol[LATTICE_X][LATTICE_Y][LATTICE_Z], short 
 		elem = elements[elem2];
 //        cout << "Element " << elem << endl;
 		
+		const int t = iter - g_elem_start[elem]; // [DENTAL] the element's biological day
+		if (P.tcp_delay_all && t < 0) continue;  // [DENTAL] cells of a delayed element wait
+		long elem_points = 0, granule_points = 0; // [DENTAL]
 		stimulus=stimulus_prol[elem];  
         imax=element_local_max[elem][0];
         imin=element_local_min[elem][0];
@@ -61,6 +65,8 @@ void Cell_proliferation(char cells_prol[LATTICE_X][LATTICE_Y][LATTICE_Z], short 
 				{
 					if (lattice_point_element[i][j][k]==elem+1)
 					{
+						elem_points++; // [DENTAL]
+						if (cells_prol[i][j][k]==LATTICE_GRANULE) granule_points++;
 						switch (cells_prol[i][j][k])
 						{
 							case 1:
@@ -80,14 +86,17 @@ void Cell_proliferation(char cells_prol[LATTICE_X][LATTICE_Y][LATTICE_Z], short 
 				}
 			}
 		}
-			if (iter < g_activity_days) { // [DENTAL] runtime (upstream ACTIVITY_MAX = 15)
-				MSCs_to_prol=sg_count(MSCs,0.6); // [DENTAL]
-				fibroblasts_to_prol=sg_count(fibroblasts,0.55); // [DENTAL]
-				chondrocytes_to_prol=sg_count(chondrocytes,0.20); // [DENTAL]
-				mature_osteoblasts_to_prol=sg_count(mature_osteoblasts,0.3); // [DENTAL]
+			// [DENTAL] early activity factor of a grafted element (1 otherwise)
+			const double act = P.tcp_inhibit_prolif ? tcp_activity_factor(granule_points, elem_points, iter) : 1.0;
+			const int tact = P.tcp_delay_activity ? std::max(t, 0) : iter; // [DENTAL] element's or real clock
+			if (tact < P.activity_days) { // [DENTAL] runtime (upstream ACTIVITY_MAX = 15)
+				MSCs_to_prol=sg_count(MSCs,0.6*act); // [DENTAL]
+				fibroblasts_to_prol=sg_count(fibroblasts,0.55*act); // [DENTAL]
+				chondrocytes_to_prol=sg_count(chondrocytes,0.20*act); // [DENTAL]
+				mature_osteoblasts_to_prol=sg_count(mature_osteoblasts,0.3*act); // [DENTAL]
 			}
 			else { // activity levels divided by 5 after 15 days [DENTAL] multiplied by P.late_factor (upstream 0.2)
-				const double late = P.late_factor * (P.granule_fraction > 0 ? P.tcp_late_mult : 1.0); // [DENTAL] TCP variant
+				const double late = P.late_factor * (P.granule_fraction > 0 ? P.tcp_late_mult : 1.0) * act; // [DENTAL] TCP variant
 				MSCs_to_prol=sg_count(MSCs,0.6*late); // [DENTAL]
 				fibroblasts_to_prol=sg_count(fibroblasts,0.55*late); // [DENTAL]
 				chondrocytes_to_prol=sg_count(chondrocytes,0.20*late); // [DENTAL]
