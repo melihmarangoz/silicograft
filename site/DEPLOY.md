@@ -164,15 +164,60 @@ The phone layout lives in the same three files (`index.html`, `styles.css`, `sto
 - **Validation table.** Each case becomes a block with its three values on labelled lines
   (`data-label` on each cell); the column heads stay for screen readers.
 
-### 3D section: two viewer cards
+### 3D section: three viewer cards
 
-The home page links to `viewer/` and `cells/` as pages of their own (no embedded viewer):
-both fill the window and offer Full screen. The cell viewer opens with its callus map
+The home page links to `viewer/`, `cells/` and `dental/` as pages of their own (no embedded
+viewer): all fill the window and offer Full screen. The cards sit in three columns from 60rem
+up and stack below. The cell viewer opens with its callus map
 ("Choose a spot on the callus") unless the URL names a region (`?bolge=N`). The card
-images `assets/viewer-callus*` and `assets/viewer-cells*` are 1600x1000 screenshots of
-the two viewers (dark theme; callus: one run, day 300; cells: `?bolge=2`, day 300), saved
-as JPEG 88 plus AVIF 70 / WebP 88 at 800 and 1600 px. `assets/viewer-poster*` is no longer
-used by the page.
+images `assets/viewer-callus*`, `assets/viewer-cells*` and `assets/viewer-dental*` are 1600x1000
+screenshots of the three viewers (dark theme; callus: one run, day 300; cells: `?bolge=2`, day 300;
+dental: the Sockets camera zoomed out four wheel steps, day 126), saved as JPEG 88 plus AVIF 70 /
+WebP 88 at 800 and 1600 px. `assets/viewer-poster*` is no longer used by the page.
+
+### The dental viewer (`site/dental/`)
+
+A page of the site itself (no copy step in the workflow, no artifact version): `index.html`,
+`dental.js` and `data/`. It loads three.js r147, OrbitControls and GLTFLoader from
+`../vendor/three-0.147.0/` and Mona Sans through `../tokens.css`, so `build_site.py` leaves it
+alone. The header nav and the phone menu link to it as "Dental".
+
+It shows two extraction sockets of one anonymized lower jaw, 32 left empty and 33 grafted with
+β-TCP, over 182 days of the human setting (`dental/README.md`, `dental/literature/`): the jaw
+see-through with an opacity slider, the remaining teeth, each socket's tissue as 0.2 mm cubes
+(instanced; a cube hidden on all six sides by bone or graft is not drawn), a day slider with
+play, toggles per tissue and socket, a section plane (mesio-distal or bucco-lingual, moved
+through the sockets; the jaw and teeth are cut only inside a slab around the sockets), the
+cameras "Whole jaw" and "Sockets", a readout and two charts (new bone and residual graft, whole
+socket and virtual core, with the human biopsy ranges at 3 and 6 months). Phones get the stage
+full screen and the rest in a bottom sheet, as in the callus viewer.
+
+Data contract (`data/`, written by the case's own pipeline outside this repo):
+- `manifest.json`: `version` 1, `units` "mm", `frame` (x = patient left, y = superior,
+  z = anterior; origin = centroid of the mandible surface), `frame_days` (0, 7, ..., 182),
+  `setting` (one line, shown under "The human setting"), `codes` (1 stem cell, 2 fibroblast,
+  3 chondrocyte, 4 new bone, 5 β-TCP granule), `sockets` (each `id`, `arm`, `origin` = the
+  display-frame corner of voxel (0,0,0), `dims` [nx, ny, nz], `voxel` 0.2, `frames` file),
+  `meshes` (`mandible`, `teeth`: GLB in the same frame, mm) and `series`.
+  `voxel_rule` (how a 0.2 mm cube is drawn from the 0.1 mm lattice) is shown under the notes.
+- Frames: uint8, shape (n_frames, nz, ny, nx), x fastest; 0 empty (not drawn), 1-5 the
+  codes, 255 outside the socket (taken from frame 0). They are committed gzipped
+  (`s32_frames.bin.gz`, `s33_frames.bin.gz`; `gzip -9 -n`, with the names in the manifest
+  changed to match): GitHub Pages does not compress `.bin`, and gzip cuts the two files from
+  3.5 MB to 0.28 MB. The page streams them through DecompressionStream, so day 0 shows before
+  the files are complete; a plain `.bin` name works too. A code that never occurs (fibroblast
+  and chondrocyte in the current run) keeps its toggle, dimmed and marked "none in this run".
+- `series.json`: `seeds`, `frames_seed`, `setting`, `definitions`; per socket (`sockets.32`,
+  `sockets.33`) `days` (0 to 182 in 3.5-day steps), `whole` (`new_bone`, `residual_graft`,
+  `stem_cells`, `soft_tissue`, `cartilage`, `clot_or_marrow`, % summing to 100), `core`
+  (`new_bone`, `residual_graft`) and `expected` (`core_new_bone`, `core_residual_graft`: the
+  literature boxes, `{day, value, low, high}`); `bands` (`x2.5`, `x5`: per socket `days` and
+  `whole_new_bone`), drawn as a shaded band. Means of the seeds; the cubes show `frames_seed`.
+  Table rows of tissues that stay at zero are left out.
+- Size: `dental/` is 3.8 MB deployed (mandible.glb 2.4 MB, teeth.glb 1.2 MB, frames 0.28 MB).
+  The page itself loads nothing else but three.js, its two example scripts and the fonts.
+- Privacy: no images, no names, dates or scan metadata; the package's anonymization note stays
+  with the case, outside this repo.
 
 ### Fonts and speed
 
