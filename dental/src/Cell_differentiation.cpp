@@ -109,10 +109,17 @@ void Cell_differentiation(char cells_dif[LATTICE_X][LATTICE_Y][LATTICE_Z],short 
         }
         
 		MSCs += cells_to_differentiate;
-		if (iter<P.activity_days) // [DENTAL] runtime length of the high-activity period (upstream ACTIVITY_MAX = 15)
-        	cells_to_differentiate=sg_count(cells_to_differentiate,0.3); // [DENTAL] sg_count: stochastic rounding
-        else
-        	cells_to_differentiate=sg_count(cells_to_differentiate,0.3*P.late_factor); // lower activity after lateny period [DENTAL] upstream 0.06 = 0.3/5
+		{
+			// [DENTAL] with granules: late factor x P.tcp_late_mult ("TCP stimulation" variant) and, early on,
+			// differentiation x P.tcp_diff_mult (inhibition variant); both 1 by default
+			const bool tcp = P.granule_fraction > 0;
+			const double late = P.late_factor * (tcp ? P.tcp_late_mult : 1.0);
+			const double inhib = (tcp && iter < P.tcp_inhibit_days) ? P.tcp_diff_mult : 1.0;
+			if (iter<P.activity_days) // [DENTAL] runtime length of the high-activity period (upstream ACTIVITY_MAX = 15)
+				cells_to_differentiate=sg_count(cells_to_differentiate,0.3*inhib); // [DENTAL] sg_count: stochastic rounding
+			else
+				cells_to_differentiate=sg_count(cells_to_differentiate,0.3*late*inhib); // lower activity after lateny period [DENTAL] upstream 0.06 = 0.3/5
+		}
 		to_diff += cells_to_differentiate;
         
         mature_osteoblasts_apoptosis=sg_count(mature_osteoblasts,apoptosis_rate_osteoblasts); // [DENTAL]

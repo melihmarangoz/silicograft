@@ -87,10 +87,11 @@ void Cell_proliferation(char cells_prol[LATTICE_X][LATTICE_Y][LATTICE_Z], short 
 				mature_osteoblasts_to_prol=sg_count(mature_osteoblasts,0.3); // [DENTAL]
 			}
 			else { // activity levels divided by 5 after 15 days [DENTAL] multiplied by P.late_factor (upstream 0.2)
-				MSCs_to_prol=sg_count(MSCs,0.6*P.late_factor); // [DENTAL]
-				fibroblasts_to_prol=sg_count(fibroblasts,0.55*P.late_factor); // [DENTAL]
-				chondrocytes_to_prol=sg_count(chondrocytes,0.20*P.late_factor); // [DENTAL]
-				mature_osteoblasts_to_prol=sg_count(mature_osteoblasts,0.3*P.late_factor); // [DENTAL]
+				const double late = P.late_factor * (P.granule_fraction > 0 ? P.tcp_late_mult : 1.0); // [DENTAL] TCP variant
+				MSCs_to_prol=sg_count(MSCs,0.6*late); // [DENTAL]
+				fibroblasts_to_prol=sg_count(fibroblasts,0.55*late); // [DENTAL]
+				chondrocytes_to_prol=sg_count(chondrocytes,0.20*late); // [DENTAL]
+				mature_osteoblasts_to_prol=sg_count(mature_osteoblasts,0.3*late); // [DENTAL]
 			}        
 					 
 			/******************************************

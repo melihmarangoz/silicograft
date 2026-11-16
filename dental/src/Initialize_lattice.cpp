@@ -48,6 +48,8 @@ bool Initialize_lattice(char initial_lattice[LATTICE_X][LATTICE_Y][LATTICE_Z], s
                     }
                 }
             }
+    // [DENTAL] beta-TCP granules (if any) take socket points before the seeding
+    Place_granules(initial_lattice, lattice_point_element);
     // seeding of the wall lining
     std::mt19937 pattern(SEED_PATTERN);
     std::uniform_real_distribution<double> U(0.0, 1.0);
@@ -56,7 +58,7 @@ bool Initialize_lattice(char initial_lattice[LATTICE_X][LATTICE_Y][LATTICE_Z], s
     for (int i = 0; i < LATTICE_X; i++)
         for (int j = 0; j < LATTICE_Y; j++)
             for (int k = 0; k < LATTICE_Z; k++) {
-                if (lattice_point_element[i][j][k] == 0) continue;
+                if (lattice_point_element[i][j][k] == 0 || initial_lattice[i][j][k] != 0) continue; // socket point not taken by a granule
                 bool near_bone = false;
                 for (int di = -L; di <= L && !near_bone; di++)
                     for (int dj = -L; dj <= L && !near_bone; dj++)

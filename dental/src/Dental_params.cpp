@@ -29,6 +29,22 @@ bool Load_params(const char* file)
 		{"remodel_rate", [](istringstream& s) { s >> P.remodel_rate; }},
 		{"remodel_day", [](istringstream& s) { s >> P.remodel_day; }},
 		{"raw_daily", [](istringstream& s) { s >> P.raw_daily; }},
+		{"granule_fraction", [](istringstream& s) { s >> P.granule_fraction; }},
+		{"granule_dmin", [](istringstream& s) { s >> P.granule_dmin; }},
+		{"granule_dmax", [](istringstream& s) { s >> P.granule_dmax; }},
+		{"granule_overlap", [](istringstream& s) { s >> P.granule_overlap; }},
+		{"granule_pattern", [](istringstream& s) { s >> P.granule_pattern; }},
+		{"tcp_k", [](istringstream& s) { s >> P.tcp_k; }},
+		{"tcp_lag", [](istringstream& s) { s >> P.tcp_lag; }},
+		{"tcp_E", [](istringstream& s) { s >> P.tcp_E; }},
+		{"tcp_nu", [](istringstream& s) { s >> P.tcp_nu; }},
+		{"tcp_guides", [](istringstream& s) { s >> P.tcp_guides; }},
+		{"tcp_guide_day", [](istringstream& s) { s >> P.tcp_guide_day; }},
+		{"tcp_late_mult", [](istringstream& s) { s >> P.tcp_late_mult; }},
+		{"tcp_diff_mult", [](istringstream& s) { s >> P.tcp_diff_mult; }},
+		{"tcp_inhibit_days", [](istringstream& s) { s >> P.tcp_inhibit_days; }},
+		{"tcp_delay", [](istringstream& s) { s >> P.tcp_delay; }},
+		{"tcp_delay_all", [](istringstream& s) { s >> P.tcp_delay_all; }},
 	};
 #ifdef FORCE_STIMULUS
 	P.force_stimulus = FORCE_STIMULUS; // milestone-1 compile flag
@@ -55,7 +71,12 @@ bool Load_params(const char* file)
 	  << "\nlower_window " << P.lower_window << "\nactivity_days " << P.activity_days << "\nlate_factor " << P.late_factor
 	  << "\nseed_fraction " << P.seed_fraction << "\nlining_voxels " << P.lining_voxels << "\ncover_source " << P.cover_source
 	  << "\nmatrix_day " << P.matrix_day << "\nremodel_rate " << P.remodel_rate << "\nremodel_day " << P.remodel_day
-	  << "\nraw_daily " << P.raw_daily << "\n";
+	  << "\nraw_daily " << P.raw_daily << "\ngranule_fraction " << P.granule_fraction << "\ngranule_dmin " << P.granule_dmin
+	  << "\ngranule_dmax " << P.granule_dmax << "\ngranule_overlap " << P.granule_overlap << "\ngranule_pattern " << P.granule_pattern
+	  << "\ntcp_k " << P.tcp_k << "\ntcp_lag " << P.tcp_lag << "\ntcp_E " << P.tcp_E << "\ntcp_nu " << P.tcp_nu
+	  << "\ntcp_guides " << P.tcp_guides << "\ntcp_guide_day " << P.tcp_guide_day << "\ntcp_late_mult " << P.tcp_late_mult
+	  << "\ntcp_diff_mult " << P.tcp_diff_mult << "\ntcp_inhibit_days " << P.tcp_inhibit_days
+	  << "\ntcp_delay " << P.tcp_delay << "\ntcp_delay_all " << P.tcp_delay_all << "\n";
 	cout << "  Parameters: " << n << " set in " << file << " (all values in params_used.txt)" << endl;
 	return true;
 }

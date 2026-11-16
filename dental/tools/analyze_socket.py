@@ -12,8 +12,9 @@ Each run folder needs model_info.h, mesh_summary.json, lattice_element.bin and l
 
 Definitions (Hong 2014): the socket is cut into apical, middle and coronal thirds of equal height between
 the crest (z = 0) and the fundus. Day d is the lattice after d daily iterations (file lattice_<d-1>.raw).
-NB = osteoblasts (lattice 2); CART = chondrocytes (4); FCT = every other socket point: fibroblasts (5),
-MSCs (1) and empty points (0, clot / granulation tissue). The section is the lattice plane y = 0.
+NB = osteoblasts (lattice 2); CART = chondrocytes (4); RB = beta-TCP granule points (12); FCT = every other socket
+point: fibroblasts (5), MSCs (1) and empty points (0, clot / granulation tissue). The section is the lattice plane y = 0.
+With the beta-TCP Hong file the RB columns and points are added.
 
 Outputs in OUTDIR: daily.csv (every run, day, region, zone), summary.csv (case means at days 14/28/56),
 comparison.md (markdown table vs Hong), cases_total.png, and for each --maps case nb_time_<case>.png and
@@ -28,7 +29,7 @@ from matplotlib.colors import ListedColormap
 
 ZONES = ["apical", "middle", "coronal", "total"]
 DAYS = [14, 28, 56]
-CODES = {"empty": 0, "MSC": 1, "NB": 2, "CART": 4, "FIB": 5}
+CODES = {"empty": 0, "MSC": 1, "NB": 2, "CART": 4, "FIB": 5, "RB": 12}
 
 p = argparse.ArgumentParser()
 p.add_argument("--out", required=True)
@@ -75,7 +76,7 @@ def analyse_run(run):
         for (region, zone), m in masks.items():
             v = lat[m]; n = v.size
             frac = {k: 100.0 * np.count_nonzero(v == c) / n for k, c in CODES.items()}
-            frac["FCT"] = 100.0 - frac["NB"] - frac["CART"]
+            frac["FCT"] = 100.0 - frac["NB"] - frac["CART"] - frac["RB"]
             rows.append(dict(day=day, region=region, zone=zone, points=n, **{k: round(x, 3) for k, x in frac.items()}))
         it += 1
     return rows, lattices, dict(mi=mi, sock=sock, j0=j0, z=z, z_apex=z_apex)
@@ -83,6 +84,7 @@ def analyse_run(run):
 
 hong = [r for r in csv.DictReader(l for l in open(a.hong) if not l.startswith("#"))]
 hong_nb = {(int(r["day"]), r["zone"]): (float(r["NB_mean"]), float(r["NB_sd"]) if r["NB_sd"] else None) for r in hong}
+hong_rb = {(int(r["day"]), r["zone"]): (float(r["RB_mean"]), float(r["RB_sd"]) if r["RB_sd"] else None) for r in hong} if "RB_mean" in hong[0] else {}
 
 cases = {}
 for spec in a.case:
@@ -126,13 +128,16 @@ for label in cases:
         for zone in ZONES:
             for day in DAYS:
                 rec = dict(case=label, runs=len(cases[label]), region=region, zone=zone, day=day)
-                for key in ["NB", "FCT", "CART", "FIB", "MSC", "empty"]:
+                for key in ["NB", "RB", "FCT", "CART", "FIB", "MSC", "empty"]:
                     d, m, s = series(label, region, zone, key)
                     if day in d:
                         i = list(d).index(day); rec[key] = round(float(m[i]), 2); rec[key + "_sd"] = round(float(s[i]), 2)
                 hv = hong_nb.get((day, zone))
                 rec["Hong_NB"] = hv[0] if hv else None
                 rec["Hong_NB_sd"] = hv[1] if hv else None
+                rv = hong_rb.get((day, zone))
+                rec["Hong_RB"] = rv[0] if rv else None
+                rec["Hong_RB_sd"] = rv[1] if rv else None
                 summary.append(rec)
 with open(os.path.join(a.out, "summary.csv"), "w", newline="") as f:
     keys = sorted({k for r in summary for k in r}, key=lambda k: list(summary[0].keys()).index(k) if k in summary[0] else 99)
@@ -147,13 +152,19 @@ def fmt(rec, key):
 with open(os.path.join(a.out, "comparison.md"), "w") as f:
     for label in cases:
         f.write(f"\n#### {label} ({len(cases[label])} run{'s' if len(cases[label]) > 1 else ''})\n\n")
-        f.write("| Day | Zone | Hong NB | Model NB, section | Model NB, volume | Model FCT, section | Model cartilage, section |\n|---|---|---|---|---|---|---|\n")
+        f.write("| Day | Zone | Hong NB | Model NB, section | Model NB, volume | Model FCT, section | Model cartilage, section |"
+                + (" Hong RB | Model RB, section | Model RB, volume |" if hong_rb else "") + "\n|---|---|---|---|---|---|---|"
+                + ("---|---|---|" if hong_rb else "") + "\n")
         for day in DAYS:
             for zone in ZONES:
                 rs = next(r for r in summary if r["case"] == label and r["region"] == "section" and r["zone"] == zone and r["day"] == day)
                 rv = next(r for r in summary if r["case"] == label and r["region"] == "volume" and r["zone"] == zone and r["day"] == day)
                 h = "-" if rs["Hong_NB"] is None else (f"{rs['Hong_NB']:.1f}" + (f" ± {rs['Hong_NB_sd']:.1f}" if rs["Hong_NB_sd"] else ""))
-                f.write(f"| {day} | {zone} | {h} | {fmt(rs, 'NB')} | {fmt(rv, 'NB')} | {fmt(rs, 'FCT')} | {fmt(rs, 'CART')} |\n")
+                line = f"| {day} | {zone} | {h} | {fmt(rs, 'NB')} | {fmt(rv, 'NB')} | {fmt(rs, 'FCT')} | {fmt(rs, 'CART')} |"
+                if hong_rb:
+                    hr = "-" if rs["Hong_RB"] is None else (f"{rs['Hong_RB']:.1f}" + (f" ± {rs['Hong_RB_sd']:.1f}" if rs["Hong_RB_sd"] else ""))
+                    line += f" {hr} | {fmt(rs, 'RB')} | {fmt(rv, 'RB')} |"
+                f.write(line + "\n")
 
 # --- figures (light theme; NB is blue as in Hong's figures, Hong data in ink)
 INK, MUTED, GRID = "#0b0b0b", "#52514e", "#e4e2dc"
@@ -163,11 +174,18 @@ plt.rcParams.update({"font.size": 9, "axes.edgecolor": MUTED, "axes.labelcolor":
                      "ytick.color": MUTED, "axes.spines.top": False, "axes.spines.right": False})
 
 
+RED = "#e34948"
+
+
 def hong_points(ax, zone):
     for day in DAYS:
         hv = hong_nb.get((day, zone))
         if hv:
             ax.errorbar([day], [hv[0]], yerr=[hv[1]] if hv[1] else None, fmt="o", ms=6, color=INK, mfc="white",
+                        mew=2, capsize=3, lw=1.5, zorder=5)
+        rv = hong_rb.get((day, zone))
+        if rv:
+            ax.errorbar([day], [rv[0]], yerr=[rv[1]] if rv[1] else None, fmt="s", ms=6, color=RED, mfc="white",
                         mew=2, capsize=3, lw=1.5, zorder=5)
 
 
@@ -176,17 +194,22 @@ for first in (a.maps or [list(cases)[0]]):
     for ax, zone in zip(axs, ZONES):
         for region, ls in [("section", "-"), ("volume", "--")]:
             d, m, s = series(first, region, zone)
-            ax.plot(d, m, ls, color=BLUE, lw=2, label=f"model, {'central section' if region == 'section' else 'volume'}")
+            ax.plot(d, m, ls, color=BLUE, lw=2, label=f"model NB, {'central section' if region == 'section' else 'volume'}")
             if s.any():
                 ax.fill_between(d, m - s, m + s, color=BLUE, alpha=0.15, lw=0)
+            if hong_rb:
+                d2, m2, s2 = series(first, region, zone, "RB")
+                ax.plot(d2, m2, ls, color=RED, lw=2, label=f"model residual graft, {'central section' if region == 'section' else 'volume'}")
         hong_points(ax, zone)
         ax.set_title(zone.capitalize(), color=INK, fontsize=10, loc="left")
         ax.set_xticks([0, 14, 28, 42, 56]); ax.set_xlabel("Day")
         ax.grid(axis="y", color=GRID, lw=0.8); ax.set_ylim(0, 100)
     axs[0].set_ylabel("New bone, % of socket")
     h, l = axs[0].get_legend_handles_labels()
-    h.append(plt.Line2D([], [], marker="o", ls="", color=INK, mfc="white", mew=2)); l.append("Hong 2014 (zones: Fig. 8, total: text ± SD)")
-    fig.legend(h, l, loc="upper center", ncol=3, frameon=False, bbox_to_anchor=(0.5, 1.04))
+    h.append(plt.Line2D([], [], marker="o", ls="", color=INK, mfc="white", mew=2)); l.append("Hong 2014 NB (zones: Fig. 8, total: text ± SD)")
+    if hong_rb:
+        h.append(plt.Line2D([], [], marker="s", ls="", color=RED, mfc="white", mew=2)); l.append("Hong 2014 residual graft")
+    fig.legend(h, l, loc="upper center", ncol=3, frameon=False, bbox_to_anchor=(0.5, 1.04 + (0.06 if hong_rb else 0)))
     nr = len(cases[first])
     fig.suptitle(f"Empty socket, case '{first}'" + (f" (mean ± SD of {nr} seeds)" if nr > 1 else ""), x=0.01, y=1.10, ha="left", fontsize=11, color=INK)
     fig.savefig(os.path.join(a.out, f"nb_time_{first}.png"), dpi=150, bbox_inches="tight")
@@ -212,7 +235,8 @@ if len(cases) > 1:
 
 # section maps: x (mesio-distal) horizontal, z vertical, crest on top
 cmap_codes = [(0, "empty (clot)", "#ece9e2"), (1, "MSC", "#eda100"), (5, "fibroblast", "#1baf7a"),
-              (4, "chondrocyte", "#6250d6"), (2, "new bone", BLUE), (11, "native bone", "#8a8880"), (14, "soft-tissue cover", "#f3c7d7")]
+              (4, "chondrocyte", "#6250d6"), (2, "new bone", BLUE), (11, "native bone", "#8a8880"), (14, "soft-tissue cover", "#f3c7d7"),
+              (12, "β-TCP granule", "#e34948")]
 lut = np.zeros(256, dtype=int)
 for idx, (c, _, _) in enumerate(cmap_codes):
     lut[c] = idx

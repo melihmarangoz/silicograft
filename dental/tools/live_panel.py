@@ -27,10 +27,11 @@ p.add_argument("--hong", required=True)
 p.add_argument("--day-seconds", type=float, default=0.3)
 a = p.parse_args()
 HONG, SD = sh.load_hong(a.hong)
+HRB, SDRB = sh.load_hong(a.hong, "RB")  # beta-TCP arm only
 
 INK, MUTED, GRID, BLUE, ORANGE = "#0b0b0b", "#52514e", "#e4e2dc", "#2a78d6", "#eb6834"
 CODES = [(0, "empty (clot)", "#ece9e2"), (1, "MSC", "#eda100"), (5, "fibroblast", "#1baf7a"), (4, "chondrocyte", "#6250d6"),
-         (2, "new bone", BLUE), (11, "native bone", "#8a8880"), (14, "soft-tissue cover", "#f3c7d7")]
+         (2, "new bone", BLUE), (11, "native bone", "#8a8880"), (14, "soft-tissue cover", "#f3c7d7"), (12, "β-TCP granule", "#e34948")]
 LUT = np.zeros(256, dtype=int)
 for idx, (c, _, _) in enumerate(CODES):
     LUT[c] = idx
@@ -48,8 +49,10 @@ def info(run):
 def daily_nb(run):
     out = {}
     for line in open(os.path.join(run, "zones.csv")).read().splitlines()[1:]:
-        day, region, zone, pts, empty, msc, bone, cart, fib = line.split(",")
-        out[(region, zone, int(day))] = 100.0 * int(bone) / int(pts)
+        f = line.split(",")
+        day, region, zone, pts, bone = f[0], f[1], f[2], int(f[3]), int(f[6])
+        out[(region, zone, int(day))] = 100.0 * bone / pts
+        out[(region, zone, int(day), "rb")] = 100.0 * int(f[9]) / pts if len(f) > 9 else 0.0
     return out
 
 
@@ -89,7 +92,7 @@ def scan():
             continue
         if v is None:
             continue
-        scored[run] = (os.path.getmtime(t), sh.objective(v, HONG, SD)[0])
+        scored[run] = (os.path.getmtime(t), sh.objective(v, HONG, SD, hr=HRB, sdr=SDRB)[0])
         order.append(run)
         new.append(run)
     new.sort(key=lambda r: scored[r][0])
@@ -121,6 +124,12 @@ for d in [14, 28, 56]:
 lines["sec"], = ax_tot.plot([], [], "-", color=BLUE, lw=2.5, label="model, central section")
 lines["vol"], = ax_tot.plot([], [], "--", color=BLUE, lw=2, label="model, volume")
 ax_tot.plot([], [], "o", color=INK, mfc="white", mew=2, label="Hong 2014 (mean ± SD)")
+if HRB:
+    for d in [14, 28, 56]:
+        ax_tot.errorbar([d], [HRB[(d, "total")]], yerr=[SDRB[d]], fmt="s", ms=8, color="#e34948", mfc="white", mew=2, capsize=4, zorder=5)
+    lines["rb"], = ax_tot.plot([], [], "-", color="#e34948", lw=2.5, label="model residual graft, section")
+    ax_tot.plot([], [], "s", color="#e34948", mfc="white", mew=2, label="Hong residual graft")
+    ax_tot.set_title("Total: new bone (blue) and residual graft (red)", loc="left")
 ax_tot.legend(loc="upper left", frameon=False)
 ZC = {"apical": "#2a78d6", "middle": "#eb6834", "coronal": "#1baf7a"}
 for z, c in ZC.items():
@@ -175,6 +184,8 @@ def show(run, label):
         dd = [d for d in days if d <= day]
         lines["sec"].set_data(dd, [nb[("section", "total", d)] for d in dd])
         lines["vol"].set_data(dd, [nb[("volume", "total", d)] for d in dd])
+        if "rb" in lines:
+            lines["rb"].set_data(dd, [nb[("section", "total", d, "rb")] for d in dd])
         for z in ZC:
             lines[z].set_data(dd, [nb[("section", z, d)] for d in dd])
         fig.canvas.draw_idle()

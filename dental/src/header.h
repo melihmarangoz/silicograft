@@ -23,6 +23,7 @@ constexpr int ACTIVITY_MAX = 15; // latency period of 15 days [DENTAL] default o
 // [DENTAL] lattice codes besides the cells (0 free, 1 MSC, 2 osteoblast, 4 chondrocyte, 5 fibroblast, 6-10 temporary)
 constexpr char LATTICE_BONE = 11;  // native alveolar bone (socket wall)
 constexpr char LATTICE_COVER = 14; // soft-tissue cover over the socket opening (closed flap)
+constexpr char LATTICE_GRANULE = 12; // [DENTAL] beta-TCP granule (upstream: scaffold)
 
 // [DENTAL] day-0 cell source: MSCs in a lining of LINING_VOXELS lattice points along the bony socket wall
 // (PDL remnants and wall marrow openings), SEED_FRACTION of those points, chosen with a fixed pattern seed so
@@ -62,9 +63,30 @@ struct Params {
 	double remodel_rate = 0.0;     // daily fraction of osteoblasts removed (woven-bone resorption -> marrow space)
 	int remodel_day = 14;          // iteration from which remodelling acts
 	int raw_daily = 1;             // 1: lattice every day; 0: only the initial lattice and days 14, 28, 56
+	// beta-TCP granules (Granules.cpp); granule_fraction 0 = empty socket
+	double granule_fraction = 0.0; // target share of socket points occupied by granules at day 0 (envelope)
+	double granule_dmin = 0.5, granule_dmax = 1.0; // granule diameters (mm), uniform
+	double granule_overlap = 0.1;  // allowed interpenetration (fraction of the radius sum) in the random packing
+	int granule_pattern = -1;      // RNG seed of the packing; -1: run seed + 1000 (a new packing per replicate)
+	double tcp_k = 0.031;          // first-order resorption rate of granule volume (/day); radius ~ exp(-k t / 3)
+	int tcp_lag = 0;               // iteration from which granules resorb
+	double tcp_E = 3500.0, tcp_nu = 0.3; // granule modulus (MPa) in the rule of mixtures (35 % porous beta-TCP)
+	int tcp_guides = 1;            // 1: granules guide migration and differentiation (upstream scaffold code 12)
+	int tcp_guide_day = 0;         // iteration from which they guide
+	double tcp_late_mult = 1.0;    // with granules, late_factor x this (upstream "TCP stimulation" = 2.5: /2 instead of /5)
+	double tcp_diff_mult = 1.0;    // with granules, differentiation rate x this while iter < tcp_inhibit_days
+	int tcp_inhibit_days = 0;
+	int tcp_delay = 0;             // with granules, the healing biology runs this many days late (Hong 2014: grafts
+	                               // "delay rather than arrest" bone formation); see main.cpp
+	int tcp_delay_all = 1;         // 1: proliferation, migration and differentiation all wait; 0: only differentiation
 };
 extern Params P;
 bool Load_params(const char* file);
+extern unsigned int g_run_seed; // [DENTAL] run seed (main.cpp), for the granule packing
+extern int g_iter;              // [DENTAL] current iteration (main.cpp), for day-dependent rules
+// [DENTAL] granules: placed on free socket points before the MSC seeding; resorbed day by day
+long Place_granules(char lattice[LATTICE_X][LATTICE_Y][LATTICE_Z], int lattice_point_element[LATTICE_X][LATTICE_Y][LATTICE_Z]);
+long Resorb_granules(char lattice[LATTICE_X][LATTICE_Y][LATTICE_Z], short age[LATTICE_X][LATTICE_Y][LATTICE_Z], int iter);
 
 // [CCX] shared, seedable random engine (nrand.cpp)
 std::mt19937& rng();

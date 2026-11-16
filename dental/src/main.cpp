@@ -34,6 +34,9 @@
 
 using namespace std;
 
+unsigned int g_run_seed = 0; // [DENTAL]
+int g_iter = 0;              // [DENTAL]
+
 int main(int argc, char** argv)
 {
     float (*nodes)[3] = new float[NUMBER_NODES][3];
@@ -70,6 +73,7 @@ int main(int argc, char** argv)
 	unsigned int seed = (argc > 1) ? (unsigned)strtoul(argv[1], nullptr, 10) : (unsigned)time(NULL); // [CCX]
 	srand(seed); // seed for random numbers
 	seed_rng(seed); // [CCX]
+	g_run_seed = seed; // [DENTAL]
 	cout<<"Random number seed: "<<seed<<endl;
     
     int iteration;
@@ -151,6 +155,13 @@ int main(int argc, char** argv)
         /****************************************************************************************
                                                Read stimulus
         *****************************************************************************************/   
+        g_iter = iteration; // [DENTAL]
+        Resorb_granules(lattice, age_cells, iteration); // [DENTAL] beta-TCP resorption (no-op without granules)
+        // [DENTAL] grafted socket: the cell biology runs P.tcp_delay days late. Its clock (differentiation from day 6,
+        // the high-activity period, remodelling, clot entry) is iteration - tcp_delay; before that the cells wait
+        // (with tcp_delay_all 0 only differentiation waits). Resorption, ageing and mechanics keep the real clock.
+        const int bio = (P.granule_fraction > 0) ? iteration - P.tcp_delay : iteration;
+        const bool cells_act = bio >= 0 || !P.tcp_delay_all;
         cout<<"Read stimulus"<<endl;
         if (!Read_stimulus(stimulus,elements)) { // [CCX]
             cerr << "Iterasyon " << iteration << ": stimulus okunamadi, simulasyon durduruldu." << endl;
@@ -161,23 +172,27 @@ int main(int argc, char** argv)
         /**************************************************************************************
                                                Differentiation
         *****************************************************************************************/   
-        if (iteration>5)
+        if (bio>5) // [DENTAL] biological clock (= iteration without granules)
         {
            cout<<"Cell differentiation"<<endl;
-           Cell_differentiation(lattice,age_cells,stimulus,element_local_min,element_local_max,lattice_point_element,iteration);           
+           Cell_differentiation(lattice,age_cells,stimulus,element_local_min,element_local_max,lattice_point_element,bio);           
         }  
         
         /**************************************************************************************
                                                Proliferation
         *****************************************************************************************/   
+        if (cells_act) { // [DENTAL]
         cout<<"Cell proliferation"<<endl;
-        Cell_proliferation(lattice,age_cells,element_local_min,element_local_max,lattice_point_element,stimulus,iteration); 
+        Cell_proliferation(lattice,age_cells,element_local_min,element_local_max,lattice_point_element,stimulus,std::max(bio, 0)); 
+        }
             
         /**************************************************************************************
                                                Migration
         *****************************************************************************************/   
+        if (cells_act) { // [DENTAL]
         cout<<"Cell migration"<<endl;
-        Cell_migration(lattice,age_cells,lattice_point_element,iteration);
+        Cell_migration(lattice,age_cells,lattice_point_element,std::max(bio, 0));
+        }
         
         /**************************************************************************************
                                      Write lattice content into files

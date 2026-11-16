@@ -27,6 +27,8 @@ int sg_count(int n, double rate)
 // (P.cover_source = 1, or the milestone-1 flag -DSG_COVER_GUIDES).
 bool Neighbour_guides(char v)
 {
+	// [DENTAL] granules guide like the upstream scaffold unless switched off or not yet (P.tcp_guide_day)
+	if (v == LATTICE_GRANULE && (!P.tcp_guides || g_iter < P.tcp_guide_day)) return false;
 	if (P.cover_source) return v > 1 && v != 6;
 	return v > 1 && v != 6 && v != LATTICE_COVER;
 }
