@@ -1,0 +1,82 @@
+{
+ "version": 1,
+ "units": "mm",
+ "frame": "x = patient left, y = superior, z = anterior; origin = centroid of the mandible surface",
+ "frame_days": [
+  0,
+  7,
+  14,
+  21,
+  28,
+  35,
+  42,
+  49,
+  56,
+  63,
+  70,
+  77,
+  84,
+  91,
+  98,
+  105,
+  112,
+  119,
+  126,
+  133,
+  140,
+  147,
+  154,
+  161,
+  168,
+  175,
+  182
+ ],
+ "setting": "human x3.5, k 0.010/day, remodelling off, graded early factor 0.37",
+ "codes": {
+  "1": "stem cell",
+  "2": "fibroblast",
+  "3": "chondrocyte",
+  "4": "new bone",
+  "5": "beta-TCP granule"
+ },
+ "sockets": [
+  {
+   "id": "32",
+   "arm": "empty",
+   "origin": [
+    4.5164,
+    -0.3089,
+    20.5491
+   ],
+   "dims": [
+    22,
+    32,
+    41
+   ],
+   "voxel": 0.2,
+   "frames": "s32_frames.bin.gz"
+  },
+  {
+   "id": "33",
+   "arm": "beta-TCP",
+   "origin": [
+    9.3164,
+    -6.1089,
+    14.9491
+   ],
+   "dims": [
+    28,
+    62,
+    58
+   ],
+   "voxel": 0.2,
+   "frames": "s33_frames.bin.gz"
+  }
+ ],
+ "meshes": {
+  "mandible": "mandible.glb",
+  "teeth": "teeth.glb"
+ },
+ "series": "series.json",
+ "voxel_rule": "each 0.2 mm voxel holds 2x2x2 lattice sites of 0.1 mm; inside the socket if at least 4 of its 8 sites are socket sites (else 255); drawn if at least 40 % of its socket sites hold a cell or granule (else 0), as the most frequent such code, ties to new bone > granule > stem cell > fibroblast > chondrocyte; the voxels show about 4-8 points more new bone than the 0.1 mm lattice, series.json has the exact values"
+}
