@@ -51,7 +51,7 @@ Mesh: quadratic tetrahedra (C3D10) with straight edges, 0.8 mm in the socket (52
 - `force_stimulus 2` (or `-DFORCE_STIMULUS=2`) gives every element the bone stimulus whatever the mechanics: the biology-only setting used for the calibration. The FE solves are then skipped (`skip_fe_when_forced`), and a run takes about 4 s instead of 30 s.
 
 ### Runtime parameters
-A run folder may hold `params.txt` with `name value` lines; the values used are written to `params_used.txt`. Names and defaults (struct `Params` in `src/header.h`): `farfield_strain` 3e-4, `force_stimulus` 0, `skip_fe_when_forced` 1, `stimulus_mode` 0, `lower_window` 1, `activity_days` 15, `late_factor` 0.2, `seed_fraction` 0.3, `lining_voxels` 2, `cover_source` 0, `matrix_day` −1, `remodel_rate` 0, `remodel_day` 14, `remodel_rate2` 0.005, `remodel_day2` 60, `raw_daily` 1.
+A run folder may hold `params.txt` with `name value` lines; the values used are written to `params_used.txt`. Names and defaults (struct `Params` in `src/header.h`): `farfield_strain` 3e-4, `bc_file` (empty: the far-field step), `force_stimulus` 0, `skip_fe_when_forced` 1, `stimulus_mode` 0, `lower_window` 1, `activity_days` 15, `late_factor` 0.2, `seed_fraction` 0.3, `lining_voxels` 2, `cover_source` 0, `matrix_day` −1, `remodel_rate` 0, `remodel_day` 14, `remodel_rate2` 0.005, `remodel_day2` 60, `raw_daily` 1.
 
 β-TCP granules (all off while `granule_fraction` is 0): `granule_fraction` 0, `granule_dmin` 0.5 and `granule_dmax` 1.0 mm, `granule_overlap` 0.1, `granule_pattern` −1 (run seed + 1000), `tcp_k` 0.031 /day, `tcp_lag` 0, `tcp_k2` −1 (off), `tcp_k_switch` 0, `tcp_E` 3500 MPa, `tcp_nu` 0.3, `tcp_guides` 1, `tcp_guide_day` 0, `tcp_late_mult` 1, `tcp_diff_mult` 1, `tcp_inhibit_days` 0, `tcp_inhibit_graded` 1, `tcp_inhibit_prolif` 1, `tcp_delay` 0, `tcp_delay_all` 1, `tcp_delay_activity` 1, `tcp_wall_exempt` 0. The Hong-calibrated values are in [hong/README.md](hong/README.md#milestone-3b-refit-with-the-literature-values).
 
@@ -109,6 +109,12 @@ It writes the same run inputs, plus `zone_map.raw` (socket × third), `graft_mas
 - **Tools:**
   - `tools/analyze_mask_model.py`: tables per socket, third and plane; a **virtual core** per socket (central cylinder 2.3 mm × 6 mm from the crest along the socket axis, the trephine biopsy that human histology comes from), also over time (`core_daily.csv`); the mineralised fraction (new bone + graft) as the analogue of a CBCT socket fill; central mesio-distal and bucco-lingual sections along each socket axis; and a virtual CBCT. The virtual CBCT keeps the pre-operative scan outside the sockets and draws new bone and graft with assumed grey values.
   - `tools/live_panel.py --patient`: replays such runs.
+- **Loads from a larger model (`bc_file`):** a CalculiX include with one or more load steps replaces the far-field step.
+  - `tools/submodel_bc.py` writes it from a displacement field of a larger model: the block's cut faces (the nodes on its bounding planes) get that model's displacements, interpolated trilinearly. A step may also carry a pressure on the coronal free faces of the socket elements near the crest, e.g. a pontic pressing on the soft tissue over a socket.
+  - Every step prints `S, E` for the SOCKET elements. With several steps, the step whose (HP, e_min) lies farthest outside the bone window (largest of |HP| / 0.15 MPa and |e_min| / 0.05) sets each element's stimulus. This is the daily peak over the day's load cases, since the Claes-Heigele rule judges magnitudes, not cycle counts.
+- **Jaw-scale voxel model (`tools/voxel_fe.py`):** linear elasticity on a voxel grid, one 8-node brick per voxel (the CalculiX C3D8 element), each with its own E and ν.
+  - The stiffness matrix is assembled in 3×3 node blocks and solved by conjugate gradients with an algebraic multigrid preconditioner (pyamg). This handles millions of unknowns that CalculiX's direct solver cannot hold in memory.
+  - `write_ccx()` writes the same model as a CalculiX deck for checks. A random two-phase block agrees with CalculiX to 3e-7 (relative).
 - **Privacy:** patient inputs, meshes, lattices and results never go into this repository.
 
 ### Outputs of a run

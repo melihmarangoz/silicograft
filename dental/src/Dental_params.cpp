@@ -38,6 +38,7 @@ bool Load_params(const char* file)
 		{"tcp_k_switch", [](istringstream& s) { s >> P.tcp_k_switch; }},
 		{"iterations", [](istringstream& s) { s >> P.iterations; }},
 		{"native_E", [](istringstream& s) { s >> P.native_E; }},
+		{"bc_file", [](istringstream& s) { s >> P.bc_file; }},
 		{"native_nu", [](istringstream& s) { s >> P.native_nu; }},
 		{"raw_daily", [](istringstream& s) { s >> P.raw_daily; }},
 		{"granule_fraction", [](istringstream& s) { s >> P.granule_fraction; }},
@@ -93,6 +94,7 @@ bool Load_params(const char* file)
 	  << "\ntcp_inhibit_prolif " << P.tcp_inhibit_prolif << "\ntcp_wall_exempt " << P.tcp_wall_exempt
 	  << "\ntime_scale " << P.time_scale << "\ntcp_k2 " << P.tcp_k2 << "\ntcp_k_switch " << P.tcp_k_switch << "\niterations " << P.iterations << "\nnative_E " << P.native_E
 	  << "\nnative_nu " << P.native_nu << "\n";
+	if (!P.bc_file.empty()) o << "bc_file " << P.bc_file << "\n";
 	if (P.iterations < 1 || P.iterations > NUMBER_ITERATIONS) {
 		cerr << "ERROR: iterations must be 1.." << NUMBER_ITERATIONS << " (build with -DNUMBER_ITERATIONS_OVERRIDE=N for more)" << endl;
 		return false;

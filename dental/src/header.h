@@ -54,6 +54,9 @@ inline bool is_socket_point(char c) { return c != LATTICE_BONE && c != LATTICE_C
 // The values used are written to params_used.txt.
 struct Params {
 	double farfield_strain = FARFIELD_STRAIN; // far-field mesio-distal strain on the bone block
+	std::string bc_file;           // CalculiX include with the load step(s), replacing the far-field step (e.g. displacements
+	                               // of the block's cut faces from a larger model, pressures); several steps: per element
+	                               // the step farthest outside the bone window sets the stimulus (daily peak envelope)
 	int force_stimulus = 0;        // >0: every element gets this stimulus (2 = bone): biology-only setting
 	int skip_fe_when_forced = 1;   // with force_stimulus, skip the FE solves after the initial one
 	int stimulus_mode = 0;         // 0 element-average HP (upstream); 1 soft-tissue phase HP (iso-strain)

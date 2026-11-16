@@ -52,11 +52,16 @@ static double min_eigen_sym(double a11, double a22, double a33, double a12, doub
 }
 
 // "stresses (...)" ya da "strains (...)" tablosunu oku: eleman -> IP bazinda 6 bilesen
-static bool read_table(const vector<string>& lines, const string& title, vector<vector<array<double, 6>>>& out)
+// [DENTAL] occurrence: 0 = the last table in the file, 1 = the one before it, ... (one table per load step)
+static bool read_table(const vector<string>& lines, const string& title, vector<vector<array<double, 6>>>& out,
+                       int occurrence = 0)
 {
 	long start = -1;
+	int seen = 0;
 	for (long i = (long)lines.size() - 1; i >= 0; --i) // son adimin tablosu
-		if (lines[i].find(title) != string::npos && lines[i].find("for set") != string::npos) { start = i; break; }
+		if (lines[i].find(title) != string::npos && lines[i].find("for set") != string::npos) {
+			if (seen++ == occurrence) { start = i; break; }
+		}
 	if (start < 0) return false;
 	out.assign(NUMBER_ELEMS, {});
 	for (size_t li = start + 1; li < lines.size(); ++li) {
@@ -83,8 +88,14 @@ bool Read_stimulus(char stimulus_read[NUMBER_ELEMS], int /*elements_read*/[NUMBE
 	string line;
 	while (getline(infile, line)) lines.push_back(line);
 
-	vector<vector<array<double, 6>>> S, E;
-	if (!read_table(lines, "stresses (elem", S) || !read_table(lines, "strains (elem", E)) {
+	// [DENTAL] one S/E table pair per load step (one step unless P.bc_file holds several)
+	vector<vector<vector<array<double, 6>>>> Ss, Es;
+	for (int occ = 0;; occ++) {
+		vector<vector<array<double, 6>>> S, E;
+		if (!read_table(lines, "stresses (elem", S, occ) || !read_table(lines, "strains (elem", E, occ)) break;
+		Ss.push_back(std::move(S)); Es.push_back(std::move(E));
+	}
+	if (Ss.empty()) {
 		cerr << "HATA: " << STIMULUS_FILE << " icinde *EL PRINT S, E tablolari yok." << endl;
 		return false;
 	}
@@ -92,22 +103,31 @@ bool Read_stimulus(char stimulus_read[NUMBER_ELEMS], int /*elements_read*/[NUMBE
 	int missing = 0;
 	last_HP.assign(NUMBER_ELEMS, 0.f); last_minE.assign(NUMBER_ELEMS, 0.f); // [DENTAL]
 	for (int elem = 0; elem < NUMBER_ELEMS; elem++) {
-		if (S[elem].size() != (size_t)IPS_PER_ELEM || E[elem].size() != (size_t)IPS_PER_ELEM) { missing++; continue; }
-		double min_E_read = 0, HP_read = 0;
+		bool ok = true;
+		for (size_t st = 0; st < Ss.size(); st++)
+			if (Ss[st][elem].size() != (size_t)IPS_PER_ELEM || Es[st][elem].size() != (size_t)IPS_PER_ELEM) ok = false;
+		if (!ok) { missing++; continue; }
+		double min_E_read = 0, HP_read = 0, worst = -1;
 		// [DENTAL] stimulus_mode 1: the cells sense the soft-tissue phase. Under the rule of mixtures (iso-strain,
 		// Voigt) every phase of the element has the element strain, so the soft phase's hydrostatic pressure is
 		// -K_soft tr(e), K_soft = E_soft / (3 (1 - 2 nu)) with nu = 0.167 for all soft tissues. For an element without
 		// bone this equals the element value; with bone, the stiff matrix no longer sets the pressure.
 		const double K_soft = E_soft_phase[elem] / (3.0 * (1.0 - 2.0 * 0.167));
-		for (int j = 0; j < IPS_PER_ELEM; j++) {
-			const auto& e = E[elem][j]; // exx eyy ezz exy exz eyz (tensor)
-			const auto& s = S[elem][j];
-			min_E_read += min_eigen_sym(e[0], e[1], e[2], e[3], e[4], e[5]); // EP1
-			if (P.stimulus_mode == 1) HP_read += -K_soft * (e[0] + e[1] + e[2]); // [DENTAL]
-			else HP_read += -(s[0] + s[1] + s[2]) / 3;                            // -(SP1+SP2+SP3)/3
+		// [DENTAL] several load steps: the daily peak envelope, i.e. the step whose (HP, e_min) lies farthest outside
+		// the bone window (|HP| / 0.15 MPa, |e_min| / 0.05) sets the stimulus; one step: as before
+		for (size_t st = 0; st < Ss.size(); st++) {
+			double mE = 0, hp = 0;
+			for (int j = 0; j < IPS_PER_ELEM; j++) {
+				const auto& e = Es[st][elem][j]; // exx eyy ezz exy exz eyz (tensor)
+				const auto& s = Ss[st][elem][j];
+				mE += min_eigen_sym(e[0], e[1], e[2], e[3], e[4], e[5]); // EP1
+				if (P.stimulus_mode == 1) hp += -K_soft * (e[0] + e[1] + e[2]); // [DENTAL]
+				else hp += -(s[0] + s[1] + s[2]) / 3;                            // -(SP1+SP2+SP3)/3
+			}
+			mE /= IPS_PER_ELEM; hp /= IPS_PER_ELEM;
+			const double sev = max(fabs(hp) / 0.15, fabs(mE) / 0.05);
+			if (sev > worst) { worst = sev; min_E_read = mE; HP_read = hp; }
 		}
-		min_E_read /= IPS_PER_ELEM;
-		HP_read /= IPS_PER_ELEM;
 		last_HP[elem] = (float)HP_read; last_minE[elem] = (float)min_E_read; // [DENTAL]
 
 		// Define stimulus (orijinal main Read_stimulus.cpp ile ayni)

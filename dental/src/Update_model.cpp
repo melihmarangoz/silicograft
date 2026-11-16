@@ -200,12 +200,19 @@ bool Write_ccx_input(const float* Young_mod_elem, const float* Poison_rat_elem)
 			myfile << v[n] << ((n + 1) % 16 && n + 1 < v.size() ? ", " : "\n");
 		myfile << "*SOLID SECTION, ELSET=SOCKET_" << g << ", MATERIAL=material_" << g << "\n";
 	}
-	const double ux = -P.farfield_strain * BLOCK_LENGTH_X; // [DENTAL] runtime parameter
-	myfile << "**\n** STEP: far-field mesio-distal strain " << P.farfield_strain << " (distal face ux = " << ux << " mm)\n";
-	myfile << "*STEP\n*STATIC\n1., 1., 1e-05, 1.\n";
-	myfile << "*BOUNDARY\nDISTAL, 1, 1, " << ux << "\n";
-	myfile << "*EL PRINT, ELSET=SOCKET\nS, E\n";
-	myfile << "*END STEP\n";
+	if (!P.bc_file.empty()) {
+		// [DENTAL] load steps from a file (each step must request *EL PRINT, ELSET=SOCKET / S, E)
+		if (!fs::exists(P.bc_file)) { cerr << "ERROR: bc_file " << P.bc_file << " missing." << endl; return false; }
+		myfile << "**\n** STEPS from " << P.bc_file << "\n*INCLUDE, INPUT=" << P.bc_file << "\n";
+	}
+	else {
+		const double ux = -P.farfield_strain * BLOCK_LENGTH_X; // [DENTAL] runtime parameter
+		myfile << "**\n** STEP: far-field mesio-distal strain " << P.farfield_strain << " (distal face ux = " << ux << " mm)\n";
+		myfile << "*STEP\n*STATIC\n1., 1., 1e-05, 1.\n";
+		myfile << "*BOUNDARY\nDISTAL, 1, 1, " << ux << "\n";
+		myfile << "*EL PRINT, ELSET=SOCKET\nS, E\n";
+		myfile << "*END STEP\n";
+	}
 	myfile.close();
 	if (!myfile) { cerr << "ERROR: could not write " << tmp << endl; return false; }
 	fs::rename(tmp, "socket.inp");
