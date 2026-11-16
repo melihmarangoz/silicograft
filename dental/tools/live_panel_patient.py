@@ -35,7 +35,7 @@ def zones(run):
     for line in open(os.path.join(run, "zones.csv")).read().splitlines()[1:]:
         f = line.split(",")
         if f[1] != "volume": continue
-        out.setdefault(int(f[0]), {})[f[2]] = np.array([int(x) for x in f[3:10]])  # points, empty, MSC, bone, cart, fib, granule
+        out.setdefault(float(f[0]), {})[f[2]] = np.array([int(x) for x in f[3:10]])  # points, empty, MSC, bone, cart, fib, granule
     return out
 
 

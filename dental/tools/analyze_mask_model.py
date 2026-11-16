@@ -10,10 +10,13 @@ MESH holds model_info.h, socket_map.raw, zone_names.txt (from socket_from_masks.
 params_used.txt and, for sections, lattice_<iteration>.raw (day = (iteration + 1) x time_scale).
 
 Outputs
-  table.csv / table.md : per case, day, socket, region (volume; central mesio-distal and bucco-lingual sections through
+  table.csv / table.md : per case, day, socket, region (volume; virtual core = central cylinder 2.3 mm x 6 mm from the
+                         crest along the axis, as a trephine biopsy; central mesio-distal and bucco-lingual sections through
                          the socket axis), zone (apical, middle, coronal, total): % new bone (osteoblast points), residual
-                         graft (granule envelope), soft tissue (MSC, fibroblast, empty clot / marrow), cartilage;
+                         graft (granule envelope), soft tissue (MSC, fibroblast, empty clot / marrow), cartilage,
+                         mineralised (new bone + graft, the CBCT "socket fill");
                          mean and SD over the runs of a case
+  core_daily.csv       : virtual-core fractions for every stored lattice (real days); core_info.json
   time_<case>.png      : new bone and residual graft per socket (volume) over real days
   sections_<case>.png  : tissue maps on the two central planes of each socket, at --days
   vct_<case>.png       : virtual CBCT of mineralised tissue on the same planes: the pre-operative scan outside the
@@ -58,10 +61,22 @@ if a.cbct:
 
 def params(run):
     return {l.split()[0]: l.split()[1] for l in open(os.path.join(run, "params_used.txt"))}
+def it_of(run, day):
+    """iteration whose end is closest to the real day (time_scale real days per iteration)"""
+    ts = float(params(run).get("time_scale", 1)); return max(int(round(day / ts)) - 1, 0), ts
 def lattice(run, day):
-    ts = int(params(run).get("time_scale", 1)); it = day // ts - 1
+    it, ts = it_of(run, day)
     f = os.path.join(run, f"lattice_{it}.raw")
     return np.fromfile(f, np.uint8).reshape(LN) if os.path.exists(f) else None
+def zones_of(run):
+    Z = {}
+    for line in open(os.path.join(run, "zones.csv")).read().splitlines()[1:]:
+        f = line.split(",")
+        if f[1] == "volume": Z.setdefault(round(float(f[0]), 3), {})[f[2]] = [int(x) for x in f[3:10]]
+    return Z
+def zday(Z, run, day):
+    it, ts = it_of(run, day); d = round((it + 1) * ts, 3)
+    return d if d in Z else None
 
 # --- plane geometry per socket: u along the axis (0 = crest), v across (mesio-distal or bucco-lingual)
 PL = {}
@@ -88,17 +103,37 @@ def plane_codes(lat, key):
     return code, sid
 
 FRAC = {"NB": [2], "RB": [12], "CART": [4], "SOFT": [0, 1, 5]}
+# virtual core: central cylinder of CORE_D mm diameter and CORE_L mm length along each socket axis from the crest,
+# as a trephine biopsy at implant placement (human histology comes from such cores)
+CORE_D, CORE_L = 2.3, 6.0
+gx = [ORG[d] + CELL * np.arange(LN[d]) for d in range(3)]
+GP = np.stack(np.meshgrid(*gx, indexing="ij"), -1)
+CORE = {}
+for n_, s_ in enumerate(SO):
+    cr, apx = np.array(s_["crest"]), np.array(s_["apex"]); ax = (apx - cr) / np.linalg.norm(apx - cr)
+    rel = GP - cr; t = rel @ ax; rr = np.linalg.norm(rel - t[..., None] * ax, axis=-1)
+    cyl = (t >= 0) & (t <= CORE_L) & (rr <= CORE_D / 2)
+    CORE[s_["name"]] = dict(mask=cyl & (SMAP == n_ + 1), outside_pct=round(100 * float((cyl & (SMAP != n_ + 1)).sum()) / max(int(cyl.sum()), 1), 1))
+del GP
+def core_fracs(lat, name):
+    m = CORE[name]["mask"]; c = lat[m]; n = max(c.size, 1)
+    return {k: 100 * float(np.isin(c, v).sum()) / n for k, v in FRAC.items()}
 rows = []
+core_daily = []
 for case, runs in cases.items():
     for run in runs:
-        Z = {}
-        for line in open(os.path.join(run, "zones.csv")).read().splitlines()[1:]:
-            f = line.split(",")
-            if f[1] == "volume": Z.setdefault(int(f[0]), {})[f[2]] = [int(x) for x in f[3:10]]
-        for day in sorted(set(DAYS + VDAYS)):
-            if day not in Z: continue
+        Z = zones_of(run)
+        it_all = sorted(int(f[8:-4]) for f in os.listdir(run) if f.startswith("lattice_") and f != "lattice_999.raw")
+        ts = float(params(run).get("time_scale", 1))
+        for it in it_all:   # core over time (every stored lattice)
+            lat = np.fromfile(os.path.join(run, f"lattice_{it}.raw"), np.uint8).reshape(LN)
             for s_ in SO:
-                parts = {t: Z[day][f"{s_['name']}_{t}"] for t in ("apical", "middle", "coronal")}
+                core_daily.append(dict(case=case, run=run, day=round((it + 1) * ts, 2), socket=s_["name"], **core_fracs(lat, s_["name"])))
+        for day in sorted(set(DAYS + VDAYS)):
+            zd = zday(Z, run, day)
+            if zd is None: continue
+            for s_ in SO:
+                parts = {t: Z[zd][f"{s_['name']}_{t}"] for t in ("apical", "middle", "coronal")}
                 parts["total"] = [sum(c) for c in zip(*parts.values())]
                 for zone, c in parts.items():   # points, empty, MSC, bone, cartilage, fibrous, granule
                     n = max(c[0], 1)
@@ -106,6 +141,8 @@ for case, runs in cases.items():
                                      NB=100 * c[3] / n, RB=100 * c[6] / n, CART=100 * c[4] / n, SOFT=100 * (c[1] + c[2] + c[5]) / n))
             lat = lattice(run, day)
             if lat is None: continue
+            for s_ in SO:
+                rows.append(dict(case=case, run=run, day=day, socket=s_["name"], region="core", zone="total", **core_fracs(lat, s_["name"])))
             for (sname, pl), d in PL.items():
                 code, sid = plane_codes(lat, (sname, pl))
                 t = d["u"][:, None] / d["L"] * np.ones_like(d["v"])[None, :]
@@ -121,20 +158,25 @@ agg = {}
 for r in rows:
     agg.setdefault((r["case"], r["day"], r["socket"], r["region"], r["zone"]), []).append(r)
 out = []
-for k, rs in sorted(agg.items(), key=lambda kv: (kv[0][0], kv[0][1], kv[0][2], ["volume", "mesio-distal", "bucco-lingual"].index(kv[0][3]), ["apical", "middle", "coronal", "total"].index(kv[0][4]))):
+for k, rs in sorted(agg.items(), key=lambda kv: (kv[0][0], kv[0][1], kv[0][2], ["volume", "core", "mesio-distal", "bucco-lingual"].index(kv[0][3]), ["apical", "middle", "coronal", "total"].index(kv[0][4]))):
     o = dict(zip(["case", "day", "socket", "region", "zone"], k)); o["runs"] = len(rs)
-    for m in ["NB", "RB", "SOFT", "CART"]:
+    for r in rs: r["MIN"] = r["NB"] + r["RB"]   # mineralised: new bone + graft (socket fill on a CBCT)
+    for m in ["NB", "RB", "SOFT", "CART", "MIN"]:
         vals = [r[m] for r in rs]; o[m] = round(st.mean(vals), 2); o[m + "_sd"] = round(st.stdev(vals), 2) if len(vals) > 1 else 0.0
     out.append(o)
 with open(os.path.join(a.out, "table.csv"), "w", newline="") as f:
     w = csv.DictWriter(f, fieldnames=list(out[0].keys())); w.writeheader(); w.writerows(out)
+with open(os.path.join(a.out, "core_daily.csv"), "w", newline="") as f:
+    w = csv.DictWriter(f, fieldnames=list(core_daily[0].keys())); w.writeheader(); w.writerows(core_daily)
+json.dump({k: dict(outside_socket_pct=v["outside_pct"], points=int(v["mask"].sum())) for k, v in CORE.items()},
+          open(os.path.join(a.out, "core_info.json"), "w"), indent=1)
 with open(os.path.join(a.out, "table.md"), "w") as f:
     for case in cases:
-        f.write(f"\n#### {case}\n\n| Day | Socket | Region | Zone | New bone % | Residual graft % | Soft tissue % |\n|---|---|---|---|---|---|---|\n")
+        f.write(f"\n#### {case}\n\n| Day | Socket | Region | Zone | New bone % | Residual graft % | Soft tissue % | Mineralised % |\n|---|---|---|---|---|---|---|---|\n")
         for o in out:
             if o["case"] != case: continue
             fm = lambda m: f"{o[m]:.1f}" + (f" ± {o[m + '_sd']:.1f}" if o["runs"] > 1 else "")
-            f.write(f"| {o['day']} | {o['socket']} | {o['region']} | {o['zone']} | {fm('NB')} | {fm('RB')} | {fm('SOFT')} |\n")
+            f.write(f"| {o['day']} | {o['socket']} | {o['region']} | {o['zone']} | {fm('NB')} | {fm('RB')} | {fm('SOFT')} | {fm('MIN')} |\n")
 
 INK, GRID, BLUE, RED = "#0b0b0b", "#e4e2dc", "#2a78d6", "#e34948"
 plt.rcParams.update({"font.size": 9, "axes.spines.top": False, "axes.spines.right": False})
@@ -147,7 +189,7 @@ for case, runs in cases.items():   # time curves
             for line in open(os.path.join(run, "zones.csv")).read().splitlines()[1:]:
                 f = line.split(",")
                 if f[1] == "volume" and f[2].startswith(s_["name"] + "_"):
-                    c = Z.setdefault(int(f[0]), [0] * 7)
+                    c = Z.setdefault(float(f[0]), [0] * 7)
                     for q in range(7): c[q] += int(f[3 + q])
             per.append({d: c for d, c in Z.items()})
         days = sorted(per[0]); ls = ["-", "--", ":"][si % 3]

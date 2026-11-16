@@ -91,8 +91,10 @@ struct Params {
 	int tcp_delay_activity = 1;    // 1: the high-activity period also starts late; 0: it ends on the real clock
 	int tcp_wall_exempt = 0;       // 1: elements at the bony wall (holding wall-lining points) are not delayed
 	// [DENTAL] time and run length
-	int time_scale = 1;            // real days per iteration (2 = a provisional human time scaling: biology 2x slower);
-	                               // tcp_k and tcp_lag are in real days; output day columns are real days
+	double time_scale = 1.0;       // real days per iteration (3.5 = human formation phase, biology 3.5x slower than beagle);
+	                               // tcp_k, tcp_lag, tcp_k_switch are in real days; output day columns are real days
+	double tcp_k2 = -1.0;          // biphasic resorption: k = tcp_k until tcp_k_switch (real days), then tcp_k2 (-1: off)
+	double tcp_k_switch = 0.0;
 	int iterations = NUMBER_ITERATIONS; // daily iterations to run (at most NUMBER_ITERATIONS, the array size)
 	double native_E = 13700.0, native_nu = 0.3; // native bone points inside socket elements (models from masks)
 };

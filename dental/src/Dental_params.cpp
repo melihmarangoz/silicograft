@@ -34,6 +34,8 @@ bool Load_params(const char* file)
 		{"tcp_inhibit_prolif", [](istringstream& s) { s >> P.tcp_inhibit_prolif; }},
 		{"tcp_wall_exempt", [](istringstream& s) { s >> P.tcp_wall_exempt; }},
 		{"time_scale", [](istringstream& s) { s >> P.time_scale; }},
+		{"tcp_k2", [](istringstream& s) { s >> P.tcp_k2; }},
+		{"tcp_k_switch", [](istringstream& s) { s >> P.tcp_k_switch; }},
 		{"iterations", [](istringstream& s) { s >> P.iterations; }},
 		{"native_E", [](istringstream& s) { s >> P.native_E; }},
 		{"native_nu", [](istringstream& s) { s >> P.native_nu; }},
@@ -89,7 +91,7 @@ bool Load_params(const char* file)
 	  << "\ntcp_delay " << P.tcp_delay << "\ntcp_delay_all " << P.tcp_delay_all << "\ntcp_delay_activity " << P.tcp_delay_activity
 	  << "\nremodel_day2 " << P.remodel_day2 << "\nremodel_rate2 " << P.remodel_rate2 << "\ntcp_inhibit_graded " << P.tcp_inhibit_graded
 	  << "\ntcp_inhibit_prolif " << P.tcp_inhibit_prolif << "\ntcp_wall_exempt " << P.tcp_wall_exempt
-	  << "\ntime_scale " << P.time_scale << "\niterations " << P.iterations << "\nnative_E " << P.native_E
+	  << "\ntime_scale " << P.time_scale << "\ntcp_k2 " << P.tcp_k2 << "\ntcp_k_switch " << P.tcp_k_switch << "\niterations " << P.iterations << "\nnative_E " << P.native_E
 	  << "\nnative_nu " << P.native_nu << "\n";
 	if (P.iterations < 1 || P.iterations > NUMBER_ITERATIONS) {
 		cerr << "ERROR: iterations must be 1.." << NUMBER_ITERATIONS << " (build with -DNUMBER_ITERATIONS_OVERRIDE=N for more)" << endl;

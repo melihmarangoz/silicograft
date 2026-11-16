@@ -32,7 +32,7 @@ void Write_statistics(char const lattice[LATTICE_X][LATTICE_Y][LATTICE_Z], int l
 	if (header)
 		f << "iteration,day,socket_points,empty,MSC,bone,cartilage,fibrous,"
 		     "stim_resorption,stim_bone,stim_cartilage,stim_fibrous,granule\n";
-	const int day = (iter + 1) * P.time_scale; // [DENTAL] real days
+	const double day = (iter + 1) * P.time_scale; // [DENTAL] real days (prints as an integer when it is one)
 	f << iter << "," << day << "," << socket << "," << n[0] << "," << n[1] << "," << n[2] << "," << n[4] << "," << n[5] << ","
 	  << st[1] << "," << st[2] << "," << st[4] << "," << st[5] << "," << n[12] << "\n"; // [DENTAL] + granule
 	if (P.raw_daily) {

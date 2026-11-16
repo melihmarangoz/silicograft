@@ -110,7 +110,11 @@ long Resorb_granules(char lattice[LATTICE_X][LATTICE_Y][LATTICE_Z], short age[LA
 	// [DENTAL] real days (time_scale real days per iteration); tcp_k and tcp_lag are per real day
 	const double day_end = (double)(iter + 1) * P.time_scale;
 	if (gpoints.empty() || day_end <= P.tcp_lag) return 0;
-	const float smax = (float)exp(-P.tcp_k * (day_end - P.tcp_lag) / 3.0); // radius factor at the end of this day
+	// log of the remaining volume fraction: first order from tcp_lag; biphasic with tcp_k2 after tcp_k_switch
+	double lnV = -P.tcp_k * (day_end - P.tcp_lag);
+	if (P.tcp_k2 >= 0 && day_end > P.tcp_k_switch && P.tcp_k_switch > P.tcp_lag)
+		lnV = -P.tcp_k * (P.tcp_k_switch - P.tcp_lag) - P.tcp_k2 * (day_end - P.tcp_k_switch);
+	const float smax = (float)exp(lnV / 3.0); // radius factor at the end of this day
 	long freed = 0;
 	size_t w = 0;
 	for (size_t n = 0; n < gpoints.size(); n++) {
