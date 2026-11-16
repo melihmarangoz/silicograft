@@ -83,7 +83,10 @@ def scan():
         run = os.path.dirname(t)
         if run in scored:
             continue
-        v = sh.run_values(run)
+        try:
+            v = sh.run_values(run)
+        except Exception:  # a run being written or removed
+            continue
         if v is None:
             continue
         scored[run] = (os.path.getmtime(t), sh.objective(v, HONG, SD)[0])
@@ -184,11 +187,18 @@ last_scan = 0.0
 queue = []
 while plt.fignum_exists(fig.number):
     queue += scan()
-    if queue:
-        run = queue.pop()   # newest first; older unseen runs are skipped when many finish together
-        queue.clear()
-        show(run, "Latest finished run")
-    elif scored:
-        best = min(scored, key=lambda r: scored[r][1])
-        show(best, "Best fit so far")
+    for gone in [r for r in order if not os.path.isdir(r)]:  # runs moved away
+        order.remove(gone); scored.pop(gone, None)
+    try:
+        if queue:
+            run = queue.pop()   # newest first; older unseen runs are skipped when many finish together
+            queue.clear()
+            show(run, "Latest finished run")
+        elif scored:
+            best = min(scored, key=lambda r: scored[r][1])
+            show(best, "Best fit so far")
+    except SystemExit:
+        raise
+    except Exception as e:  # keep the panel alive whatever a run folder holds
+        print("panel:", e, flush=True)
     plt.pause(2.0)

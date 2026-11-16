@@ -1,0 +1,305 @@
+{
+ "J_centre": 6.345441570420581,
+ "seed_sd": {
+  "tot_14": 0.45,
+  "api_14": 0.39,
+  "mid_14": 1.37,
+  "cor_14": 0.58,
+  "tot_28": 0.69,
+  "api_28": 1.61,
+  "mid_28": 1.49,
+  "cor_28": 0.68,
+  "tot_56": 0.47,
+  "api_56": 2.02,
+  "mid_56": 1.44,
+  "cor_56": 1.43
+ },
+ "centre": {
+  "tot_14": 26.02,
+  "api_14": 39.51,
+  "mid_14": 24.52,
+  "cor_14": 19.93,
+  "tot_28": 45.25,
+  "api_28": 61.95,
+  "mid_28": 45.29,
+  "cor_28": 36.14,
+  "tot_56": 67.77,
+  "api_56": 79.92,
+  "mid_56": 71.59,
+  "cor_56": 58.06
+ },
+ "dJ_late_factor": {
+  "minus": 0.931,
+  "plus": 1.505,
+  "step": [
+   0.2,
+   0.3
+  ]
+ },
+ "dJ_activity_days": {
+  "minus": 7.524,
+  "plus": 5.439,
+  "step": [
+   15.0,
+   21.0
+  ]
+ },
+ "dJ_remodel_rate": {
+  "minus": 0.819,
+  "plus": 1.157,
+  "step": [
+   0.02,
+   0.04
+  ]
+ },
+ "dJ_seed_fraction": {
+  "minus": 3.134,
+  "plus": 1.993,
+  "step": [
+   0.2,
+   0.4
+  ]
+ },
+ "dJ_lining_voxels": {
+  "minus": 9.426,
+  "plus": 8.477,
+  "step": [
+   1.0,
+   3.0
+  ]
+ },
+ "fitted_parameters": {
+  "parameters": [
+   "late_factor",
+   "activity_days",
+   "remodel_rate"
+  ],
+  "eigenvalues": [
+   0.0958,
+   4.3395,
+   266.3798
+  ],
+  "eigenvectors_columns": {
+   "late_factor": [
+    0.295,
+    -0.913,
+    -0.283
+   ],
+   "activity_days": [
+    0.069,
+    0.315,
+    -0.946
+   ],
+   "remodel_rate": [
+    0.953,
+    0.26,
+    0.156
+   ]
+  },
+  "relative_se": {
+   "late_factor": 1.051,
+   "activity_days": 0.276,
+   "remodel_rate": 3.081
+  },
+  "approx_se": {
+   "late_factor": 0.2626,
+   "activity_days": 4.9613,
+   "remodel_rate": 0.0924
+  },
+  "correlation": {
+   "late_factor": [
+    1.0,
+    0.51,
+    0.89
+   ],
+   "activity_days": [
+    0.51,
+    1.0,
+    0.83
+   ],
+   "remodel_rate": [
+    0.89,
+    0.83,
+    1.0
+   ]
+  }
+ },
+ "all_continuous": {
+  "parameters": [
+   "late_factor",
+   "activity_days",
+   "remodel_rate",
+   "seed_fraction",
+   "lining_voxels"
+  ],
+  "eigenvalues": [
+   0.0157,
+   0.1097,
+   4.351,
+   21.8016,
+   292.2909
+  ],
+  "eigenvectors_columns": {
+   "late_factor": [
+    -0.064,
+    0.294,
+    -0.908,
+    -0.112,
+    -0.268
+   ],
+   "activity_days": [
+    -0.104,
+    0.031,
+    0.317,
+    -0.277,
+    -0.9
+   ],
+   "remodel_rate": [
+    -0.377,
+    0.875,
+    0.259,
+    0.055,
+    0.148
+   ],
+   "seed_fraction": [
+    -0.7,
+    -0.292,
+    -0.078,
+    0.629,
+    -0.151
+   ],
+   "lining_voxels": [
+    0.594,
+    0.248,
+    0.029,
+    0.715,
+    -0.27
+   ]
+  },
+  "relative_se": {
+   "late_factor": 1.115,
+   "activity_days": 0.854,
+   "remodel_rate": 4.006,
+   "seed_fraction": 5.662,
+   "lining_voxels": 4.81
+  },
+  "approx_se": {
+   "late_factor": 0.2786,
+   "activity_days": 15.3701,
+   "remodel_rate": 0.1202,
+   "seed_fraction": 1.6986,
+   "lining_voxels": 9.6208
+  },
+  "correlation": {
+   "late_factor": [
+    1.0,
+    0.47,
+    0.86,
+    0.33,
+    -0.33
+   ],
+   "activity_days": [
+    0.47,
+    1.0,
+    0.81,
+    0.94,
+    -0.95
+   ],
+   "remodel_rate": [
+    0.86,
+    0.81,
+    1.0,
+    0.64,
+    -0.64
+   ],
+   "seed_fraction": [
+    0.33,
+    0.94,
+    0.64,
+    1.0,
+    -1.0
+   ],
+   "lining_voxels": [
+    -0.33,
+    -0.95,
+    -0.64,
+    -1.0,
+    1.0
+   ]
+  }
+ },
+ "sensitivity_pp_per_unit": {
+  "late_factor": {
+   "tot_14": 0.0,
+   "api_14": 0.0,
+   "mid_14": 0.0,
+   "cor_14": 0.0,
+   "tot_28": 47.9,
+   "api_28": 59.62,
+   "mid_28": 55.9,
+   "cor_28": 35.06,
+   "tot_56": 153.92,
+   "api_56": 120.06,
+   "mid_56": 153.52,
+   "cor_56": 172.7
+  },
+  "activity_days": {
+   "tot_14": 0.0,
+   "api_14": 0.0,
+   "mid_14": 0.0,
+   "cor_14": 0.0,
+   "tot_28": 2.46,
+   "api_28": 2.93,
+   "mid_28": 2.58,
+   "cor_28": 2.11,
+   "tot_56": 1.8,
+   "api_56": 1.31,
+   "mid_56": 1.7,
+   "cor_56": 2.15
+  },
+  "remodel_rate": {
+   "tot_14": 0.0,
+   "api_14": 0.0,
+   "mid_14": 0.0,
+   "cor_14": 0.0,
+   "tot_28": -234.1,
+   "api_28": -269.8,
+   "mid_28": -196.1,
+   "cor_28": -245.7,
+   "tot_56": -483.0,
+   "api_56": -490.8,
+   "mid_56": -529.4,
+   "cor_56": -440.5
+  },
+  "seed_fraction": {
+   "tot_14": 24.06,
+   "api_14": 36.9,
+   "mid_14": 25.13,
+   "cor_14": 16.22,
+   "tot_28": 21.87,
+   "api_28": 28.8,
+   "mid_28": 20.17,
+   "cor_28": 19.51,
+   "tot_56": 18.92,
+   "api_56": 7.5,
+   "mid_56": 24.61,
+   "cor_56": 20.49
+  },
+  "lining_voxels": {
+   "tot_14": 4.3,
+   "api_14": 6.25,
+   "mid_14": 4.23,
+   "cor_14": 3.3,
+   "tot_28": 6.19,
+   "api_28": 7.59,
+   "mid_28": 6.65,
+   "cor_28": 5.05,
+   "tot_56": 3.66,
+   "api_56": 2.21,
+   "mid_56": 3.1,
+   "cor_56": 4.91
+  }
+ },
+ "dJ_matrix_day_flip": 4.507,
+ "dJ_cover_source_flip": 3.825
+}

@@ -8,8 +8,9 @@ Copyright 2026 Melih Marangoz. Part of SilicoGraft; GNU AGPL-3.0 (see LICENSE).
   python3 identifiability.py local LOCAL_SCORES.csv OUTDIR
       Runs named l_<point>_s<seed> (make_sets_m2.py local). Outputs are averaged over seeds. For each continuous
       parameter the sensitivity of the 12 section outputs (3 totals, 9 thirds) is a central difference, scaled by
-      the objective's weights (SD of the week, thirds x 1/sqrt(6)). The Fisher-type matrix F = S^T S gives
-      approximate standard errors sqrt(diag(F^-1)), correlations and eigenvalues. Structural switches are flipped
+      the objective's weights (SD of the week, thirds x 1/sqrt(6)) and by the centre value (relative change). The
+      Fisher-type matrix F = S^T S gives relative standard errors sqrt(diag(F^-1)), correlations and eigenvalues,
+      for the three fitted parameters and for all five continuous ones. Structural switches are flipped
       and their change in J reported. Also writes the seed spread at the centre.
 """
 import csv, json, os, sys
@@ -80,19 +81,26 @@ elif mode == "local":
         cont.append(p)
         res[f"dJ_{p}"] = dict(minus=round(J_of(mean_out(f"{p}_m")) - res["J_centre"], 3),
                               plus=round(J_of(mean_out(f"{p}_p")) - res["J_centre"], 3), step=[vm, vp])
-    S = np.array(S).T  # outputs x params
-    F = S.T @ S
-    ev, evec = np.linalg.eigh(F)
-    res["fisher_eigenvalues"] = [float(x) for x in ev]
-    res["fisher_eigenvectors"] = {cont[i]: [round(float(x), 3) for x in evec[i]] for i in range(len(cont))}
-    try:
-        C = np.linalg.inv(F)
-        se = np.sqrt(np.diag(C))
-        res["approx_se"] = {p: float(s) for p, s in zip(cont, se)}
-        corr = C / np.outer(se, se)
-        res["correlation"] = {p: [round(float(x), 2) for x in corr[i]] for i, p in enumerate(cont)}
-    except np.linalg.LinAlgError:
-        res["approx_se"] = "F singular"
+    S = np.array(S).T  # outputs x params (weighted, per unit of each parameter)
+    theta0 = np.array([float(groups["centre"][0][p]) for p in cont])
+    Srel = S * theta0  # per relative change of each parameter, so that eigenvalues compare across parameters
+    def fim_report(idx):
+        names = [cont[i] for i in idx]
+        F = Srel[:, idx].T @ Srel[:, idx]
+        ev, evec = np.linalg.eigh(F)
+        r = dict(parameters=names, eigenvalues=[round(float(x), 4) for x in ev],
+                 eigenvectors_columns={n: [round(float(x), 3) for x in evec[i]] for i, n in enumerate(names)})
+        try:
+            C = np.linalg.inv(F)
+            se = np.sqrt(np.diag(C))
+            r["relative_se"] = {n: round(float(x), 3) for n, x in zip(names, se)}
+            r["approx_se"] = {n: round(float(x * t), 4) for n, x, t in zip(names, se, theta0[idx])}
+            r["correlation"] = {n: [round(float(x), 2) for x in (C / np.outer(se, se))[i]] for i, n in enumerate(names)}
+        except np.linalg.LinAlgError:
+            r["relative_se"] = "singular"
+        return r
+    res["fitted_parameters"] = fim_report([cont.index(p) for p in ["late_factor", "activity_days", "remodel_rate"] if p in cont])
+    res["all_continuous"] = fim_report(list(range(len(cont))))
     # per-parameter sensitivity of each output (percentage points per unit), for the report
     res["sensitivity_pp_per_unit"] = {p: {f"{z}_{d}": round(float(S[i, j] / scale[i]), 2) for i, (z, d) in enumerate(OUTS)}
                                      for j, p in enumerate(cont)}

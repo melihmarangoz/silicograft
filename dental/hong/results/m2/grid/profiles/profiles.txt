@@ -1,0 +1,20 @@
+best: {'late_factor': '0.4', 'activity_days': '15', 'remodel_rate': '0.05', 'matrix_day': '7', 'cover_source': '1'} J 5.9404
+  late_factor         0.2  J_min 6.06
+  late_factor         0.3  J_min 6.15
+  late_factor         0.4  J_min 5.94
+  late_factor         0.5  J_min 10.86
+  late_factor         0.7  J_min 26.76
+  late_factor           1  J_min 78.24
+  activity_days        10  J_min 11.41
+  activity_days        15  J_min 5.94
+  activity_days        21  J_min 6.06
+  remodel_rate          0  J_min 7.43
+  remodel_rate       0.01  J_min 7.62
+  remodel_rate       0.02  J_min 7.22
+  remodel_rate       0.03  J_min 6.15
+  remodel_rate       0.05  J_min 5.94
+  matrix_day           -1  J_min 6.06
+  matrix_day            3  J_min 6.15
+  matrix_day            7  J_min 5.94
+  cover_source          0  J_min 6.06
+  cover_source          1  J_min 5.94

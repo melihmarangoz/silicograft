@@ -3,6 +3,7 @@
 Copyright 2026 Melih Marangoz. Part of SilicoGraft; GNU AGPL-3.0 (see LICENSE).
 
   python3 make_sets_m2.py grid  > grid.csv     stage A1: coarse grid, biology-only, seed 1
+  python3 make_sets_m2.py refine > refine.csv  stage A1b: finer grid around the coarse optimum (edges)
   python3 make_sets_m2.py local BEST_JSON > local.csv   stage A2: one-at-a-time steps around a point, 5 seeds
   python3 make_sets_m2.py final BEST_JSON > final.csv   stage A3 + B: the fitted point (5 seeds, daily lattice),
                                                         and the soft-phase stimulus check under 150/300/1000 µε
@@ -33,9 +34,17 @@ if mode == "grid":
         d = dict(zip(grid.keys(), vals))
         rows.append(dict(name="g_" + tag(d), seed=1, force_stimulus=2, raw_daily=0, **d))
     out(rows)
+elif mode == "refine":
+    grid = dict(late_factor=[0.15, 0.2, 0.25, 0.3], activity_days=[15, 18, 21, 25, 28],
+                remodel_rate=[0.03, 0.04, 0.05, 0.065, 0.08, 0.1], matrix_day=[-1], cover_source=[0, 1])
+    rows = []
+    for vals in itertools.product(*grid.values()):
+        d = dict(zip(grid.keys(), vals))
+        rows.append(dict(name="r_" + tag(d), seed=1, force_stimulus=2, raw_daily=0, **d))
+    out(rows)
 elif mode == "local":
     best = json.load(open(sys.argv[2]))
-    steps = dict(late_factor=[-0.1, 0.1], activity_days=[-3, 3], remodel_rate=[-0.005, 0.005],
+    steps = dict(late_factor=[-0.05, 0.05], activity_days=[-3, 3], remodel_rate=[-0.01, 0.01],
                  seed_fraction=[-0.1, 0.1], lining_voxels=[-1, 1], matrix_day=None, cover_source=None)
     base = dict(seed_fraction=0.3, lining_voxels=2, **best)
     points = [("centre", base)]
