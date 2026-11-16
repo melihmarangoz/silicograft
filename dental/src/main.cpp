@@ -149,7 +149,8 @@ int main(int argc, char** argv)
     
 //    system("PAUSE");
     
-    for (iteration=0;iteration<NUMBER_ITERATIONS;iteration++)
+    const int N_IT = P.iterations; // [DENTAL] runtime run length (<= NUMBER_ITERATIONS)
+    for (iteration=0;iteration<N_IT;iteration++)
     {
     
         /****************************************************************************************
@@ -202,7 +203,7 @@ int main(int argc, char** argv)
         *****************************************************************************************/
         cout<<"Write results files"<<endl;
 //        Write_lattice_file_gnuplot(lattice,iteration); // txt files with one slice
-        if (P.raw_daily ? (iteration % RAW_WRITE_INTERVAL == 0 || iteration == NUMBER_ITERATIONS-1) // [CCX] disk
+        if (P.raw_daily ? (iteration % RAW_WRITE_INTERVAL == 0 || iteration == N_IT-1) // [CCX] disk
                         : (iteration == 13 || iteration == 27 || iteration == 55)) // [DENTAL] days 14, 28, 56 only
             Write_raw_lattice_file(lattice, iteration); // full 3D model as binary file
         Write_statistics(lattice, lattice_point_element, stimulus, iteration); // [CCX]
@@ -210,7 +211,7 @@ int main(int argc, char** argv)
         /**************************************************************************************
                                               Update model
         *****************************************************************************************/  
-        if (iteration>5 && iteration<NUMBER_ITERATIONS-1) // no need to update model in the last iteration
+        if (iteration>5 && iteration<N_IT-1) // no need to update model in the last iteration
         {
            cout<<"Update model"<<endl;
            if (!Update_model(lattice, Young_modulus, Poisson_ratio, iteration, element_local_min, element_local_max, lattice_point_element)) { // [CCX]
@@ -222,7 +223,7 @@ int main(int argc, char** argv)
                                            Increase cell age
         *****************************************************************************************/               
         
-		if (iteration<NUMBER_ITERATIONS-1) // not for last iteration
+		if (iteration<N_IT-1) // not for last iteration
 		{
 			cout<<"Increase_age"<<endl;
         	Cell_age(age_cells); 
@@ -232,7 +233,7 @@ int main(int argc, char** argv)
                                               Run abaqus
         *****************************************************************************************/  
         const bool fe_needed = !(P.force_stimulus > 0 && P.skip_fe_when_forced); // [DENTAL] forced stimulus: mechanics unused
-        if (fe_needed && iteration>5 && iteration<NUMBER_ITERATIONS-1 && iteration%3==0) // no need to run ABAQUS model in the last iteration; run every 3 iterations
+        if (fe_needed && iteration>5 && iteration<N_IT-1 && iteration%3==0) // no need to run ABAQUS model in the last iteration; run every 3 iterations
         {
             cout<<"run FE (CalculiX)"<<endl; // [CCX] orijinal: system("./run.bat") (Abaqus), donus kontrolsuz
             if (system(FE_CMD) != 0) {

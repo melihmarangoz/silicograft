@@ -36,6 +36,7 @@ bool Update_model(char lattice[LATTICE_X][LATTICE_Y][LATTICE_Z], float Young_mod
     float total;
     float number_MSC,number_chondrocytes,number_fibroblasts,number_mature_osteoblasts;
     float number_granule; // [DENTAL] beta-TCP granule points
+    float number_native;  // [DENTAL] native bone points inside a socket element (models from masks)
     int count;
     int count2;
     int first_element = 1; // first element in callus
@@ -81,7 +82,7 @@ bool Update_model(char lattice[LATTICE_X][LATTICE_Y][LATTICE_Z], float Young_mod
         {
          
             number_MSC=number_chondrocytes=number_fibroblasts=number_mature_osteoblasts=0;
-            number_granule=0; // [DENTAL]
+            number_granule=0; number_native=0; // [DENTAL]
     
             for (i=imin;i<imax;i++)
             {
@@ -108,6 +109,9 @@ bool Update_model(char lattice[LATTICE_X][LATTICE_Y][LATTICE_Z], float Young_mod
                                 case LATTICE_GRANULE: // [DENTAL]
                                     number_granule=number_granule+1.0;
                                     break;
+                                case LATTICE_BONE: // [DENTAL]
+                                    number_native=number_native+1.0;
+                                    break;
                             }   
                         }
                     }
@@ -117,18 +121,18 @@ bool Update_model(char lattice[LATTICE_X][LATTICE_Y][LATTICE_Z], float Young_mod
          
         // [DENTAL] modulus of the non-bone (soft) part of the element, for the soft-phase stimulus (Read_stimulus)
         {
-            const float soft = total - number_mature_osteoblasts - number_granule; // [DENTAL] granules are not soft tissue
+            const float soft = total - number_mature_osteoblasts - number_granule - number_native; // [DENTAL] granules, native bone are not soft tissue
             E_soft_phase[elem] = soft > 0 ? (number_chondrocytes*10.0f + number_fibroblasts*2.0f
                 + (soft - number_chondrocytes - number_fibroblasts)*0.2f) / soft : 0.2f;
         }
         // [DENTAL] granule points enter the mixture with the beta-TCP modulus (P.tcp_E, P.tcp_nu); without granules
         // the expressions are the upstream ones
         Young_modulus_prop[elem][t_prop]=(number_chondrocytes*10.0/total)+(number_fibroblasts*2.0/total)
-			+(number_mature_osteoblasts*17000.0/total)+(number_granule*P.tcp_E/total)
-			+((total-number_fibroblasts-number_mature_osteoblasts-number_chondrocytes-number_granule)*0.2/total); 
+			+(number_mature_osteoblasts*17000.0/total)+(number_granule*P.tcp_E/total)+(number_native*P.native_E/total)
+			+((total-number_fibroblasts-number_mature_osteoblasts-number_chondrocytes-number_granule-number_native)*0.2/total); 
         Poison_ratio_prop[elem][t_prop]=(number_chondrocytes*0.167/total)+(number_fibroblasts*0.167/total)
-			+(number_mature_osteoblasts*0.3/total)+(number_granule*P.tcp_nu/total)
-			+((total-number_fibroblasts-number_chondrocytes-number_mature_osteoblasts-number_granule)*0.167/total);
+			+(number_mature_osteoblasts*0.3/total)+(number_granule*P.tcp_nu/total)+(number_native*P.native_nu/total)
+			+((total-number_fibroblasts-number_chondrocytes-number_mature_osteoblasts-number_granule-number_native)*0.167/total);
 
         i=t_prop;         
         count=0;

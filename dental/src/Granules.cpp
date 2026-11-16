@@ -33,12 +33,27 @@ long Place_granules(char lattice[LATTICE_X][LATTICE_Y][LATTICE_Z], int lpe[LATTI
 	const unsigned pat = P.granule_pattern >= 0 ? (unsigned)P.granule_pattern : g_run_seed + 1000u;
 	std::mt19937 rng(pat);
 	std::uniform_real_distribution<double> U(0.0, 1.0);
+	// [DENTAL] optional graft_mask.raw (models with several sockets): only its points are grafted, and
+	// granule_fraction refers to them
+	vector<unsigned char> gmask;
+	{
+		ifstream gm("graft_mask.raw", ios::binary);
+		if (gm) {
+			gmask.assign((size_t)LATTICE_X * LATTICE_Y * LATTICE_Z, 0);
+			gm.read(reinterpret_cast<char*>(gmask.data()), gmask.size());
+		}
+	}
+	auto graftable = [&](int i, int j, int k) {
+		return gmask.empty() || gmask[((size_t)i * LATTICE_Y + j) * LATTICE_Z + k] != 0;
+	};
 	vector<int> free_pts; // socket points (flat index)
 	long socket = 0;
 	for (int i = 0; i < LATTICE_X; i++)
 		for (int j = 0; j < LATTICE_Y; j++)
 			for (int k = 0; k < LATTICE_Z; k++)
-				if (lpe[i][j][k] != 0) { socket++; if (lattice[i][j][k] == 0) free_pts.push_back((i * LATTICE_Y + j) * LATTICE_Z + k); }
+				if (lpe[i][j][k] != 0 && graftable(i, j, k) && is_socket_point(lattice[i][j][k])) {
+					socket++; if (lattice[i][j][k] == 0) free_pts.push_back((i * LATTICE_Y + j) * LATTICE_Z + k); }
+	if (free_pts.empty()) { cout << "  Granules: no graftable socket points" << endl; return 0; }
 	const double target_pts = P.granule_fraction * socket;
 	// candidate diameters: enough sphere volume for 1.6 x the target, sorted largest first
 	vector<double> radii;
@@ -70,7 +85,7 @@ long Place_granules(char lattice[LATTICE_X][LATTICE_Y][LATTICE_Z], int lpe[LATTI
 			for (int i = max(0, i0 - R); i <= min(LATTICE_X - 1, i0 + R); i++)
 				for (int j = max(0, j0 - R); j <= min(LATTICE_Y - 1, j0 + R); j++)
 					for (int k = max(0, k0 - R); k <= min(LATTICE_Z - 1, k0 + R); k++) {
-						if (lpe[i][j][k] == 0 || lattice[i][j][k] != 0) continue; // socket points not yet taken
+						if (lpe[i][j][k] == 0 || lattice[i][j][k] != 0 || !graftable(i, j, k)) continue; // socket points not yet taken
 						const double dx = (i - i0) * CELL_DIAMETER, dy = (j - j0) * CELL_DIAMETER, dz = (k - k0) * CELL_DIAMETER;
 						const double d = sqrt(dx * dx + dy * dy + dz * dz);
 						if (d > r) continue;
@@ -92,8 +107,10 @@ long Place_granules(char lattice[LATTICE_X][LATTICE_Y][LATTICE_Z], int lpe[LATTI
 
 long Resorb_granules(char lattice[LATTICE_X][LATTICE_Y][LATTICE_Z], short age[LATTICE_X][LATTICE_Y][LATTICE_Z], int iter)
 {
-	if (gpoints.empty() || iter < P.tcp_lag) return 0;
-	const float smax = (float)exp(-P.tcp_k * (iter - P.tcp_lag + 1) / 3.0); // radius factor at the end of this day
+	// [DENTAL] real days (time_scale real days per iteration); tcp_k and tcp_lag are per real day
+	const double day_end = (double)(iter + 1) * P.time_scale;
+	if (gpoints.empty() || day_end <= P.tcp_lag) return 0;
+	const float smax = (float)exp(-P.tcp_k * (day_end - P.tcp_lag) / 3.0); // radius factor at the end of this day
 	long freed = 0;
 	size_t w = 0;
 	for (size_t n = 0; n < gpoints.size(); n++) {

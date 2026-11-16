@@ -40,6 +40,8 @@ bool Neighbour_guides(char v)
 //   1 - (1 - tcp_diff_mult) * min(1, granule share of the element / granule_fraction)   (tcp_inhibit_graded 1)
 // so the factor is tcp_diff_mult where the granules are still packed and rises to 1 as they resorb.
 int g_elem_start[NUMBER_ELEMS] = {0};
+std::vector<unsigned char> g_zone_map;
+std::vector<std::string> g_zone_names;
 
 double tcp_activity_factor(long granule_points, long element_points, int iter)
 {

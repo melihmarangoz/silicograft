@@ -89,7 +89,7 @@ void Cell_differentiation(char cells_dif[LATTICE_X][LATTICE_Y][LATTICE_Z],short 
                 {
                     if (lattice_point_element[i][j][k]==elem+1)
                     {
-                        elem_points++; // [DENTAL]
+                        if (is_socket_point(cells_dif[i][j][k])) elem_points++; // [DENTAL]
                         if (cells_dif[i][j][k]==LATTICE_GRANULE) granule_points++;
                         if (cells_dif[i][j][k]==1 && age_dif[i][j][k]>=age_mature_cell && Neighbour_presence(cells_dif, i,j,k,i,j,k))
                         {

@@ -2,6 +2,8 @@
 // (changes marked [CCX] and [DENTAL]; see NOTICE and dental/README.md).
 #pragma once
 #include <random>
+#include <vector>
+#include <string>
 #include "model_info.h" // [DENTAL] NUMBER_NODES, NUMBER_ELEMS, LATTICE_X/Y/Z, LATTICE_ORIGIN_*, BLOCK_LENGTH_X:
                         //          written by dental/geometry/socket_geometry.py
 
@@ -24,6 +26,9 @@ constexpr int ACTIVITY_MAX = 15; // latency period of 15 days [DENTAL] default o
 constexpr char LATTICE_BONE = 11;  // native alveolar bone (socket wall)
 constexpr char LATTICE_COVER = 14; // soft-tissue cover over the socket opening (closed flap)
 constexpr char LATTICE_GRANULE = 12; // [DENTAL] beta-TCP granule (upstream: scaffold)
+// [DENTAL] a socket point holds cells or graft; native bone and cover points inside socket elements (possible in
+// models built from segmentation masks, SG_INIT_DECIDES) are not socket points
+inline bool is_socket_point(char c) { return c != LATTICE_BONE && c != LATTICE_COVER; }
 
 // [DENTAL] day-0 cell source: MSCs in a lining of LINING_VOXELS lattice points along the bony socket wall
 // (PDL remnants and wall marrow openings), SEED_FRACTION of those points, chosen with a fixed pattern seed so
@@ -85,10 +90,18 @@ struct Params {
 	int tcp_delay_all = 1;         // 1: proliferation, migration and differentiation all wait; 0: only differentiation
 	int tcp_delay_activity = 1;    // 1: the high-activity period also starts late; 0: it ends on the real clock
 	int tcp_wall_exempt = 0;       // 1: elements at the bony wall (holding wall-lining points) are not delayed
+	// [DENTAL] time and run length
+	int time_scale = 1;            // real days per iteration (2 = a provisional human time scaling: biology 2x slower);
+	                               // tcp_k and tcp_lag are in real days; output day columns are real days
+	int iterations = NUMBER_ITERATIONS; // daily iterations to run (at most NUMBER_ITERATIONS, the array size)
+	double native_E = 13700.0, native_nu = 0.3; // native bone points inside socket elements (models from masks)
 };
 // [DENTAL] biological clock of each element: day of iteration it = it - g_elem_start[elem] (0 without granules;
 // tcp_delay in a grafted socket, 0 again for wall elements with tcp_wall_exempt). Set in Initialize_lattice.
 extern int g_elem_start[NUMBER_ELEMS];
+// [DENTAL] optional per-point zone ids (zone_map.raw, 0 = none) for zones.csv; loaded by Initialize_lattice
+extern std::vector<unsigned char> g_zone_map;
+extern std::vector<std::string> g_zone_names;
 // [DENTAL] activity factor of a grafted element early on (tcp_diff_mult, graded by its granule share)
 double tcp_activity_factor(long granule_points, long element_points, int iter);
 extern Params P;

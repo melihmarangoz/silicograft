@@ -65,7 +65,7 @@ void Cell_proliferation(char cells_prol[LATTICE_X][LATTICE_Y][LATTICE_Z], short 
 				{
 					if (lattice_point_element[i][j][k]==elem+1)
 					{
-						elem_points++; // [DENTAL]
+						if (is_socket_point(cells_prol[i][j][k])) elem_points++; // [DENTAL]
 						if (cells_prol[i][j][k]==LATTICE_GRANULE) granule_points++;
 						switch (cells_prol[i][j][k])
 						{

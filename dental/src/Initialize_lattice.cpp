@@ -14,6 +14,7 @@
 #include <fstream>
 #include <vector>
 #include <random>
+#include <string>
 #include "header.h"
 
 using namespace std;
@@ -36,12 +37,22 @@ bool Initialize_lattice(char initial_lattice[LATTICE_X][LATTICE_Y][LATTICE_Z], s
                 const unsigned char c = init[idx];
                 initial_age[i][j][k] = 666; // as upstream main.cpp: non-cell points carry age 666
                 if (lattice_point_element[i][j][k] != 0) {
+#ifdef SG_INIT_DECIDES
+                    // [DENTAL] model from segmentation masks: elements are coarser than the socket outline, so
+                    // lattice_init.raw decides inside them too (0 socket, 11 native bone, 14 cover / soft tissue)
+                    if (c == (unsigned char)LATTICE_BONE || c == (unsigned char)LATTICE_COVER) { initial_lattice[i][j][k] = c; continue; }
+#endif
                     socket++;
                     initial_lattice[i][j][k] = 0;
                     if (c != 0) socket_was_bone++;
                 } else {
                     const float z = LATTICE_ORIGIN_Z + k * CELL_DIAMETER; // crest at z = 0
-                    if (c == (unsigned char)LATTICE_COVER || z > -0.1f) initial_lattice[i][j][k] = LATTICE_COVER; // never bone over the opening
+#ifdef SG_INIT_DECIDES
+                    const bool over_opening = false; // [DENTAL] no crest plane in models from masks
+#else
+                    const bool over_opening = z > -0.1f;
+#endif
+                    if (c == (unsigned char)LATTICE_COVER || over_opening) initial_lattice[i][j][k] = LATTICE_COVER; // never bone over the opening
                     else {
                         initial_lattice[i][j][k] = LATTICE_BONE;
                         if (c == 0) free_outside++;
@@ -74,6 +85,17 @@ bool Initialize_lattice(char initial_lattice[LATTICE_X][LATTICE_Y][LATTICE_Z], s
                 wall_elem[lattice_point_element[i][j][k] - 1] = 1; // [DENTAL] element at the bony wall
                 if (U(pattern) < P.seed_fraction) { initial_lattice[i][j][k] = 1; initial_age[i][j][k] = 1; seeded++; } // MSC, age 1 as upstream
             }
+    // [DENTAL] optional zone map (models from masks): per-point zone ids for zones.csv, names in zone_names.txt
+    {
+        ifstream zf("zone_map.raw", ios::binary);
+        if (zf) {
+            g_zone_map.assign(n, 0);
+            if (!zf.read(reinterpret_cast<char*>(g_zone_map.data()), n)) { cerr << "ERROR: zone_map.raw is not " << n << " bytes." << endl; return false; }
+            ifstream nf("zone_names.txt"); string nm;
+            while (getline(nf, nm)) if (!nm.empty()) g_zone_names.push_back(nm);
+            cout << "  Zone map: " << g_zone_names.size() << " zones" << endl;
+        }
+    }
     // [DENTAL] biological start of each element (main.cpp): a grafted socket's cells wait tcp_delay days, except in the
     // elements at the bony wall with tcp_wall_exempt
     long n_wall = 0, n_delayed = 0;
