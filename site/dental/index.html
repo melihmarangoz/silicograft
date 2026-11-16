@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SilicoGraft Socket View</title>
+<meta name="description" content="Two extraction sockets in an anonymized lower jaw heal for six months in the SilicoGraft model: one left empty, one grafted with beta-TCP granules. An interactive 3D view.">
+<link rel="icon" href="data:,">
+<link rel="preload" href="../assets/fonts/mona-sans-core.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="../tokens.css">
+<style>
+/* One page, one dark look (the site's Midnight tokens): a top bar, the 3D stage with the time bar under it on the left,
+   the control panel with the readout and two charts on the right, the notes below. Phones (40rem and under) get the
+   stage full screen and everything else in a bottom sheet (see the phone block at the end). */
+:root {
+  --bg: var(--color-paper); --panel: var(--color-paper-2); --panel-2: var(--color-paper-3);
+  --fg: var(--color-ink); --fg-2: var(--color-ink-2); --muted: var(--color-muted);
+  --line: var(--color-rule); --line-2: var(--color-rule-2);
+  --accent: var(--color-accent); --accent-ink: var(--color-accent-ink); --focus: var(--color-focus);
+  /* the two sockets (labels, charts): empty = neutral, grafted = coral */
+  --s32: oklch(86% 0.025 250); --s33: oklch(74% 0.14 28);
+  /* tissue colours of the dental report figures (dental/tools/analyze_mask_model.py), lifted a little for the dark stage */
+  --t-msc: #eda100; --t-fib: #1baf7a; --t-cho: #7d6cf0; --t-bone: #3d8fe6; --t-tcp: #e34948;
+  --font-ui: var(--font-body);
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { color-scheme: dark; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font-ui); font-size: 14px; line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  padding: 16px max(16px, env(safe-area-inset-right, 0px)) 40px max(16px, env(safe-area-inset-left, 0px)); }
+.num { font-variant-numeric: tabular-nums; }
+button, select, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.page { max-width: 1440px; margin: 0 auto; display: grid; gap: 16px; }
+
+/* top bar */
+.top { display: flex; align-items: flex-start; gap: 10px 20px; flex-wrap: wrap; }
+.top > div { flex: 1 1 32rem; min-width: 0; }
+.top-btn { display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border: 1px solid var(--line-2); background: none;
+  font-size: var(--text-sm); text-decoration: none; white-space: nowrap; transition: background-color var(--dur-short) var(--ease-out); }
+.top-btn:hover { background: var(--panel); }
+h1 { margin: 0; font-weight: var(--display-weight); font-stretch: var(--display-stretch); letter-spacing: var(--tracking-display);
+  font-size: clamp(1.4rem, 1vw + 1rem, 1.9rem); line-height: 1.1; text-wrap: balance; }
+h1 .brand { color: var(--muted); }
+.top p { margin: 6px 0 0; color: var(--fg-2); max-width: 78ch; text-wrap: pretty; }
+
+/* stage and panel */
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 16px; align-items: start; }
+.stage-box { display: grid; gap: 10px; min-width: 0; }
+#stage { position: relative; height: max(420px, calc(100svh - var(--top, 96px) - 120px)); overflow: hidden;
+  background: radial-gradient(120% 95% at 50% 38%, oklch(22% 0.05 262) 0%, oklch(12% 0.04 264) 72%); border: 1px solid var(--line); }
+#stage canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+.badge { position: absolute; left: 12px; top: 12px; pointer-events: none; font-variant-numeric: tabular-nums; padding: 6px 12px 7px;
+  background: oklch(12% 0.04 264 / 0.66); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+.badge b { display: block; font-size: 1.9rem; font-weight: 400; letter-spacing: -0.01em; line-height: 1.1; }
+.badge span { display: block; font-size: 0.75rem; color: var(--fg-2); letter-spacing: 0.06em; text-transform: uppercase; }
+.tag { position: absolute; left: 0; top: 0; transform: translate(-50%, -100%); pointer-events: none; white-space: nowrap; font-size: 0.78rem;
+  padding: 2px 8px 3px; background: oklch(12% 0.04 264 / 0.78); border-left: 3px solid var(--c); color: var(--fg); }
+.tag b { font-weight: 600; margin-right: 4px; }
+.status { position: absolute; left: 12px; bottom: 12px; max-width: calc(100% - 24px); margin: 0; pointer-events: none; font-size: 0.8rem; color: var(--fg-2); }
+.status:not(:empty) { padding: 3px 9px; background: oklch(12% 0.04 264 / 0.66); }
+.loading { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 24px; color: var(--fg-2); }
+.hint { position: absolute; right: 12px; top: 12px; margin: 0; padding: 3px 9px; font-size: 0.75rem; color: var(--muted); pointer-events: none; text-align: right; background: oklch(12% 0.04 264 / 0.66); }
+
+/* time bar */
+.timebar { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center;
+  background: var(--panel); border: 1px solid var(--line); padding: 10px 12px; }
+.play { width: 44px; height: 44px; border: 0; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; }
+.play:hover { background: var(--focus); }
+.play svg { width: 16px; height: 16px; fill: currentColor; }
+.track { display: grid; gap: 2px; min-width: 0; }
+.track input[type=range] { width: 100%; margin: 0; accent-color: var(--accent); }
+.ticks { position: relative; height: 16px; font-size: 0.7rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.ticks span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+.speed { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--muted); }
+select { background: var(--bg); border: 1px solid var(--line-2); padding: 4px 6px; min-height: 32px; }
+
+.panel { background: var(--panel); border: 1px solid var(--line); padding: 14px; display: grid; gap: 18px; min-width: 0; }
+.group { display: grid; gap: 8px; min-width: 0; }
+.group h2 { margin: 0; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); }
+.row { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { min-height: 34px; padding: 0 12px; border: 1px solid var(--line-2); background: var(--bg); font-size: 0.85rem; }
+.chip:hover { border-color: var(--accent); }
+.seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--line-2); }
+.seg button { min-height: 34px; border: 0; background: transparent; font-size: 0.82rem; padding: 0 4px; }
+.seg button + button { border-left: 1px solid var(--line-2); }
+.seg button[aria-pressed=true] { background: var(--accent); color: var(--accent-ink); }
+label.check { display: flex; align-items: center; gap: 9px; cursor: pointer; font-size: 0.9rem; min-height: 28px; }
+label.check input { accent-color: var(--accent); width: 16px; height: 16px; margin: 0; flex: none; }
+.swatch { width: 12px; height: 12px; flex: none; display: inline-block; box-shadow: inset 0 0 0 1px oklch(0% 0 0 / 0.25); }
+.swatch.bar { width: 4px; height: 14px; }
+.cols2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; }
+.slider { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 0.85rem; }
+.slider input { width: 100%; margin: 0; accent-color: var(--accent); }
+.slider output { font-variant-numeric: tabular-nums; color: var(--fg-2); min-width: 4.2ch; text-align: right; }
+.sec-ends { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--muted); position: relative; height: 16px; }
+.sec-ends i { position: absolute; transform: translateX(-50%); font-style: normal; color: var(--fg-2); }
+.note { margin: 0; color: var(--muted); font-size: 0.78rem; }
+table.read { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+table.read th { text-align: left; font-weight: 400; color: var(--fg-2); padding: 3px 0; }
+table.read th.sub { color: var(--muted); padding-left: 10px; }
+table.read thead th { color: var(--muted); font-weight: 500; text-align: right; }
+table.read td { text-align: right; padding: 3px 0 3px 10px; font-variant-numeric: tabular-nums; }
+table.read tbody tr + tr > * { border-top: 1px solid var(--line); }
+.chart h3 { margin: 0 0 4px; font-size: 0.85rem; font-weight: 600; letter-spacing: 0; }
+.chart canvas { display: block; width: 100%; height: 150px; cursor: crosshair; touch-action: pan-y; }
+.legend { display: grid; gap: 4px 12px; grid-template-columns: 1fr 1fr; font-size: 0.75rem; color: var(--fg-2); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend svg { width: 22px; height: 10px; flex: none; }
+
+/* notes */
+.notes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px 32px; padding-top: 8px; border-top: 1px solid var(--line); }
+.notes section { display: grid; gap: 8px; align-content: start; }
+.notes h2 { margin: 0; font-size: var(--text-lg); font-weight: var(--display-weight); font-stretch: var(--display-stretch); letter-spacing: var(--tracking-display); }
+.notes p, .notes li { color: var(--fg-2); font-size: 0.9rem; text-wrap: pretty; }
+.notes p { margin: 0; }
+.notes ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+.notes .setting { color: var(--muted); font-size: 0.8rem; }
+.notes a { color: var(--fg); }
+@media (max-width: 75rem) { .notes { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .notes section:last-child { grid-column: 1 / -1; } }
+@media (max-width: 60rem) { .layout { grid-template-columns: minmax(0, 1fr); } #stage { height: min(70vh, 640px); } .notes { grid-template-columns: minmax(0, 1fr); } }
+
+/* Phones (the site's 40rem breakpoint): the stage fills the screen under a compact bar. The time bar, the panel and
+   the notes move into a bottom sheet (the script moves them while this query matches and back when it stops):
+   collapsed it shows a handle and the time bar, open it takes 72 % of the height and scrolls. Tap targets 44 px. */
+@media (max-width: 40rem) {
+  html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
+  body { padding: 0; }
+  .page { display: block; }
+  .page .timebar, .page .panel, .page > .notes { display: none; }
+  .top { position: fixed; top: 0; left: 0; right: 0; z-index: 4; flex-wrap: nowrap; align-items: center; gap: 8px; background: var(--bg);
+    border-bottom: 1px solid var(--line); padding: max(6px, env(safe-area-inset-top, 0px)) max(10px, env(safe-area-inset-right, 0px)) 6px max(10px, env(safe-area-inset-left, 0px)); }
+  .top > div { flex: 1 1 auto; }
+  h1 { font-size: 1.15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  h1 .brand, .top p { display: none; }
+  .top-btn { min-height: 44px; padding: 0 12px; }
+  #stage { position: fixed; left: 0; right: 0; top: var(--top, 57px); bottom: var(--sheet-closed, 112px); height: auto; border: 0; }
+  .badge { left: 12px; top: 10px; } .badge b { font-size: 1.5rem; }
+  .hint { display: none; }
+  .sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; display: flex; flex-direction: column;
+    height: var(--sheet-closed, 112px); max-height: calc(100% - var(--top, 57px)); background: var(--panel); border-top: 1px solid var(--line-2);
+    box-shadow: 0 -10px 28px oklch(6% 0.04 264 / 0.5); transition: height var(--dur-short) var(--ease-out); padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .sheet.open { height: 72vh; height: 72dvh; }
+  .sheet.drag { transition: none; }
+  .sheet-handle { flex: none; height: 44px; width: 100%; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px;
+    border: 0; background: transparent; padding: 0 16px; touch-action: none; color: var(--muted); font-size: 0.78rem; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase; -webkit-tap-highlight-color: transparent; }
+  .sheet-handle::before, .sheet-handle::after { content: ""; height: 3px; background: var(--line-2); }
+  .sheet-handle span { display: inline-flex; align-items: center; gap: 6px; }
+  .sheet-handle svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; transition: transform var(--dur-short) var(--ease-out); }
+  .sheet.open .sheet-handle svg { transform: rotate(180deg); }
+  .sheet .timebar { flex: none; border: 0; background: transparent; padding: 0 12px 10px; gap: 10px; }
+  .sheet .track input[type=range] { height: 44px; }
+  .sheet .ticks { margin-top: -8px; }
+  .sheet .speed-name { display: none; }
+  .sheet select { min-height: 44px; }
+  .sheet-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: grid; gap: 22px; align-content: start;
+    padding: 8px 14px 28px; border-top: 1px solid var(--line); }
+  .sheet:not(.open):not(.drag) .sheet-body { visibility: hidden; }
+  .sheet .panel { border: 0; padding: 0; background: transparent; gap: 20px; }
+  .sheet .chip, .sheet .seg button { min-height: 44px; }
+  .sheet label.check { min-height: 44px; font-size: 0.95rem; }
+  .sheet label.check input { width: 20px; height: 20px; }
+  .sheet .slider input { height: 44px; }
+  .sheet .notes { grid-template-columns: minmax(0, 1fr); padding-top: 18px; }
+}
+@media (min-width: 40.0625rem) { .sheet { display: none !important; } }
+@media (prefers-reduced-motion: reduce) { .sheet, .sheet-handle svg { transition: none; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <a class="top-btn" href="../">← SilicoGraft</a>
+    <div>
+      <h1><span class="brand">SilicoGraft </span>Socket View</h1>
+      <p>Two extraction sockets in one lower jaw, six months of simulated healing: the lateral incisor socket (32) left empty, the canine socket (33) grafted with β-TCP granules. An anonymized patient case. Drag to rotate, scroll or pinch to zoom.</p>
+    </div>
+    <button class="top-btn" id="fullscreen" type="button" title="Full screen (F)" hidden>Full screen</button>
+  </header>
+
+  <div class="layout">
+    <section class="stage-box" aria-label="3D view">
+      <div id="stage">
+        <canvas id="canvas" aria-label="3D view of the lower jaw and the two sockets"></canvas>
+        <div class="badge"><b id="day-big" class="num">Day 0</b><span id="day-sub">week 0 · month 0.0</span></div>
+        <div id="tags"></div>
+        <p class="hint" id="hint">Drag: rotate · right drag: pan · scroll: zoom</p>
+        <p class="status" id="status" aria-live="polite"></p>
+        <div class="loading" id="loading">Loading the jaw…</div>
+      </div>
+      <div class="timebar">
+        <button class="play" id="play" type="button" aria-label="Play">
+          <svg id="icon-play" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z"/></svg>
+          <svg id="icon-pause" viewBox="0 0 16 16" aria-hidden="true" hidden><path d="M3.5 2.5h3v11h-3zM9.5 2.5h3v11h-3z"/></svg>
+        </button>
+        <div class="track">
+          <input id="day" type="range" min="0" max="182" step="1" value="0" aria-label="Day after extraction">
+          <div class="ticks" id="ticks"></div>
+        </div>
+        <label class="speed" for="speed"><span class="speed-name">speed</span>
+          <select id="speed">
+            <option value="7">1 week/s</option>
+            <option value="14" selected>2 weeks/s</option>
+            <option value="28">4 weeks/s</option>
+          </select>
+        </label>
+      </div>
+    </section>
+
+    <aside class="panel" aria-label="Controls">
+      <div class="group">
+        <h2>Camera</h2>
+        <div class="row">
+          <button class="chip" type="button" data-camera="jaw">Whole jaw</button>
+          <button class="chip" type="button" data-camera="sockets">Sockets</button>
+        </div>
+      </div>
+      <div class="group">
+        <h2>Jaw</h2>
+        <label class="slider" for="opacity"><span>Bone opacity</span><input id="opacity" type="range" min="0" max="1" step="0.05" value="0.3"><output id="opacity-out" class="num">30 %</output></label>
+        <label class="check"><input type="checkbox" id="show-teeth" checked>Remaining teeth</label>
+      </div>
+      <div class="group">
+        <h2>Sockets</h2>
+        <div class="cols2">
+          <label class="check"><input type="checkbox" id="show-32" checked><i class="swatch bar" style="background:var(--s32)"></i>32 · empty</label>
+          <label class="check"><input type="checkbox" id="show-33" checked><i class="swatch bar" style="background:var(--s33)"></i>33 · β-TCP</label>
+        </div>
+      </div>
+      <div class="group">
+        <h2>Tissue</h2>
+        <div class="cols2" id="tissues"></div>
+      </div>
+      <div class="group">
+        <h2>Section</h2>
+        <div class="seg" role="group" aria-label="Section plane">
+          <button type="button" data-section="off" aria-pressed="true">Off</button>
+          <button type="button" data-section="md" aria-pressed="false" title="A plane along the arch: cuts both sockets at once">Mesio-distal</button>
+          <button type="button" data-section="bl" aria-pressed="false" title="A plane across the arch: move it from socket 32 to 33">Bucco-lingual</button>
+        </div>
+        <div id="section-controls" hidden>
+          <label class="slider" for="section-pos"><span>Position</span><input id="section-pos" type="range" min="-5" max="5" step="0.1" value="0"><output id="section-out" class="num">0.0 mm</output></label>
+          <div class="sec-ends" id="section-ends"></div>
+          <div class="row" style="margin-top:6px"><button class="chip" type="button" id="section-flip">Show the other side</button></div>
+        </div>
+      </div>
+      <div class="group">
+        <h2 id="read-title">Day 0, % of the socket</h2>
+        <table class="read" id="read"></table>
+      </div>
+      <div class="group">
+        <div class="chart"><h3>New bone, % of the socket</h3><canvas id="chart-nb" aria-label="Chart: new bone over 182 days, sockets 32 and 33"></canvas></div>
+        <div class="chart"><h3>Residual β-TCP, % of the socket</h3><canvas id="chart-rb" aria-label="Chart: residual beta-TCP in socket 33 over 182 days"></canvas></div>
+        <div class="legend" id="legend"></div>
+        <p class="note" id="chart-note">Click a chart to jump to that day.</p>
+      </div>
+    </aside>
+  </div>
+
+  <div class="notes">
+    <section>
+      <h2>What is simulated</h2>
+      <p>The jaw comes from an anonymized patient's cone-beam CT. The lower left lateral incisor (32) and canine (33) were removed virtually, which leaves two sockets. Socket 32 stays empty; socket 33 is filled with β-TCP granules of 0.5 to 1 mm, about half of its volume (a Cerasorb M-like product, assumed). Both heal under a closed soft-tissue cover.</p>
+      <p>Stem cells line the bony wall at day 0. They divide, migrate and turn into fibroblasts, chondrocytes or bone-forming cells by SilicoGraft's agent-based rules, with the mechanical stimulus from a finite-element model of the jaw. The granules dissolve and bone grows along them. Each cube is one 0.2 mm voxel of the result.</p>
+    </section>
+    <section>
+      <h2>The human setting</h2>
+      <p>The cell kinetics were calibrated on beagle sockets (Hong et al. 2014, eight weeks). Here they run 3.5 times slower, as the human literature suggests (range 2.5 to 5). Woven bone is not yet turned into marrow within six months, and the granules lose about 1 % of their volume a day. In the grafted socket the cells start slower where granules are packed, so it forms about 0.6 of the empty socket's bone at two to three months.</p>
+      <p>The charts show the whole socket and a virtual core: a 2.3 × 6 mm cylinder from the crest down the socket axis, the trephine biopsy that human histology comes from. The boxes are the ranges human biopsies report at 3 and 6 months.</p>
+      <p class="setting" id="setting"></p>
+    </section>
+    <section>
+      <h2>Limitations</h2>
+      <ul>
+        <li>The socket walls do not resorb: no loss of ridge width or crest height, no soft-tissue collapse. Thin labial plates usually lose height after an extraction.</li>
+        <li>The labial plates of both sockets are thinner than the scan's voxels, so the model leaves them out: no cells come from the labial side.</li>
+        <li>The human time scale, the graft product, its packing and its resorption rate come from the literature and are assumed, not fitted to this patient.</li>
+        <li>The virtual core fills later than human biopsy cores at any single time scale; read the core curves as the slow end.</li>
+        <li>Illustrative, not clinical: a model result for one anonymized case, not a prediction for the patient or advice on treatment.</li>
+      </ul>
+    </section>
+  </div>
+</div>
+
+<!-- phones: the bottom sheet; the script moves the time bar into #sheet-time and the panel and notes into #sheet-body -->
+<div class="sheet" id="sheet" hidden>
+  <button type="button" class="sheet-handle" id="sheet-handle" aria-expanded="false" aria-controls="sheet-body"><span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 10l4.5-4.5 4.5 4.5"/></svg>Controls</span></button>
+  <div id="sheet-time"></div>
+  <div class="sheet-body" id="sheet-body"></div>
+</div>
+
+<script src="../vendor/three-0.147.0/build/three.min.js"></script>
+<script src="../vendor/three-0.147.0/examples/js/controls/OrbitControls.js"></script>
+<script src="../vendor/three-0.147.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="dental.js"></script>
+</body>
+</html>
