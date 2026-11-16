@@ -1,6 +1,11 @@
 # Hong 2014 calibration: the empty socket
 
-**Status (2026-11-16):** milestone 1 (model built, no fitting) and milestone 2 (empty socket calibrated, soft-tissue stimulus checked) are done. The β-TCP arm has not been started. The milestone-2 results are in [Milestone 2](#milestone-2-calibration-on-the-empty-socket); milestone 1 follows first.
+**Status (2026-11-16):** three milestones are done.
+- Milestone 1: model built, no fitting.
+- Milestone 2: empty socket calibrated, soft-tissue stimulus checked.
+- Milestone 3: β-TCP arm calibrated.
+
+Milestone 1 follows first, then [Milestone 2](#milestone-2-calibration-on-the-empty-socket) and [Milestone 3](#milestone-3-the-β-tcp-arm).
 
 
 Stage 1 of the dental plan ([../DESIGN.md](../DESIGN.md)) calibrates SG-Bone on Hong et al. 2014, beagle P3 root sockets left empty or grafted with β-TCP. Milestone 1 built the socket model and ran the **empty-socket arm** end to end against Hong, without fitting. The model itself is described in [../README.md](../README.md).
@@ -232,6 +237,99 @@ All milestone-2 runs used one build of commit 19b8224 (its `build_info.txt` says
    - and whether β-TCP gets the upstream "TCP stimulation" (activity / 2 instead of / 5 after the active phase). Hong's β-TCP sockets had *less* bone at 2-4 weeks, so a stimulation is not supported for this arm.
 5. **Which β-TCP outputs to fit:** new bone and residual graft per third at 2/4/8 weeks (digitized, [data/hong2014_btcp.csv](data/hong2014_btcp.csv)). The only free parameters would be the granule-related ones; the biology stays as fitted here.
 
+## Milestone 3: the β-TCP arm
+
+### Set-up (coordinator's decisions, 2026-11-16, delegated by Melih)
+- **Biology:** milestone 2's calibrated setting, unchanged: activity 18 days, late factor 0.25, remodelling 0.03 /day (still unidentified). The cells sense the soft-tissue phase, with no lower window. The fitting runs force the bone stimulus, which milestone 2 showed is identical; this is checked again below with granules.
+- **Granules:** explicit spheres, random-packed, 500-1000 µm, lattice code 12 (solid, guiding migration and deposition), each shrinking as it resorbs. In the FE mixture they count as β-TCP (3.5 GPa) while present. Details: [../README.md](../README.md#β-tcp-granules-srcgranulescpp).
+- **Initial granule envelope fraction:** 0.42, since Hong's RB is the histological granule area; 0.2 is run as a sensitivity case.
+- **Resorption:** start from k = 0.031 /day (Hong's RB 38.3 → 10.3 %), check it per third, and fit it only if needed.
+- **TCP stimulation:** none by default (Hong saw *less* early bone with β-TCP); upstream's stimulation runs as a variant.
+- **Targets:** Hong's β-TCP NB and RB, totals and thirds, at 2, 4 and 8 weeks, on the central section ([data/hong2014_btcp.csv](data/hong2014_btcp.csv)).
+- **Objective:** as in milestone 2, with the RB terms added the same way. RB is weighted by its own SDs (2.35, 15.25, 4.14), and the thirds by 1/6.
+
+### What the first runs showed, and the one rule added
+With the milestone-2 biology and guiding granules, the grafted socket heals like an empty one: NB 25 / 48 / 69 % against Hong's 5 / 11 / 49 % (run `V_nodelay` below). The granules even add surfaces for bone to start on. Hong found the opposite, and concluded that the grafts "delay rather than arrest" bone formation, through a stronger early inflammatory reaction. Their osteoclast-like cell counts are highest at 2 weeks (1049 per section, against 1 in empty sockets).
+
+We added that as one rule, `tcp_delay`. In a grafted socket the cells wait `tcp_delay` days: no proliferation, migration or differentiation. Then their own clock starts (differentiation from its day 6, remodelling from its day 14). Two ways of starting were compared:
+- `tcp_delay_activity 1`: the whole high-activity period starts late. Best J 26-28 at an 18-20-day delay, with bone overshooting at 8 weeks (61-62 %).
+- `tcp_delay_activity 0`: the high-activity period still ends on the real day 18, so the delayed cells start with the late rates. The early burst of activity is spent on the inflammatory phase. Best J 18 at a 12-day delay.
+
+The second is the fitted rule. Delaying only differentiation while cells keep multiplying makes it worse (week 4: 59 % bone): the waiting cells fill the clot, and bone then forms everywhere at once.
+
+### Search
+| Stage | Runs | What varied | Wall time |
+|---|---|---|---|
+| Grid (activity period shifted with the delay) | 864 = 288 sets × 3 seeds | granule fraction 0.42/0.2, TCP stimulation × 1/× 2.5, delay 12-22 d, lag 6-12 d, k 0.025/0.031/0.037 | 258 s (4.5 s per run) |
+| Variant scan (activity on the real clock) | 21 | delay 4-16 d, lag 10, k 0.031, 3 seeds | 8 s |
+| Refinement | 145 = 29 sets × 5 seeds | delay 10-14, lag 8-12 at k 0.031; k 0.025-0.037 at delay 12, lag 10 | 41 s |
+| Final | 34 | fitted point and 4 variants × 5 seeds (daily output); soft-phase stimulus at 150/300/1000 µε × 3 seeds (FE on) | 43 s (12.4 s per run) |
+
+All on phoenix, 15 runs in parallel, one CalculiX thread each. The grid used the build of commit a6eab60; the later stages used commit 2df6bf4, which only adds `tcp_delay_activity` (default 1 = the grid's behaviour). Both builds reproduce milestones 1 and 2 bit for bit (checked).
+
+### Fitted granule parameters
+| Parameter | Value | How it was set | Identifiability |
+|---|---|---|---|
+| `granule_fraction` | 0.42 | decision (granule envelope) | 0.2 cannot reach Hong's RB (15 / 10 / 4 % against 38 / 26 / 10; J 167) |
+| `tcp_k` | 0.031 /day | from Hong's RB totals, kept | not needed: J is flat over 0.025-0.037 (17.9-19.3 ± 9-16, 5 seeds) |
+| `tcp_lag` (resorption onset) | 10 days | fitted | 8-11 days fit equally (J 17.9-18.8), 12 is worse (20.8) |
+| `tcp_delay` | 12 days | fitted | identified: 11-13 days J 17.9-18.2, 10 and 14 J 21.2 and 19.1, 8 and 16 J 34 and 29 |
+| `tcp_delay_activity` | 0 (real clock) | rule comparison | J 18 vs 26 for the shifted period |
+| `tcp_late_mult` (TCP stimulation) | 1 (none) | decision, tested | × 2.5 overshoots (NB 83 % at 8 weeks, J 75) |
+
+So Hong's β-TCP arm pins the delay of bone formation (about 12 days) and confirms the resorption kinetics: onset about 10 days, then k ≈ 0.031 /day. It cannot separate k from the onset within 0.025-0.037 and 8-11 days.
+
+### Results of the fitted model (5 seeds, mean ± SD; section as Hong measured)
+| Day | Third | Hong NB | Model NB, section | Model NB, volume | Hong RB | Model RB, section | Model RB, volume |
+|---|---|---|---|---|---|---|---|
+| 14 | apical | 10.6 | 0.0 ± 0.0 | 0.0 | 36.8 | 36.9 ± 5.7 | 35.9 |
+| 14 | middle | 3.6 | 0.0 ± 0.0 | 0.0 | 42.1 | 39.8 ± 9.6 | 38.0 |
+| 14 | coronal | 2.5 | 0.0 ± 0.0 | 0.0 | 36.3 | 38.4 ± 7.5 | 38.2 |
+| 14 | **total** | 5.0 ± 3.0 | 0.0 ± 0.0 | 0.0 | 38.3 ± 2.4 | 38.5 ± 6.5 | 37.8 |
+| 28 | apical | 13.8 | 15.5 ± 2.0 | 18.6 | 34.9 | 24.4 ± 2.7 | 23.9 |
+| 28 | middle | 10.1 | 9.4 ± 1.5 | 14.8 | 25.3 | 25.9 ± 8.2 | 25.0 |
+| 28 | coronal | 9.7 | 7.2 ± 1.7 | 11.9 | 21.2 | 25.4 ± 6.0 | 25.2 |
+| 28 | **total** | 11.1 ± 6.3 | 9.9 ± 1.4 | 13.9 | 25.8 ± 15.2 | 25.3 ± 5.3 | 25.0 |
+| 56 | apical | 47.1 | 56.1 ± 4.8 | 61.2 | 10.6 | 10.4 ± 2.1 | 10.5 |
+| 56 | middle | 48.0 | 53.2 ± 1.2 | 58.2 | 14.2 | 10.0 ± 3.0 | 10.7 |
+| 56 | coronal | 48.6 | 43.5 ± 4.7 | 53.1 | 8.1 | 10.3 ± 4.0 | 11.1 |
+| 56 | **total** | 48.5 ± 5.9 | 49.8 ± 3.0 | 56.1 | 10.3 ± 4.1 | 10.2 ± 2.1 | 10.9 |
+
+J = 18.1 ± 14.7 over 5 seeds (totals 9.5, thirds 8.6); the seed-to-seed spread comes mostly from where granules cut the single section.
+- **The totals match** at weeks 4 and 8 for new bone, and at all three weeks for residual graft (z within ±0.4).
+- **New bone at 2 weeks is 0** against Hong's 5 ± 3 % (10.6 % apically). The delay holds back all early bone, while Hong shows a little woven bone along the apical walls. A partial delay (cells at the wall not delayed) might fix this; it was not added.
+- **Residual graft per third:** the model resorbs evenly. Hong keeps more graft apically at 4 weeks (35 vs 21 % coronally), but with an SD of 15 on the total at that week this is weak evidence. No location-dependent resorption was added.
+- **New bone per third at 8 weeks** keeps the gradient of the empty socket (56 / 53 / 44 vs Hong's even 47 / 48 / 49).
+
+![Fitted β-TCP model by third](results/m3/final_analysis/nb_time_A_fitted.png)
+![Fitted β-TCP model, sections](results/m3/final_analysis/sections_A_fitted.png)
+
+### Variants (5 seeds; B: 3 seeds)
+| Case | NB section, d14 / d28 / d56 | RB section, d14 / d28 / d56 | J |
+|---|---|---|---|
+| Hong 2014 | 5.0 / 11.1 / 48.6 | 38.3 / 25.8 / 10.3 | – |
+| **Fitted** (delay 12 d, real-clock activity) | 0.0 / 9.9 / 49.8 | 38.5 / 25.3 / 10.2 | 18.1 |
+| No delay (milestone-2 biology + guiding granules) | 24.5 / 48.0 / 69.2 | 38.5 / 25.3 / 10.2 | 151 |
+| Upstream TCP stimulation (late factor × 2.5) | 0.0 / 24.3 / 82.8 | 38.5 / 25.3 / 10.2 | 75 |
+| Activity period shifted with the delay (delay 18 d) | 0.0 / 10.0 / 62.2 | 38.5 / 25.3 / 10.2 | 26 |
+| Granule fraction 0.2 | 0.0 / 8.5 / 43.2 | 15.2 / 9.6 / 4.1 | 167 |
+| Soft-phase stimulus, 150 / 300 / 1000 µε (3 seeds) | 0.0 / 10.7 / 51.8 | 36.2 / 23.6 / 10.1 | 22.4 |
+
+- **Mechanics back on:** with the soft-tissue-phase stimulus and no lower window, the cells behave bit for bit as in the forced-bone runs at all three loads (statistics compared, seeds 1-3). The B row differs from the fitted row only because it averages 3 seeds instead of 5. The granules stiffen the socket, and the largest element strain is 0.8 % at 1000 µε, far below the 5 % limit.
+- **TCP stimulation** is rejected by Hong's data, as expected from their finding that β-TCP slows early bone.
+
+![Variants, new bone](results/m3/final_analysis/cases_total.png)
+![Variants, residual graft](results/m3/final_analysis/cases_rb.png)
+
+### Open issues
+1. **The delay is phenomenological:** one number (12 days) for the graft's inflammatory phase. The literature agent's findings on whether and how much β-TCP delays early bone in dog sockets should test it. If they support a mechanism (e.g. osteoclast-covered granule surfaces that are not osteoconductive early), `tcp_guide_day` or `tcp_diff_mult` / `tcp_inhibit_days` can replace or refine it; both are already runtime parameters.
+2. **No early bone at 2 weeks** (0 vs 5 %); see above.
+3. **Resorption** is uniform and time-driven, not cell-driven, and the onset and k trade off. Hong's per-third RB and the osteoclast counts per third (Fig. 9) could support a cell-driven rule later.
+4. **The thirds' gradient** of the empty socket carries over. Remodelling (0.03 /day) is still unidentified.
+5. **Packing:** granules are packed by random sequential addition with 10 % overlap allowed, not settled by gravity or condensed. They take part of the wall lining (fewer seeded MSCs), which partly stands in for the graft covering the wall.
+6. **The single central section is noisy for RB** (SD 5-10 points between packings at 2-4 weeks, against 0.1-2 in the volume). Hong's SDs come from 2 dogs at weeks 2 and 4.
+7. **The 0.42 envelope is a decision.** If the literature agent finds a packing density for Cerasorb in a socket, that is a one-number change.
+
 ## Reproduce
 On a Linux machine with CalculiX, gmsh, meshio, numpy, matplotlib and g++ (the runs here used hwpool lease 56ea on phoenix: Ubuntu, ccx 2.21 from apt, gmsh 4.15.2 from pip):
 
@@ -278,7 +376,31 @@ python3 $T/analyze_socket.py --out ana_final --hong $H \
 ```
 `live_panel.py --root m2 --hong $H` (on the lease display, `on-desktop -d`) replays finished runs day by day.
 
+Milestone 3 (lease, mesh `meshes/m08`, build in `m3/build`, `H=../dental/hong/data/hong2014_btcp.csv`):
+
+```bash
+python3 $T/make_sets_m3.py grid > grid3.csv && python3 $T/run_sets.py --build build --sets grid3.csv --out grid
+python3 $T/score_hong.py --hong $H --out grid_scores.csv grid && python3 $T/aggregate_seeds.py grid_scores.csv grid_agg.csv
+python3 $T/run_sets.py --build build --sets var3.csv --out var          # results/m3/sets/var3.csv
+python3 $T/run_sets.py --build build --sets refine3.csv --out refine    # results/m3/sets/refine3.csv
+python3 $T/make_sets_m3.py final fitted_params.json > final3.csv && python3 $T/run_sets.py --build build --sets final3.csv --out final
+```
+then the tables and figures:
+
+```bash
+F=final; s5(){ echo $F/$1_s1,$F/$1_s2,$F/$1_s3,$F/$1_s4,$F/$1_s5; }; s3(){ echo $F/$1_s1,$F/$1_s2,$F/$1_s3; }
+python3 $T/analyze_socket.py --out ana_final --hong $H --case A_fitted=$(s5 A_fitted) --case V_stim=$(s5 V_stim) \
+ --case V_frac02=$(s5 V_frac02) --case V_nodelay=$(s5 V_nodelay) --case V_shiftedactivity=$(s5 V_shiftedactivity) \
+ --case B_soft_150=$(s3 B_soft_150) --case B_soft_300=$(s3 B_soft_300) --case B_soft_1000=$(s3 B_soft_1000) \
+ --maps A_fitted --maps V_nodelay --maps V_frac02
+```
+
 ## Files
+- Milestone 3, `results/m3/`:
+  - `fitted_params.json`, `build_info.txt`
+  - `grid/`, `variant_scan/`, `refine/` (scores and seed averages), `sets/` (parameter CSVs)
+  - `final_analysis/` (tables, figures, scores)
+  - `final_runs/<run>/`: statistics, zones, mechanics, parameters, `granules.csv`, logs; `section_daily.bin` for `A_fitted_s1`
 - Milestone 2, `results/m2/`:
   - `fitted_params.json`, `build_info.txt`
   - `grid/` (sets, scores, profiles, sub-models), `refine/`, `candidates/`, `local/` (scores and `local_identifiability.json`), `sets/` (the parameter CSVs)

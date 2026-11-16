@@ -1,0 +1,13 @@
+raw_daily 1
+stimulus_mode 1
+lower_window 0
+farfield_strain 0.0003
+late_factor 0.25
+activity_days 18
+remodel_rate 0.03
+granule_fraction 0.42
+tcp_k 0.031
+tcp_lag 10
+tcp_delay 12
+tcp_delay_all 1
+tcp_delay_activity 0

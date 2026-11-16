@@ -57,6 +57,10 @@ marked [DENTAL] in the code and described in dental/README.md:
 - The CalculiX load step imposes a far-field strain on the bone block, and
   the element hydrostatic pressure and minimum principal strain are written
   out for checking.
+- Later dental rules (runtime parameters, soft-tissue-phase stimulus,
+  remodelling, beta-TCP granules in the new Granules.cpp and
+  Dental_params.cpp, delayed biology of a grafted socket) are listed in
+  dental/README.md, "Departures from the long-bone model".
 
 Everything outside long_bone/src (geometry, tools, results, viewers, website,
 film, dental work) is original to this repository and licensed under AGPL-3.0,

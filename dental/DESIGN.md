@@ -80,5 +80,6 @@ Findings that change this design (proposed, not yet confirmed by the user):
 ## Open decisions (ask the user)
 - ~~Confirm the 3-stage plan.~~ **Stage 1 (Hong calibration) confirmed by Melih on 2026-11-14.** The motivating case is socket preservation after extraction: one socket left empty and one grafted, which is exactly Hong's empty vs β-TCP comparison. No patient data is kept in this repository. Milestone 1 (empty-socket model, no fitting) is in [hong/README.md](hong/README.md); the decisions it raises are listed there.
 - Milestone 2 (2026-11-16): Melih let the dental model depart from the long-bone rules where the socket needs it; the empty socket was calibrated in the biology-only setting and checked with a soft-tissue-phase stimulus. Results, fitted parameters and the decisions for the β-TCP arm: [hong/README.md](hong/README.md#milestone-2-calibration-on-the-empty-socket).
+- Milestone 3 (2026-11-16, decisions delegated by Melih to the coordinator): the β-TCP arm, with explicit resorbing granules and a 12-day delay of the grafted socket's cell biology: [hong/README.md](hong/README.md#milestone-3-the-β-tcp-arm).
 - Include the growth-factor arms in validation?
 - Loading protocol for the sweep: delayed, immediate, or both?

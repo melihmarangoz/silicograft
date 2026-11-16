@@ -177,13 +177,13 @@ plt.rcParams.update({"font.size": 9, "axes.edgecolor": MUTED, "axes.labelcolor":
 RED = "#e34948"
 
 
-def hong_points(ax, zone):
+def hong_points(ax, zone, nb=True, rb=True):
     for day in DAYS:
-        hv = hong_nb.get((day, zone))
+        hv = hong_nb.get((day, zone)) if nb else None
         if hv:
             ax.errorbar([day], [hv[0]], yerr=[hv[1]] if hv[1] else None, fmt="o", ms=6, color=INK, mfc="white",
                         mew=2, capsize=3, lw=1.5, zorder=5)
-        rv = hong_rb.get((day, zone))
+        rv = hong_rb.get((day, zone)) if rb else None
         if rv:
             ax.errorbar([day], [rv[0]], yerr=[rv[1]] if rv[1] else None, fmt="s", ms=6, color=RED, mfc="white",
                         mew=2, capsize=3, lw=1.5, zorder=5)
@@ -204,33 +204,37 @@ for first in (a.maps or [list(cases)[0]]):
         ax.set_title(zone.capitalize(), color=INK, fontsize=10, loc="left")
         ax.set_xticks([0, 14, 28, 42, 56]); ax.set_xlabel("Day")
         ax.grid(axis="y", color=GRID, lw=0.8); ax.set_ylim(0, 100)
-    axs[0].set_ylabel("New bone, % of socket")
+    axs[0].set_ylabel("% of socket" if hong_rb else "New bone, % of socket")
     h, l = axs[0].get_legend_handles_labels()
     h.append(plt.Line2D([], [], marker="o", ls="", color=INK, mfc="white", mew=2)); l.append("Hong 2014 NB (zones: Fig. 8, total: text ± SD)")
     if hong_rb:
         h.append(plt.Line2D([], [], marker="s", ls="", color=RED, mfc="white", mew=2)); l.append("Hong 2014 residual graft")
     fig.legend(h, l, loc="upper center", ncol=3, frameon=False, bbox_to_anchor=(0.5, 1.04 + (0.06 if hong_rb else 0)))
     nr = len(cases[first])
-    fig.suptitle(f"Empty socket, case '{first}'" + (f" (mean ± SD of {nr} seeds)" if nr > 1 else ""), x=0.01, y=1.10, ha="left", fontsize=11, color=INK)
+    fig.suptitle(f"{'β-TCP socket' if hong_rb else 'Empty socket'}, case '{first}'" + (f" (mean ± SD of {nr} seeds)" if nr > 1 else ""),
+                 x=0.01, y=1.10 + (0.08 if hong_rb else 0), ha="left", fontsize=11, color=INK)
     fig.savefig(os.path.join(a.out, f"nb_time_{first}.png"), dpi=150, bbox_inches="tight")
     plt.close(fig)
 
-if len(cases) > 1:
+for key, fname, ylab in ([("NB", "cases_total.png", "New bone, % of socket (total)")]
+                         + ([("RB", "cases_rb.png", "Residual graft, % of socket (total)")] if hong_rb else [])):
+    if len(cases) < 2:
+        break
     fig, axs = plt.subplots(1, 2, figsize=(10, 3.4), sharey=True)
     for ax, region in zip(axs, ["section", "volume"]):
         for ci, label in enumerate(cases):
-            d, m, s = series(label, region, "total")
+            d, m, s = series(label, region, "total", key)
             ax.plot(d, m, color=CAT[ci % len(CAT)], lw=2, label=label)
             if s.any():
                 ax.fill_between(d, m - s, m + s, color=CAT[ci % len(CAT)], alpha=0.15, lw=0)
-        hong_points(ax, "total")
+        hong_points(ax, "total", nb=(key == "NB"), rb=(key == "RB"))
         ax.set_title("Central section" if region == "section" else "Socket volume", loc="left", color=INK, fontsize=10)
         ax.set_xticks([0, 14, 28, 42, 56]); ax.set_xlabel("Day"); ax.grid(axis="y", color=GRID, lw=0.8); ax.set_ylim(0, 100)
-    axs[0].set_ylabel("New bone, % of socket (total)")
+    axs[0].set_ylabel(ylab)
     h, l = axs[0].get_legend_handles_labels()
-    h.append(plt.Line2D([], [], marker="o", ls="", color=INK, mfc="white", mew=2)); l.append("Hong 2014")
-    fig.legend(h, l, loc="upper center", ncol=min(len(l), 4), frameon=False, bbox_to_anchor=(0.5, 1.12))
-    fig.savefig(os.path.join(a.out, "cases_total.png"), dpi=150, bbox_inches="tight")
+    h.append(plt.Line2D([], [], marker="o" if key == "NB" else "s", ls="", color=INK if key == "NB" else RED, mfc="white", mew=2)); l.append("Hong 2014")
+    fig.legend(h, l, loc="upper center", ncol=min(len(l), 4), frameon=False, bbox_to_anchor=(0.5, 1.12 + 0.04 * (len(l) > 8)))
+    fig.savefig(os.path.join(a.out, fname), dpi=150, bbox_inches="tight")
     plt.close(fig)
 
 # section maps: x (mesio-distal) horizontal, z vertical, crest on top

@@ -10,7 +10,7 @@ This folder holds the dental branch of SG-Bone. The plan and the literature behi
 | `hong/` | Hong 2014 calibration: reference data, results, figures |
 
 ## The socket model
-The model started as the validated long-bone model with only the geometry, the cell source and the load changed (milestone 1). In milestone 2 Melih allowed the dental model to depart from the long-bone rules where the socket needs it (2026-11-16). Every departure is listed in [Departures from the long-bone model](#departures-from-the-long-bone-model); all of them are runtime parameters, and the defaults reproduce milestone 1 bit for bit. The **calibrated dental setting** (Hong 2014, empty socket) is in [hong/README.md](hong/README.md#milestone-2-calibration-on-the-empty-socket).
+The model started as the validated long-bone model with only the geometry, the cell source and the load changed (milestone 1). In milestone 2 Melih allowed the dental model to depart from the long-bone rules where the socket needs it (2026-11-16). Every departure is listed in [Departures from the long-bone model](#departures-from-the-long-bone-model); all of them are runtime parameters, and the defaults reproduce milestone 1 bit for bit. The **calibrated dental setting** (Hong 2014) is in [hong/README.md](hong/README.md): the empty socket in milestone 2, the β-TCP arm in milestone 3.
 
 ### Geometry (`geometry/socket_geometry.py`)
 Coordinates in mm: x mesio-distal, y bucco-lingual (buccal negative), z vertical with the alveolar crest at z = 0. The plane y = 0 is the central mesio-distal section that Hong et al. measured.
@@ -50,6 +50,22 @@ Mesh: quadratic tetrahedra (C3D10) with straight edges, 0.8 mm in the socket (52
 ### Runtime parameters
 A run folder may hold `params.txt` with `name value` lines; the values used are written to `params_used.txt`. Names and defaults (struct `Params` in `src/header.h`): `farfield_strain` 3e-4, `force_stimulus` 0, `skip_fe_when_forced` 1, `stimulus_mode` 0, `lower_window` 1, `activity_days` 15, `late_factor` 0.2, `seed_fraction` 0.3, `lining_voxels` 2, `cover_source` 0, `matrix_day` −1, `remodel_rate` 0, `remodel_day` 14, `raw_daily` 1.
 
+β-TCP granules (all off while `granule_fraction` is 0): `granule_fraction` 0, `granule_dmin` 0.5 and `granule_dmax` 1.0 mm, `granule_overlap` 0.1, `granule_pattern` −1 (run seed + 1000), `tcp_k` 0.031 /day, `tcp_lag` 0, `tcp_E` 3500 MPa, `tcp_nu` 0.3, `tcp_guides` 1, `tcp_guide_day` 0, `tcp_late_mult` 1, `tcp_diff_mult` 1, `tcp_inhibit_days` 0, `tcp_delay` 0, `tcp_delay_all` 1, `tcp_delay_activity` 1. The Hong-calibrated values are in [hong/README.md](hong/README.md#milestone-3-the-β-tcp-arm).
+
+### β-TCP granules (`src/Granules.cpp`)
+- **Packing:** random sequential addition of spheres, 0.5-1.0 mm in diameter (Cerasorb 500-1000 µm), largest first. Centres sit on free socket points. Neighbours may overlap by at most 10 % of the sum of their radii, because hard spheres jam near 0.38. Packing stops at `granule_fraction` of the socket points. The packing is cut by the wall and the crest plane. Granules are lattice code 12, solid and guiding, as the scaffold of the upstream `scaffold_presence` branch.
+  - The fraction is the granule *envelope*. Pores inside a granule (35 % in Cerasorb, 65 % in Cerasorb M) are below the 0.1 mm lattice.
+  - Each seed packs its own granules (pattern seed = run seed + 1000), so replicates differ as sockets do.
+  - At 0.42 there are about 76 granules (42.3 % of the socket).
+- **Seeding:** granules are placed before the wall lining is seeded, so they take part of the lining. The β-TCP socket starts with about 2 100 MSCs instead of 3 400.
+- **Resorption:** each granule keeps its centre and loses volume first-order from `tcp_lag`: V = V0 exp(−`tcp_k` (t − `tcp_lag`)), i.e. the radius goes as exp(−k t / 3). A granule point beyond the current radius is freed (empty, open to cells).
+- **FE:** granule points enter the rule of mixtures with E 3.5 GPa and ν 0.3. That is porous β-TCP at 35 % porosity, derived in literature/parameters.csv from Metsger 1999 and Knabe 2008. They are not part of the soft phase.
+- **Delay of the cell biology** (`tcp_delay`): in a grafted socket the cells wait `tcp_delay` days (proliferation, migration and differentiation; with `tcp_delay_all 0` only differentiation). Their clock then starts at 0: differentiation from biological day 6, remodelling from biological day 14.
+  - With `tcp_delay_activity 0` the high-activity period still ends on the real clock (day 18), so the delayed cells start at the late rates.
+  - With `tcp_delay_activity 1` the whole period starts late.
+  - Resorption, ageing and mechanics keep the real clock.
+- **Variants:** `tcp_late_mult` multiplies the late factor in a grafted socket (2.5 reproduces upstream's "TCP stimulation": activity / 2 instead of / 5). `tcp_diff_mult` with `tcp_inhibit_days` lowers early differentiation. `tcp_guides 0` or `tcp_guide_day` turn the granule guidance off or start it later.
+
 ### Departures from the long-bone model
 | Rule | Long-bone model | Dental model | Why |
 |---|---|---|---|
@@ -64,6 +80,8 @@ A run folder may hold `params.txt` with `name value` lines; the values used are 
 | Mechanical stimulus | element-average pressure, with resorption window | option: soft-tissue phase, without the lower window (recommended) | bone-containing elements no longer turn fibrous because the stiff matrix carries pressure, and the 400 µε lower limit no longer resorbs bone at physiological jaw strains (hong/README.md) |
 | Differentiation target | `n·rate` eligible MSCs, picked at random | capped at the MSCs still eligible after that day's apoptosis | the upstream loop can hang when apoptosis removes the only guiding neighbour (seen with remodelling) |
 | FE when the stimulus is forced | always | skipped | speed |
+| β-TCP graft | scaffold branch: a fixed PCL-TCP cylinder (code 12, separate FE part, never resorbed), activity / 2 instead of / 5 | explicit random-packed granules (code 12, guiding), shrinking first-order, in the rule of mixtures at 3.5 GPa; no stimulation | Hong's Cerasorb granules resorb within 8 weeks and *delay* bone (milestone 3) |
+| Grafted-socket timing | – | the cell biology starts 12 days late and the early high-activity period is not shifted (`tcp_delay 12`, `tcp_delay_activity 0`) | Hong 2014: β-TCP sockets have 5 % bone at 2 weeks and 11 % at 4 weeks against 26 % and 48 % empty; grafts "delay rather than arrest" bone formation |
 
 ### Outputs of a run
 `statistics.csv` (daily counts), `zones.csv` (Hong's outcome per day: socket points and tissue counts per third and in total, on the central section and in the volume), `section_daily.bin` (the central section every day, 43 × 92 bytes per day), `lattice_<it>.raw` (daily lattice, uint8; with `raw_daily 0` only days 14, 28 and 56), `lattice_element.bin` (element of each lattice point, int32), `mech_<it>.bin` and `mechanics.csv` (element hydrostatic pressure and minimum principal strain), `stimulus_<it>.bin`, plus the upstream `proliferation.txt`, `differentiation.txt` and `migration_distribution.txt`. Day d is the lattice after d daily iterations (`lattice_<d−1>.raw`).
