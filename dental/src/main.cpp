@@ -66,6 +66,7 @@ int main(int argc, char** argv)
 		     << "ya da MECHANOBIO_UZERINE_YAZ=1 verin." << endl;
 		return 3;
 	}
+	if (!Load_params("params.txt")) return 5; // [DENTAL] runtime parameters (params.txt is optional)
 	unsigned int seed = (argc > 1) ? (unsigned)strtoul(argv[1], nullptr, 10) : (unsigned)time(NULL); // [CCX]
 	srand(seed); // seed for random numbers
 	seed_rng(seed); // [CCX]
@@ -128,7 +129,7 @@ int main(int argc, char** argv)
         std::ofstream ef("lattice_element.bin", std::ios::binary);
         ef.write(reinterpret_cast<const char*>(&lattice_point_element[0][0][0]), sizeof(int)*(size_t)LATTICE_X*LATTICE_Y*LATTICE_Z);
         cout << "  Lattice " << LATTICE_X << " x " << LATTICE_Y << " x " << LATTICE_Z << ", origin (" << Global_minimum[0] << ", "
-             << Global_minimum[1] << ", " << Global_minimum[2] << "), far-field strain " << FARFIELD_STRAIN << endl;
+             << Global_minimum[1] << ", " << Global_minimum[2] << "), far-field strain " << P.farfield_strain << endl;
     }
 
     // [CCX] initial FE solution: the whole socket is granulation tissue (E = 0.2 MPa, nu = 0.167)
@@ -155,7 +156,7 @@ int main(int argc, char** argv)
             cerr << "Iterasyon " << iteration << ": stimulus okunamadi, simulasyon durduruldu." << endl;
             return 2;
         }
-        Write_mechanics(iteration); // [DENTAL]
+        if (P.raw_daily) Write_mechanics(iteration); // [DENTAL]
         
         /**************************************************************************************
                                                Differentiation
@@ -183,7 +184,8 @@ int main(int argc, char** argv)
         *****************************************************************************************/
         cout<<"Write results files"<<endl;
 //        Write_lattice_file_gnuplot(lattice,iteration); // txt files with one slice
-        if (iteration % RAW_WRITE_INTERVAL == 0 || iteration == NUMBER_ITERATIONS-1) // [CCX] disk
+        if (P.raw_daily ? (iteration % RAW_WRITE_INTERVAL == 0 || iteration == NUMBER_ITERATIONS-1) // [CCX] disk
+                        : (iteration == 13 || iteration == 27 || iteration == 55)) // [DENTAL] days 14, 28, 56 only
             Write_raw_lattice_file(lattice, iteration); // full 3D model as binary file
         Write_statistics(lattice, lattice_point_element, stimulus, iteration); // [CCX]
         
@@ -211,7 +213,8 @@ int main(int argc, char** argv)
         /**************************************************************************************
                                               Run abaqus
         *****************************************************************************************/  
-        if (iteration>5 && iteration<NUMBER_ITERATIONS-1 && iteration%3==0) // no need to run ABAQUS model in the last iteration; run every 3 iterations
+        const bool fe_needed = !(P.force_stimulus > 0 && P.skip_fe_when_forced); // [DENTAL] forced stimulus: mechanics unused
+        if (fe_needed && iteration>5 && iteration<NUMBER_ITERATIONS-1 && iteration%3==0) // no need to run ABAQUS model in the last iteration; run every 3 iterations
         {
             cout<<"run FE (CalculiX)"<<endl; // [CCX] orijinal: system("./run.bat") (Abaqus), donus kontrolsuz
             if (system(FE_CMD) != 0) {

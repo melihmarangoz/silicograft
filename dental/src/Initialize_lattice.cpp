@@ -7,7 +7,8 @@
 // The analytic socket of the geometry script and the socket elements differ slightly at the wall (the
 // elements have planar faces). The FE mesh decides: points inside a socket element are socket points
 // (free); points outside are bone, or cover above the crest. MSCs are then seeded in the wall lining:
-// SEED_FRACTION of the socket points within LINING_VOXELS of a native bone point (fixed pattern seed).
+// P.seed_fraction of the socket points within P.lining_voxels of a native bone point (fixed pattern seed);
+// with P.cover_source also along the soft-tissue cover (periosteum of the coronally advanced flap).
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
@@ -50,7 +51,7 @@ bool Initialize_lattice(char initial_lattice[LATTICE_X][LATTICE_Y][LATTICE_Z], s
     // seeding of the wall lining
     std::mt19937 pattern(SEED_PATTERN);
     std::uniform_real_distribution<double> U(0.0, 1.0);
-    const int L = LINING_VOXELS;
+    const int L = P.lining_voxels;
     long lining = 0;
     for (int i = 0; i < LATTICE_X; i++)
         for (int j = 0; j < LATTICE_Y; j++)
@@ -63,11 +64,11 @@ bool Initialize_lattice(char initial_lattice[LATTICE_X][LATTICE_Y][LATTICE_Z], s
                             if (di*di + dj*dj + dk*dk > L*L) continue;
                             const int a = i+di, b = j+dj, c = k+dk;
                             if (a < 0 || b < 0 || c < 0 || a >= LATTICE_X || b >= LATTICE_Y || c >= LATTICE_Z) continue;
-                            if (initial_lattice[a][b][c] == LATTICE_BONE) near_bone = true;
+                            if (initial_lattice[a][b][c] == LATTICE_BONE || (P.cover_source && initial_lattice[a][b][c] == LATTICE_COVER)) near_bone = true;
                         }
                 if (!near_bone) continue;
                 lining++;
-                if (U(pattern) < SEED_FRACTION) { initial_lattice[i][j][k] = 1; initial_age[i][j][k] = 1; seeded++; } // MSC, age 1 as upstream
+                if (U(pattern) < P.seed_fraction) { initial_lattice[i][j][k] = 1; initial_age[i][j][k] = 1; seeded++; } // MSC, age 1 as upstream
             }
     cout << "  Socket lattice points: " << socket << " (" << socket * 1e-3 << " mm3), wall lining " << lining
          << ", seeded MSCs: " << seeded << endl;

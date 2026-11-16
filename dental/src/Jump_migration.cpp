@@ -7,6 +7,17 @@
 
 using namespace std;
 
+// [DENTAL] Migration guidance. Upstream: the destination needs a guiding neighbour (Neighbour_presence).
+// From iteration P.matrix_day on, the clot has turned into provisional matrix and a free socket point is a
+// substrate in itself, so MSCs may also move into it without a guiding neighbour. Differentiation still needs
+// a guiding neighbour (Cell_differentiation uses Neighbour_presence directly).
+static bool Migration_guided(char cells[LATTICE_X][LATTICE_Y][LATTICE_Z], int lpe[LATTICE_X][LATTICE_Y][LATTICE_Z], int iter,
+	int i_source, int j_source, int k_source, int i_dest, int j_dest, int k_dest)
+{
+	if (P.matrix_day >= 0 && iter >= P.matrix_day && lpe[i_dest][j_dest][k_dest] != 0) return true;
+	return Neighbour_presence(cells, i_source, j_source, k_source, i_dest, j_dest, k_dest);
+}
+
 int Jump_migration(char cell_jump[LATTICE_X][LATTICE_Y][LATTICE_Z],int i_jump, int j_jump, int k_jump,short age_jump[LATTICE_X][LATTICE_Y][LATTICE_Z], 
 	int cell_number, int lattice_points_element[LATTICE_X][LATTICE_Y][LATTICE_Z], int iter)
 {
@@ -49,7 +60,7 @@ int Jump_migration(char cell_jump[LATTICE_X][LATTICE_Y][LATTICE_Z],int i_jump, i
                 if (r1==0)  //move +x
                 {
                     if (i_jump==LATTICE_X-1 || cell_jump[i_jump+1][j_jump][k_jump]!=0 
-						|| !Neighbour_presence(cell_jump, i_jump, j_jump, k_jump, i_jump+1, j_jump, k_jump)) // add check for neighbours in the migration process
+						|| !Migration_guided(cell_jump, lattice_points_element, iter, i_jump, j_jump, k_jump, i_jump+1, j_jump, k_jump)) // add check for neighbours in the migration process
                     {
                         position_occupied=position_occupied+1;
                         possibilities[r]=999;
@@ -69,7 +80,7 @@ int Jump_migration(char cell_jump[LATTICE_X][LATTICE_Y][LATTICE_Z],int i_jump, i
                 if (r1==1) //move -x
                 {
                     if (i_jump==0 || cell_jump[i_jump-1][j_jump][k_jump]!=0
-						|| !Neighbour_presence(cell_jump, i_jump, j_jump, k_jump, i_jump-1, j_jump, k_jump)) // add check for neighbours in the migration process                    
+						|| !Migration_guided(cell_jump, lattice_points_element, iter, i_jump, j_jump, k_jump, i_jump-1, j_jump, k_jump)) // add check for neighbours in the migration process                    
                     {
                         position_occupied=position_occupied+1;
                         possibilities[r]=999;
@@ -89,7 +100,7 @@ int Jump_migration(char cell_jump[LATTICE_X][LATTICE_Y][LATTICE_Z],int i_jump, i
                 if (r1==2) //move +y
                 {
                     if (j_jump==LATTICE_Y-1 || cell_jump[i_jump][j_jump+1][k_jump]!=0
-                    	|| !Neighbour_presence(cell_jump, i_jump, j_jump, k_jump, i_jump, j_jump+1, k_jump))
+                    	|| !Migration_guided(cell_jump, lattice_points_element, iter, i_jump, j_jump, k_jump, i_jump, j_jump+1, k_jump))
                     {
                         position_occupied=position_occupied+1;
                         possibilities[r]=999;
@@ -109,7 +120,7 @@ int Jump_migration(char cell_jump[LATTICE_X][LATTICE_Y][LATTICE_Z],int i_jump, i
                 if (r1==3) //move -y
                 {
                     if (j_jump==0 || cell_jump[i_jump][j_jump-1][k_jump]!=0
-                    	|| !Neighbour_presence(cell_jump, i_jump, j_jump, k_jump, i_jump, j_jump-1, k_jump))
+                    	|| !Migration_guided(cell_jump, lattice_points_element, iter, i_jump, j_jump, k_jump, i_jump, j_jump-1, k_jump))
                     {
                         position_occupied=position_occupied+1;
                         possibilities[r]=999;
@@ -129,7 +140,7 @@ int Jump_migration(char cell_jump[LATTICE_X][LATTICE_Y][LATTICE_Z],int i_jump, i
                 if (r1==4) //move +z
                 {
                     if (k_jump==LATTICE_Z-1 || cell_jump[i_jump][j_jump][k_jump+1]!=0
-                    	|| !Neighbour_presence(cell_jump, i_jump, j_jump, k_jump, i_jump, j_jump, k_jump+1))
+                    	|| !Migration_guided(cell_jump, lattice_points_element, iter, i_jump, j_jump, k_jump, i_jump, j_jump, k_jump+1))
                     {
                         position_occupied=position_occupied+1;
                         possibilities[r]=999;
@@ -149,7 +160,7 @@ int Jump_migration(char cell_jump[LATTICE_X][LATTICE_Y][LATTICE_Z],int i_jump, i
                 if (r1==5) //move -z
                 {
                     if (k_jump==0 || cell_jump[i_jump][j_jump][k_jump-1]!=0
-                    	|| !Neighbour_presence(cell_jump, i_jump, j_jump, k_jump, i_jump, j_jump, k_jump-1))
+                    	|| !Migration_guided(cell_jump, lattice_points_element, iter, i_jump, j_jump, k_jump, i_jump, j_jump, k_jump-1))
                     {
                         position_occupied=position_occupied+1;
                         possibilities[r]=999;

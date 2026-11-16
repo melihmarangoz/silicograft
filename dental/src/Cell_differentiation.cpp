@@ -34,6 +34,7 @@ void Cell_differentiation(char cells_dif[LATTICE_X][LATTICE_Y][LATTICE_Z],short 
     const int age_mature_cell=6;
 	int MSCs, to_diff, osteo_diff, chondro_diff, fibro_diff; // to store total number of MSCs and how many differentiate into each phenotype
 	MSCs=to_diff=osteo_diff=chondro_diff=fibro_diff=0;
+	long remodelled = 0; // [DENTAL]
         
     int chondrocytes_apoptosis;
     int fibroblasts_apoptosis;
@@ -94,10 +95,10 @@ void Cell_differentiation(char cells_dif[LATTICE_X][LATTICE_Y][LATTICE_Z],short 
         }
         
 		MSCs += cells_to_differentiate;
-		if (iter<ACTIVITY_MAX)
+		if (iter<P.activity_days) // [DENTAL] runtime length of the high-activity period (upstream ACTIVITY_MAX = 15)
         	cells_to_differentiate=sg_count(cells_to_differentiate,0.3); // [DENTAL] sg_count: stochastic rounding
         else
-        	cells_to_differentiate=sg_count(cells_to_differentiate,0.06); // lower activity after lateny period [DENTAL]
+        	cells_to_differentiate=sg_count(cells_to_differentiate,0.3*P.late_factor); // lower activity after lateny period [DENTAL] upstream 0.06 = 0.3/5
 		to_diff += cells_to_differentiate;
         
         mature_osteoblasts_apoptosis=sg_count(mature_osteoblasts,apoptosis_rate_osteoblasts); // [DENTAL]
@@ -105,6 +106,30 @@ void Cell_differentiation(char cells_dif[LATTICE_X][LATTICE_Y][LATTICE_Z],short 
         fibroblasts_apoptosis=sg_count(fibroblasts,apoptosis_rate_fibroblasts); // [DENTAL]
         chondrocytes_removed=fibroblasts_removed=mature_osteoblasts_removed=0;
         
+        /*********************************************************************************************************
+            [DENTAL] WOVEN-BONE REMODELLING: from P.remodel_day, osteoblasts are removed at P.remodel_rate per day in
+            elements that are not under the resorption stimulus (which already removes them at 0.16). The freed
+            point is a marrow / vascular space (empty), which cells may occupy again.
+        **********************************************************************************************************/
+        if (P.remodel_rate > 0 && iter >= P.remodel_day && stimulus_dif[elem] != 1)
+        {
+            const int to_remove = sg_count(mature_osteoblasts, P.remodel_rate);
+            int removed = 0;
+            while (removed < to_remove)
+            {
+                i=imin+nrand(imax-imin+1);
+                j=jmin+nrand(jmax-jmin+1);
+                k=kmin+nrand(kmax-kmin+1);
+                if (lattice_point_element[i][j][k]==elem+1 && cells_dif[i][j][k]==2)
+                {
+                    cells_dif[i][j][k]=0;
+                    age_dif[i][j][k]=0;
+                    removed++;
+                }
+            }
+            remodelled += removed;
+        }
+
         /*********************************************************************************************************
                                             FIBROUS TISSUE         
         **********************************************************************************************************/
@@ -348,6 +373,6 @@ void Cell_differentiation(char cells_dif[LATTICE_X][LATTICE_Y][LATTICE_Z],short 
 	// Write differentiation info to a file
     ofstream myfile;
 	myfile.open("differentiation.txt", ios::app); // total number of MSCs, how many should differentiation, then differentiation in following order: osteoblasts, chondrocytes, fibroblasts
-	myfile << MSCs << " " << to_diff << " " << osteo_diff << " " << chondro_diff << " " << fibro_diff << endl;
+	myfile << MSCs << " " << to_diff << " " << osteo_diff << " " << chondro_diff << " " << fibro_diff << " " << remodelled << endl; // [DENTAL] + remodelled
 	myfile.close();
 } 

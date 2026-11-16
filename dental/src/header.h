@@ -18,7 +18,7 @@ constexpr int IPS_PER_ELEM = 4;          // [CCX] C3D10 -> 4 integration points
 constexpr int FIRST_CALLUS_ELEMENT = 1;  // [CCX] first socket element label
 constexpr int NODES_PER_ELEM = 10; // number of nodes per element in Abaqus model (for callus part)
 constexpr float CELL_DIAMETER = 0.1; // (in mm)
-constexpr int ACTIVITY_MAX = 15; // latency period of 15 days
+constexpr int ACTIVITY_MAX = 15; // latency period of 15 days [DENTAL] default of P.activity_days
 
 // [DENTAL] lattice codes besides the cells (0 free, 1 MSC, 2 osteoblast, 4 chondrocyte, 5 fibroblast, 6-10 temporary)
 constexpr char LATTICE_BONE = 11;  // native alveolar bone (socket wall)
@@ -42,6 +42,29 @@ constexpr char LATTICE_COVER = 14; // soft-tissue cover over the socket opening 
 #ifndef FARFIELD_STRAIN
 #define FARFIELD_STRAIN 3.0e-4
 #endif
+
+// [DENTAL] Runtime parameters of the socket model (Dental_params.cpp). Defaults reproduce milestone 1
+// (the compile-time macros above); a run folder may override any of them in params.txt ("name value" lines).
+// The values used are written to params_used.txt.
+struct Params {
+	double farfield_strain = FARFIELD_STRAIN; // far-field mesio-distal strain on the bone block
+	int force_stimulus = 0;        // >0: every element gets this stimulus (2 = bone): biology-only setting
+	int skip_fe_when_forced = 1;   // with force_stimulus, skip the FE solves after the initial one
+	int stimulus_mode = 0;         // 0 element-average HP (upstream); 1 soft-tissue phase HP (iso-strain)
+	int lower_window = 1;          // 1: upstream resorption window (|HP| < 0.0016 MPa and |e_min| < 0.0004)
+	int activity_days = ACTIVITY_MAX; // iterations with high cell activity (upstream 15)
+	double late_factor = 0.2;      // rates after activity_days = early rates x late_factor (upstream 1/5)
+	double seed_fraction = SEED_FRACTION;
+	int lining_voxels = LINING_VOXELS;
+	int cover_source = 0;          // 1: the soft-tissue cover over the opening is seeded and guides like the walls
+	int matrix_day = -1;           // >=0: from this iteration MSCs migrate into free socket points without a
+	                               // guiding neighbour (the clot has become provisional matrix); -1 = never (upstream)
+	double remodel_rate = 0.0;     // daily fraction of osteoblasts removed (woven-bone resorption -> marrow space)
+	int remodel_day = 14;          // iteration from which remodelling acts
+	int raw_daily = 1;             // 1: lattice every day; 0: only the initial lattice and days 14, 28, 56
+};
+extern Params P;
+bool Load_params(const char* file);
 
 // [CCX] shared, seedable random engine (nrand.cpp)
 std::mt19937& rng();
@@ -83,7 +106,8 @@ bool Write_ccx_input(const float* Young_mod_elem, const float* Poison_rat_elem);
 void Cell_age(short age[LATTICE_X][LATTICE_Y][LATTICE_Z]);
 
 void Write_statistics(char const lattice[LATTICE_X][LATTICE_Y][LATTICE_Z], int lattice_point_element[LATTICE_X][LATTICE_Y][LATTICE_Z],
-	char const stimulus[NUMBER_ELEMS], int iter); // [CCX] daily cell counts (statistics.csv)
+	char const stimulus[NUMBER_ELEMS], int iter); // [CCX] daily cell counts (statistics.csv) [DENTAL] + zones.csv
+extern float E_soft_phase[NUMBER_ELEMS]; // [DENTAL] modulus of the non-bone part of each element (Update_model.cpp)
 
 struct Point {
 	int x, y, z;

@@ -19,6 +19,9 @@
 
 using namespace std;
 
+float E_soft_phase[NUMBER_ELEMS]; // [DENTAL] set below; granulation tissue (0.2 MPa) until the first update
+static bool E_soft_init = [] { for (int e = 0; e < NUMBER_ELEMS; e++) E_soft_phase[e] = 0.2f; return true; }();
+
 
 bool Update_model(char lattice[LATTICE_X][LATTICE_Y][LATTICE_Z], float Young_modulus_prop[NUMBER_ELEMS][NUMBER_ITERATIONS], float Poison_ratio_prop[NUMBER_ELEMS][NUMBER_ITERATIONS], 
 	int t_prop,int element_local_min[NUMBER_ELEMS][3], int element_local_max[NUMBER_ELEMS][3],int lattice_point_element[LATTICE_X][LATTICE_Y][LATTICE_Z])
@@ -107,6 +110,12 @@ bool Update_model(char lattice[LATTICE_X][LATTICE_Y][LATTICE_Z], float Young_mod
             } //end for
             
          
+        // [DENTAL] modulus of the non-bone (soft) part of the element, for the soft-phase stimulus (Read_stimulus)
+        {
+            const float soft = total - number_mature_osteoblasts;
+            E_soft_phase[elem] = soft > 0 ? (number_chondrocytes*10.0f + number_fibroblasts*2.0f
+                + (soft - number_chondrocytes - number_fibroblasts)*0.2f) / soft : 0.2f;
+        }
         Young_modulus_prop[elem][t_prop]=(number_chondrocytes*10.0/total)+(number_fibroblasts*2.0/total)
 			+(number_mature_osteoblasts*17000.0/total)+((total-number_fibroblasts-number_mature_osteoblasts-number_chondrocytes)*0.2/total); 
         Poison_ratio_prop[elem][t_prop]=(number_chondrocytes*0.167/total)+(number_fibroblasts*0.167/total)
@@ -149,7 +158,7 @@ bool Update_model(char lattice[LATTICE_X][LATTICE_Y][LATTICE_Z], float Young_mod
 
 // [CCX] CalculiX input deck. [DENTAL] model_template.inp (nodes, elements, native bone materials, node sets,
 // fixed supports) + socket materials + the load step: the distal face of the bone block is displaced towards
-// the mesial face (fixed in x), which imposes a nominal mesio-distal compressive strain FARFIELD_STRAIN on the
+// the mesial face (fixed in x), which imposes a nominal mesio-distal compressive strain P.farfield_strain on the
 // block. Elements with the same (E, nu) text share one material, as in the long-bone port.
 bool Write_ccx_input(const float* Young_mod_elem, const float* Poison_rat_elem)
 {
@@ -178,8 +187,8 @@ bool Write_ccx_input(const float* Young_mod_elem, const float* Poison_rat_elem)
 			myfile << v[n] << ((n + 1) % 16 && n + 1 < v.size() ? ", " : "\n");
 		myfile << "*SOLID SECTION, ELSET=SOCKET_" << g << ", MATERIAL=material_" << g << "\n";
 	}
-	const double ux = -FARFIELD_STRAIN * BLOCK_LENGTH_X;
-	myfile << "**\n** STEP: far-field mesio-distal strain " << FARFIELD_STRAIN << " (distal face ux = " << ux << " mm)\n";
+	const double ux = -P.farfield_strain * BLOCK_LENGTH_X; // [DENTAL] runtime parameter
+	myfile << "**\n** STEP: far-field mesio-distal strain " << P.farfield_strain << " (distal face ux = " << ux << " mm)\n";
 	myfile << "*STEP\n*STATIC\n1., 1., 1e-05, 1.\n";
 	myfile << "*BOUNDARY\nDISTAL, 1, 1, " << ux << "\n";
 	myfile << "*EL PRINT, ELSET=SOCKET\nS, E\n";

@@ -258,7 +258,9 @@ with open(os.path.join(a.out, "model_info.h"), "w") as f:
             f"constexpr float LATTICE_ORIGIN_X = {ORIGIN[0]:.6f}f;\n"
             f"constexpr float LATTICE_ORIGIN_Y = {ORIGIN[1]:.6f}f;\n"
             f"constexpr float LATTICE_ORIGIN_Z = {ORIGIN[2]:.6f}f;\n"
-            f"constexpr float BLOCK_LENGTH_X = {a.block_x:.6f}f; // mesial to distal face (mm)\n")
+            f"constexpr float BLOCK_LENGTH_X = {a.block_x:.6f}f; // mesial to distal face (mm)\n"
+            f"constexpr float SOCKET_Z_APEX = {Z_APEX:.6f}f; // socket fundus; crest at z = 0\n"
+            f"constexpr int SECTION_J = {nxy}; // lattice plane y = 0 (central mesio-distal section)\n")
 
 import meshio
 cells, reg = [], []

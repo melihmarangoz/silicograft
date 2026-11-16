@@ -23,13 +23,10 @@ int sg_count(int n, double rate)
 
 // Upstream: any non-empty lattice value except an MSC (1) or a just-migrated MSC (6) guides migration and
 // allows differentiation (surface-guided migration and ECM deposition). In the socket model the
-// soft-tissue cover over the socket opening (LATTICE_COVER) is not a guiding surface unless
-// -DSG_COVER_GUIDES is given.
+// soft-tissue cover over the socket opening (LATTICE_COVER) guides only when it is a cell source
+// (P.cover_source = 1, or the milestone-1 flag -DSG_COVER_GUIDES).
 bool Neighbour_guides(char v)
 {
-#ifdef SG_COVER_GUIDES
-	return v > 1 && v != 6;
-#else
+	if (P.cover_source) return v > 1 && v != 6;
 	return v > 1 && v != 6 && v != LATTICE_COVER;
-#endif
 }

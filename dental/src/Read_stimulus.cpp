@@ -94,18 +94,24 @@ bool Read_stimulus(char stimulus_read[NUMBER_ELEMS], int /*elements_read*/[NUMBE
 	for (int elem = 0; elem < NUMBER_ELEMS; elem++) {
 		if (S[elem].size() != (size_t)IPS_PER_ELEM || E[elem].size() != (size_t)IPS_PER_ELEM) { missing++; continue; }
 		double min_E_read = 0, HP_read = 0;
+		// [DENTAL] stimulus_mode 1: the cells sense the soft-tissue phase. Under the rule of mixtures (iso-strain,
+		// Voigt) every phase of the element has the element strain, so the soft phase's hydrostatic pressure is
+		// -K_soft tr(e), K_soft = E_soft / (3 (1 - 2 nu)) with nu = 0.167 for all soft tissues. For an element without
+		// bone this equals the element value; with bone, the stiff matrix no longer sets the pressure.
+		const double K_soft = E_soft_phase[elem] / (3.0 * (1.0 - 2.0 * 0.167));
 		for (int j = 0; j < IPS_PER_ELEM; j++) {
 			const auto& e = E[elem][j]; // exx eyy ezz exy exz eyz (tensor)
 			const auto& s = S[elem][j];
 			min_E_read += min_eigen_sym(e[0], e[1], e[2], e[3], e[4], e[5]); // EP1
-			HP_read += -(s[0] + s[1] + s[2]) / 3;                            // -(SP1+SP2+SP3)/3
+			if (P.stimulus_mode == 1) HP_read += -K_soft * (e[0] + e[1] + e[2]); // [DENTAL]
+			else HP_read += -(s[0] + s[1] + s[2]) / 3;                            // -(SP1+SP2+SP3)/3
 		}
 		min_E_read /= IPS_PER_ELEM;
 		HP_read /= IPS_PER_ELEM;
 		last_HP[elem] = (float)HP_read; last_minE[elem] = (float)min_E_read; // [DENTAL]
 
 		// Define stimulus (orijinal main Read_stimulus.cpp ile ayni)
-		if (fabs(HP_read) < 0.0016 && fabs(min_E_read) < 0.0004) {
+		if (P.lower_window && fabs(HP_read) < 0.0016 && fabs(min_E_read) < 0.0004) { // [DENTAL] P.lower_window
 			stimulus_read[elem] = 1; // resorption
 		}
 		else if (fabs(HP_read) < 0.15 && fabs(min_E_read) < 0.05) {
@@ -122,11 +128,10 @@ bool Read_stimulus(char stimulus_read[NUMBER_ELEMS], int /*elements_read*/[NUMBE
 			stimulus_read[elem] = 5; // fibrocartilage or connective
 		}
 	}
-#ifdef FORCE_STIMULUS
-	// [DENTAL] biology-only baseline: every element gets the same stimulus whatever the mechanics
-	// (FORCE_STIMULUS=2: bone-permissive everywhere). The FE model still runs so the pipeline is the same.
-	for (int elem = 0; elem < NUMBER_ELEMS; elem++) stimulus_read[elem] = FORCE_STIMULUS;
-#endif
+	// [DENTAL] biology-only setting: every element gets the same stimulus whatever the mechanics
+	// (force_stimulus 2: bone-permissive everywhere).
+	if (P.force_stimulus > 0)
+		for (int elem = 0; elem < NUMBER_ELEMS; elem++) stimulus_read[elem] = (char)P.force_stimulus;
 	if (missing > 0) {
 		cerr << "HATA: " << missing << "/" << NUMBER_ELEMS << " kallus elemani icin " << IPS_PER_ELEM << " IP verisi yok." << endl;
 		return false;
