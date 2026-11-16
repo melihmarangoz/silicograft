@@ -36,6 +36,13 @@ void Write_statistics(char const lattice[LATTICE_X][LATTICE_Y][LATTICE_Z], int l
 		g.write(stimulus, NUMBER_ELEMS);
 	}
 
+	// [DENTAL] section_daily.bin: the central mesio-distal section (lattice plane y = 0) every day, appended as
+	// LATTICE_X x LATTICE_Z bytes (x outer, z inner), for the live panel and section maps (4 kB per day).
+	{
+		ofstream sd("section_daily.bin", ios::binary | ios::app);
+		for (int i = 0; i < LATTICE_X; i++) sd.write(&lattice[i][SECTION_J][0], LATTICE_Z);
+	}
+
 	// [DENTAL] zones.csv: Hong 2014's outcome every day. Socket points per third of the socket height
 	// (crest z = 0 to SOCKET_Z_APEX) and in total, on the central section (lattice plane y = 0) and in the volume.
 	const float h = -SOCKET_Z_APEX / 3.0f;

@@ -4,8 +4,22 @@
 #include <fstream>
 #include "header.h"
 #include <ctime>
+#include <algorithm>
 
 using namespace std;
+
+// [DENTAL] MSCs of an element, in its inclusive bounding box (the range the random picks use), that may differentiate
+static int count_eligible(char cells[LATTICE_X][LATTICE_Y][LATTICE_Z], short age[LATTICE_X][LATTICE_Y][LATTICE_Z],
+	int lpe[LATTICE_X][LATTICE_Y][LATTICE_Z], int elem, int imin, int imax, int jmin, int jmax, int kmin, int kmax, int age_mature)
+{
+	int n = 0;
+	for (int i = imin; i <= imax; i++)
+		for (int j = jmin; j <= jmax; j++)
+			for (int k = kmin; k <= kmax; k++)
+				if (lpe[i][j][k] == elem + 1 && cells[i][j][k] == 1 && age[i][j][k] >= age_mature && Neighbour_presence(cells, i, j, k, i, j, k))
+					n++;
+	return n;
+}
 
 void Cell_differentiation(char cells_dif[LATTICE_X][LATTICE_Y][LATTICE_Z],short age_dif[LATTICE_X][LATTICE_Y][LATTICE_Z],char stimulus_dif[NUMBER_ELEMS], 
 	int element_local_min[NUMBER_ELEMS][3],int element_local_max[NUMBER_ELEMS][3],int lattice_point_element[LATTICE_X][LATTICE_Y][LATTICE_Z],int iter)
@@ -107,30 +121,6 @@ void Cell_differentiation(char cells_dif[LATTICE_X][LATTICE_Y][LATTICE_Z],short 
         chondrocytes_removed=fibroblasts_removed=mature_osteoblasts_removed=0;
         
         /*********************************************************************************************************
-            [DENTAL] WOVEN-BONE REMODELLING: from P.remodel_day, osteoblasts are removed at P.remodel_rate per day in
-            elements that are not under the resorption stimulus (which already removes them at 0.16). The freed
-            point is a marrow / vascular space (empty), which cells may occupy again.
-        **********************************************************************************************************/
-        if (P.remodel_rate > 0 && iter >= P.remodel_day && stimulus_dif[elem] != 1)
-        {
-            const int to_remove = sg_count(mature_osteoblasts, P.remodel_rate);
-            int removed = 0;
-            while (removed < to_remove)
-            {
-                i=imin+nrand(imax-imin+1);
-                j=jmin+nrand(jmax-jmin+1);
-                k=kmin+nrand(kmax-kmin+1);
-                if (lattice_point_element[i][j][k]==elem+1 && cells_dif[i][j][k]==2)
-                {
-                    cells_dif[i][j][k]=0;
-                    age_dif[i][j][k]=0;
-                    removed++;
-                }
-            }
-            remodelled += removed;
-        }
-
-        /*********************************************************************************************************
                                             FIBROUS TISSUE         
         **********************************************************************************************************/
         if (stimulus_dif[elem]==5)
@@ -158,6 +148,9 @@ void Cell_differentiation(char cells_dif[LATTICE_X][LATTICE_Y][LATTICE_Z],short 
             }
                   
             //CELL DIFFERENTIATION
+            // [DENTAL] apoptosis just above can remove the only guiding neighbour of an eligible MSC; cap the target at
+            // the MSCs still eligible in the picking box, otherwise the loop below may never end
+            cells_to_differentiate = std::min(cells_to_differentiate, count_eligible(cells_dif, age_dif, lattice_point_element, elem, imin, imax, jmin, jmax, kmin, kmax, age_mature_cell));
             while (cells_differentiated<cells_to_differentiate)
             {
                 r1=nrand(imax-imin+1); //r1=rand()%(imax-imin+1);
@@ -208,6 +201,9 @@ void Cell_differentiation(char cells_dif[LATTICE_X][LATTICE_Y][LATTICE_Z],short 
             }
                   
             //CELL DIFFERENTIATION
+            // [DENTAL] apoptosis just above can remove the only guiding neighbour of an eligible MSC; cap the target at
+            // the MSCs still eligible in the picking box, otherwise the loop below may never end
+            cells_to_differentiate = std::min(cells_to_differentiate, count_eligible(cells_dif, age_dif, lattice_point_element, elem, imin, imax, jmin, jmax, kmin, kmax, age_mature_cell));
             while (cells_differentiated<cells_to_differentiate)
             {
                 //cout<<"cartilage differentiation"<<endl;
@@ -280,6 +276,9 @@ void Cell_differentiation(char cells_dif[LATTICE_X][LATTICE_Y][LATTICE_Z],short 
             }        
      
             //CELL DIFFERENTIATION
+            // [DENTAL] apoptosis just above can remove the only guiding neighbour of an eligible MSC; cap the target at
+            // the MSCs still eligible in the picking box, otherwise the loop below may never end
+            cells_to_differentiate = std::min(cells_to_differentiate, count_eligible(cells_dif, age_dif, lattice_point_element, elem, imin, imax, jmin, jmax, kmin, kmax, age_mature_cell));
             while (cells_differentiated<cells_to_differentiate)
             {
                 r1=nrand(imax-imin+1); //r1=rand()%(imax-imin+1);
@@ -368,6 +367,31 @@ void Cell_differentiation(char cells_dif[LATTICE_X][LATTICE_Y][LATTICE_Z],short 
         	} 
         }//end for bone resorption
 	        // system("PAUSE");
+        /*********************************************************************************************************
+            [DENTAL] WOVEN-BONE REMODELLING: from P.remodel_day, osteoblasts are removed at P.remodel_rate per day in
+            elements that are not under the resorption stimulus (which already removes them at 0.16). The freed
+            point is a marrow / vascular space (empty), which cells may occupy again. It acts after the element's
+            differentiation, so that it cannot change the eligible MSCs while they are being picked.
+        **********************************************************************************************************/
+        if (P.remodel_rate > 0 && iter >= P.remodel_day && stimulus_dif[elem] != 1)
+        {
+            const int to_remove = sg_count(mature_osteoblasts, P.remodel_rate);
+            int removed = 0;
+            while (removed < to_remove)
+            {
+                i=imin+nrand(imax-imin+1);
+                j=jmin+nrand(jmax-jmin+1);
+                k=kmin+nrand(kmax-kmin+1);
+                if (lattice_point_element[i][j][k]==elem+1 && cells_dif[i][j][k]==2)
+                {
+                    cells_dif[i][j][k]=0;
+                    age_dif[i][j][k]=0;
+                    removed++;
+                }
+            }
+            remodelled += removed;
+        }
+
     }// end for element
 	
 	// Write differentiation info to a file
