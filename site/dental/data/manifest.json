@@ -76,7 +76,8 @@
  "meshes": {
   "mandible": "mandible.glb",
   "teeth": "teeth.glb",
-  "bridge": "bridge.glb"
+  "bridge": "bridge.glb",
+  "bridge_ovate": "bridge_ovate.glb"
  },
  "series": "series.json",
  "voxel_rule": "each 0.2 mm voxel holds 2x2x2 lattice sites of 0.1 mm; inside the socket if at least 4 of its 8 sites are socket sites (else 255); drawn if at least 40 % of its socket sites hold a cell or granule (else 0), as the most frequent such code, ties to new bone > granule > stem cell > fibroblast > chondrocyte; the voxels show about 4-8 points more new bone than the 0.1 mm lattice, series.json has the exact values",
@@ -221,60 +222,96 @@
    "same_cells_as": "swapped"
   },
   {
-   "id": "ovate05",
-   "label": "socket 32 empty, socket 33 beta-TCP, bridge with ovate pontics pressed 0.5 mm into the tissue over both sockets",
+   "id": "ovate_cap",
+   "label": "socket 32 empty, socket 33 beta-TCP, bridge with ovate pontics occupying the socket mouths (clinical placement: no pressure)",
    "arms": {
     "32": "empty",
     "33": "beta-TCP"
    },
-   "loading": "the bridge loads plus a sustained 0.5 mm interference of both pontics, all of it reaching the socket tissue (upper bound)",
+   "loading": "daily peak of: bite on 31 and 41 (25 N each), canine guidance on 33 and on 43 (25 N), chewing on 34 (120 N); the pontics reach down to the socket surface, the clot forms against them and moves with the bridge",
+   "frames": {
+    "32": "s32_frames.bin.gz",
+    "33": "s33_frames.bin.gz"
+   },
+   "series": "series_ovate_cap.json",
+   "same_cells_as": "baseline",
+   "clinical": true
+  },
+  {
+   "id": "ovate_cap_swapped",
+   "label": "socket 32 beta-TCP, socket 33 empty, bridge with ovate pontics occupying the socket mouths (clinical placement: no pressure)",
+   "arms": {
+    "32": "beta-TCP",
+    "33": "empty"
+   },
+   "loading": "daily peak of: bite on 31 and 41 (25 N each), canine guidance on 33 and on 43 (25 N), chewing on 34 (120 N); the pontics reach down to the socket surface, the clot forms against them and moves with the bridge",
+   "frames": {
+    "32": "swapped_s32_frames.bin.gz",
+    "33": "swapped_s33_frames.bin.gz"
+   },
+   "series": "series_ovate_cap_swapped.json",
+   "same_cells_as": "swapped",
+   "clinical": true
+  },
+  {
+   "id": "ovate05",
+   "label": "socket 32 empty, socket 33 beta-TCP, pontics pressed 0.5 mm into the fresh sockets (not clinical practice; upper bound)",
+   "arms": {
+    "32": "empty",
+    "33": "beta-TCP"
+   },
+   "loading": "the bridge loads plus a sustained 0.5 mm interference of both pontics, all of it reaching the socket tissue; clinically an ovate pontic fills the socket mouth without pressure (see ovate_cap)",
    "frames": {
     "32": "ovate05_s32_frames.bin.gz",
     "33": "ovate05_s33_frames.bin.gz"
    },
-   "series": "series_ovate05.json"
+   "series": "series_ovate05.json",
+   "clinical": false
   },
   {
    "id": "ovate05_swapped",
-   "label": "socket 32 beta-TCP, socket 33 empty, bridge with ovate pontics pressed 0.5 mm into the tissue over both sockets",
+   "label": "socket 32 beta-TCP, socket 33 empty, pontics pressed 0.5 mm into the fresh sockets (not clinical practice; upper bound)",
    "arms": {
     "32": "beta-TCP",
     "33": "empty"
    },
-   "loading": "the bridge loads plus a sustained 0.5 mm interference of both pontics, all of it reaching the socket tissue (upper bound)",
+   "loading": "the bridge loads plus a sustained 0.5 mm interference of both pontics, all of it reaching the socket tissue; clinically an ovate pontic fills the socket mouth without pressure (see ovate_cap)",
    "frames": {
     "32": "ovate05_swapped_s32_frames.bin.gz",
     "33": "ovate05_swapped_s33_frames.bin.gz"
    },
-   "series": "series_ovate05_swapped.json"
+   "series": "series_ovate05_swapped.json",
+   "clinical": false
   },
   {
    "id": "ovate10",
-   "label": "socket 32 empty, socket 33 beta-TCP, bridge with ovate pontics pressed 1 mm into the tissue over both sockets",
+   "label": "socket 32 empty, socket 33 beta-TCP, pontics pressed 1 mm into the fresh sockets (not clinical practice; upper bound)",
    "arms": {
     "32": "empty",
     "33": "beta-TCP"
    },
-   "loading": "the bridge loads plus a sustained 1 mm interference of both pontics, all of it reaching the socket tissue (upper bound)",
+   "loading": "the bridge loads plus a sustained 1 mm interference of both pontics, all of it reaching the socket tissue; clinically an ovate pontic fills the socket mouth without pressure (see ovate_cap)",
    "frames": {
     "32": "ovate10_s32_frames.bin.gz",
     "33": "ovate10_s33_frames.bin.gz"
    },
-   "series": "series_ovate10.json"
+   "series": "series_ovate10.json",
+   "clinical": false
   },
   {
    "id": "ovate10_swapped",
-   "label": "socket 32 beta-TCP, socket 33 empty, bridge with ovate pontics pressed 1 mm into the tissue over both sockets",
+   "label": "socket 32 beta-TCP, socket 33 empty, pontics pressed 1 mm into the fresh sockets (not clinical practice; upper bound)",
    "arms": {
     "32": "beta-TCP",
     "33": "empty"
    },
-   "loading": "the bridge loads plus a sustained 1 mm interference of both pontics, all of it reaching the socket tissue (upper bound)",
+   "loading": "the bridge loads plus a sustained 1 mm interference of both pontics, all of it reaching the socket tissue; clinically an ovate pontic fills the socket mouth without pressure (see ovate_cap)",
    "frames": {
     "32": "ovate10_swapped_s32_frames.bin.gz",
     "33": "ovate10_swapped_s33_frames.bin.gz"
    },
-   "series": "series_ovate10_swapped.json"
+   "series": "series_ovate10_swapped.json",
+   "clinical": false
   }
  ],
  "new_in_v2": [
@@ -282,5 +319,12 @@
   "surface_strain: per-vertex strain on mandible.glb for each load case",
   "runs: further simulations; each has frames per socket (same origin and dims as sockets[]) and its own series file; the first entry is the version-1 simulation",
   "runs[].same_cells_as: the run gives cell for cell the same healing as that run, so it reuses its frames"
+ ],
+ "version_minor": 1,
+ "changes_in_2_1": [
+  "runs ovate_cap and ovate_cap_swapped: ovate pontics as placed into fresh sockets, occupying the socket mouth down to the crest with no pressure; the clot forms against them and they move with the bridge",
+  "meshes.bridge_ovate: the bridge with those ovate pontics, same frame as the jaw",
+  "runs ovate05*, ovate10*: relabelled; pressing a pontic 0.5-1 mm into a fresh socket is not clinical practice, these are upper bounds",
+  "runs[].clinical: true for the clinically placed variants, false for the upper bounds"
  ]
 }
