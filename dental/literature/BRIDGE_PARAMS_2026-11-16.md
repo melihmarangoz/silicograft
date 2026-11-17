@@ -1,5 +1,7 @@
 # Bridge biomechanics parameters for the 34-43 zirconia bridge: literature check
 
+**Update 2026-11-17:** 24 of the papers listed as not obtained (§11) were read in full; values, verdicts and changes are in [BRIDGE_PARAMS_ADDENDUM_2026-11-17.md](BRIDGE_PARAMS_ADDENDUM_2026-11-17.md). That file takes precedence where the two differ (above all on ovate pontics, maximal single-tooth forces and clench shares).
+
 Prepared 2026-11-16 for the SilicoGraft dental finite-element model of a 7-unit zirconia bridge in the lower anterior jaw: abutments 34, 31, 41, 42, 43; pontics 33 and 32 over two healing extraction sockets (32 empty, 33 grafted). It answers nine questions about loads, duty cycle, PDL, materials, physiological limits, abutment adequacy, connectors, ovate pontics and clot stiffness. It builds on `SOCKET_PARAMS_2026-11-16.md` and `HUMAN_SOCKET_PARAMS_2026-11-16.md` and does not repeat them.
 
 **Method.**
