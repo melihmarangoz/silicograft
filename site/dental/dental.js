@@ -25,8 +25,11 @@ const armName = (arm) => (isGraft(arm) ? "β-TCP" : "empty");
 const armVar = (arm) => (isGraft(arm) ? "var(--arm-tcp)" : "var(--arm-empty)");
 // scenario names for run ids (the "_swapped" twin of each has the graft in the other socket)
 const LOADING_NAMES = { baseline: "No load", natural_teeth: "Natural teeth", bridge: "Bridge, pontics clear the tissue",
-  ovate05: "Bridge, ovate pontics 0.5 mm into the tissue", ovate10: "Bridge, ovate pontics 1 mm into the tissue" };
-const LOADING_SHORT = { baseline: "no load", natural_teeth: "natural teeth", bridge: "bridge", ovate05: "ovate pontics 0.5 mm", ovate10: "ovate pontics 1 mm" };
+  ovate_cap: "Bridge, ovate pontic in the socket mouth (clinical)",
+  ovate05: "Bridge, pontic pressed 0.5 mm into the tissue (not clinical, upper bound)",
+  ovate10: "Bridge, pontic pressed 1.0 mm into the tissue (not clinical, upper bound)" };
+const LOADING_SHORT = { baseline: "no load", natural_teeth: "natural teeth", bridge: "bridge", ovate_cap: "bridge, ovate pontics (clinical)",
+  ovate05: "pontics pressed 0.5 mm (upper bound)", ovate10: "pontics pressed 1.0 mm (upper bound)" };
 
 const state = {
   day: 0, playing: false, speed: 14, touchedTime: false,
@@ -76,9 +79,11 @@ const jawBack = new THREE.MeshLambertMaterial({ color: 0xb9ab90, transparent: tr
 const teethMat = new THREE.MeshLambertMaterial({ color: 0xeee5d4, side: THREE.DoubleSide });
 // zirconia: a cooler white than the natural teeth, glossy, slightly translucent
 const bridgeMat = new THREE.MeshPhongMaterial({ color: 0xe4edf6, specular: 0x5a6470, shininess: 70, transparent: true, opacity: 0.8, side: THREE.FrontSide });
-const jawGroup = new THREE.Group(), teethGroup = new THREE.Group(), bridgeGroup = new THREE.Group();
-bridgeGroup.visible = false;
-scene.add(jawGroup, teethGroup, bridgeGroup);
+const jawGroup = new THREE.Group(), teethGroup = new THREE.Group();
+// two bridges: pontics that clear the tissue ("bridge") and ovate pontics in the socket mouths ("bridge_ovate"),
+// each loaded the first time a scenario shows it
+const bridges = { bridge: { group: new THREE.Group(), state: "" }, bridge_ovate: { group: new THREE.Group(), state: "" } };
+scene.add(jawGroup, teethGroup, bridges.bridge.group, bridges.bridge_ovate.group);
 const jawBox = new THREE.Box3();
 let jawGeom = null;  // the mandible geometry (its vertex order is the order of surface_strain)
 
@@ -215,6 +220,15 @@ const scenario = () => scenarios.find((s) => s.key === state.loading) || scenari
 // the run of the current loading with the graft in socket g (falls back to the other twin if there is none)
 function runFor(g) { const s = scenario(); return s.runs[g] || Object.values(s.runs)[0]; }
 const hasBridge = (key) => /bridge|ovate/.test(key);
+// the ovate scenarios show the bridge with ovate pontics when the package has it
+const bridgeKind = (key) => (/ovate/.test(key) && manifest.meshes && manifest.meshes.bridge_ovate ? "bridge_ovate" : "bridge");
+function ensureBridge(kind) {
+  const B = bridges[kind], file = manifest && manifest.meshes && manifest.meshes[kind];
+  if (!file || B.state) return;
+  B.state = "loading";
+  loadGLB(file).then((g) => { addMeshes(g, B.group, [bridgeMat], false); B.state = "ready"; applyJaw(); })
+    .catch((e) => { B.state = "failed"; console.error(e); status(`Could not load the bridge (${e.message}).`); });
+}
 // What is on screen: panes, each with its sockets ({ G, run, V }). Normal: one pane, both sockets of the current run.
 // Compare: two panes, the chosen socket empty (left or top) and grafted (right or bottom), under the same loading.
 function view() {
@@ -828,7 +842,9 @@ function applyJaw() {
   jawGroup.visible = o > 0.01;
   jawGroup.children.forEach((me) => { if (me.material === jawBack) me.visible = !solid; });
   teethGroup.visible = state.teeth;
-  bridgeGroup.visible = state.bridge && bridgeGroup.children.length > 0;
+  const kind = manifest ? bridgeKind(state.loading) : "bridge";
+  if (state.bridge && manifest) ensureBridge(kind);
+  for (const k in bridges) bridges[k].group.visible = state.bridge && k === kind && bridges[k].state === "ready";
   $("show-bridge").checked = state.bridge;
   requestRender();
 }
@@ -867,8 +883,15 @@ function applyScenario() {
   if (!scenarios.some((s) => s.key === state.loading)) state.loading = scenarios[0].key;
   $("loading-sel").value = state.loading;
   const r = runFor(state.graft), cmp = state.compare !== "off";
-  $("loading-note").textContent = cmp ? `Socket ${state.compare}, empty and with β-TCP; loading: ${r.loading === "none" ? "none" : r.loading}.`
+  const note = $("loading-note");
+  note.textContent = cmp ? `Socket ${state.compare}, empty and with β-TCP; loading: ${r.loading === "none" ? "none" : r.loading}.`
     : `${r.label ? r.label[0].toUpperCase() + r.label.slice(1) : ""}${r.loading && r.loading !== "none" ? `. Loading: ${r.loading}` : ""}.`;
+  // runs[].clinical: whether the scenario is done this way in practice, or an upper bound
+  if (typeof r.clinical === "boolean") {
+    const b = document.createElement("strong"); b.className = r.clinical ? "clin yes" : "clin no";
+    b.textContent = r.clinical ? "Clinical: placed as in practice. " : "Not clinical practice: an upper bound. ";
+    note.prepend(b);
+  }
   document.querySelectorAll("[data-graft]").forEach((b) => { b.setAttribute("aria-pressed", b.dataset.graft === state.graft); if (cmp) b.disabled = true; else b.disabled = !scenarios.some((s) => Object.keys(s.runs).length > 1); });
   document.querySelectorAll("[data-compare]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.compare === state.compare));
   $("sockets-group").hidden = cmp;
@@ -965,11 +988,11 @@ ticks(phone.matches); applyJaw(); requestAnimationFrame(loop);
     applyScenario();
     // the jaw first, then the frames (applyScenario has already asked for those of the scenario shown)
     const meshes = manifest.meshes || {};
-    const [jaw, teeth, bridge] = await Promise.all([meshes.mandible ? loadGLB(meshes.mandible) : null,
-      meshes.teeth ? loadGLB(meshes.teeth).catch(() => null) : null, meshes.bridge ? loadGLB(meshes.bridge).catch(() => null) : null]);
+    if (meshes.bridge) $("bridge-row").hidden = false;
+    const [jaw, teeth] = await Promise.all([meshes.mandible ? loadGLB(meshes.mandible) : null,
+      meshes.teeth ? loadGLB(meshes.teeth).catch(() => null) : null]);
     if (jaw) jawGeom = addMeshes(jaw, jawGroup, [jawBack, jawFront], true)[0] || null;
     if (teeth) addMeshes(teeth, teethGroup, [teethMat], true);
-    if (bridge) { addMeshes(bridge, bridgeGroup, [bridgeMat], false); $("bridge-row").hidden = false; }
     applyJaw(); resize(); cameraTo(state.compare !== "off" || state.section !== "off" ? "sockets" : "jaw", true);
     $("loading").hidden = true;
     if (query.has("strain") && manifest.surface_strain) {

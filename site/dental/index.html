@@ -111,9 +111,13 @@ label.check.absent small { font-size: 0.72rem; }
 .cols2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; }
 .field { display: grid; grid-template-columns: 5.2rem minmax(0, 1fr); gap: 10px; align-items: center; font-size: 0.85rem; }
 .field select { width: 100%; min-width: 0; }
+.field.stack { grid-template-columns: minmax(0, 1fr); gap: 4px; }
 .seg.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .seg button:disabled { opacity: 0.45; cursor: not-allowed; }
 .scen-note { margin: 0; color: var(--fg-2); font-size: 0.78rem; }
+.scen-note .clin { font-weight: 600; }
+.scen-note .clin.yes { color: var(--color-success); }
+.scen-note .clin.no { color: var(--color-error); }
 .slider { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 0.85rem; }
 .slider input { width: 100%; margin: 0; accent-color: var(--accent); }
 .slider output { font-variant-numeric: tabular-nums; color: var(--fg-2); min-width: 4.2ch; text-align: right; }
@@ -247,7 +251,7 @@ table.read tbody tr + tr > * { border-top: 1px solid var(--line); }
     <aside class="panel" aria-label="Controls">
       <div class="group">
         <h2>Scenario</h2>
-        <label class="field" for="loading-sel"><span>Loading</span><select id="loading-sel"></select></label>
+        <label class="field stack" for="loading-sel"><span>Loading</span><select id="loading-sel"></select></label>
         <p class="scen-note" id="loading-note"></p>
         <div class="field"><span>β-TCP in</span><div class="seg two" role="group" aria-label="Socket with the graft">
           <button type="button" data-graft="33" aria-pressed="true">33, canine</button><button type="button" data-graft="32" aria-pressed="false">32, incisor</button></div></div>
@@ -314,7 +318,7 @@ table.read tbody tr + tr > * { border-top: 1px solid var(--line); }
     <section>
       <h2>What is simulated</h2>
       <p>The geometry comes from an anonymized cone-beam CT of a lower jaw. The lower left lateral incisor (32) and canine (33) were removed virtually, which leaves two sockets. One of them is filled with β-TCP granules of 0.5 to 1 mm, about half of its volume (a Cerasorb M-like product, assumed); the other stays empty. Every scenario was run both ways round, so the same socket can be compared grafted and empty. Both heal under a closed soft-tissue cover.</p>
-      <p>Loading: none; the daily peak of front bites, canine guidance and chewing through the natural neighbouring teeth; the same through a 7-unit zirconia bridge from 34 to 43 whose pontics over the sockets clear the tissue; and that bridge with ovate pontics pressed 0.5 or 1 mm into the tissue over both sockets.</p>
+      <p>Loading: none; the daily peak of front bites, canine guidance and chewing through the natural neighbouring teeth; the same through a 7-unit zirconia bridge from 34 to 43, either with pontics that clear the tissue over the sockets or with ovate pontics placed in the socket mouths as in practice. Two further runs press the pontics 0.5 or 1 mm into the fresh socket tissue: not clinical practice, kept as upper bounds.</p>
       <p>Stem cells line the bony wall at day 0. They divide, migrate and turn into fibroblasts, chondrocytes or bone-forming cells by SilicoGraft's agent-based rules, steered by the mechanical stimulus from a finite-element model of the jaw. The granules dissolve and bone grows along them. Each cube is one 0.2 mm voxel of the result.</p>
       <p>The scan's field of view cuts through the rami, so each ramus ends in a flat face. The labial walls of both sockets are thinner than the scan's resolution, so the sockets are open toward the lip.</p>
     </section>
@@ -322,9 +326,11 @@ table.read tbody tr + tr > * { border-top: 1px solid var(--line); }
       <h2>What the model shows</h2>
       <ul>
         <li><b>Graft or no graft, same socket.</b> β-TCP delays early bone: at 3 months 25 % instead of 33 % of socket 32, 22 % instead of 31 % of socket 33. At 6 months it gives as much or more (64 vs 58 %, 54 vs 52 %), and much more in the centre (virtual core 53 vs 29 %, 18 vs 2 %).</li>
-        <li><b>Bite loads do not change healing.</b> Through the bridge the strain in the sockets stays at or below about 560 µε (without it, up to about 6,400 µε under a front bite), far inside the model's bone-forming window of 50,000 µε. The cells come out identical to the unloaded run.</li>
+        <li><b>Bite loads do not change healing.</b> Through the bridge the strain in the sockets stays at or below about 590 µε (without it, up to about 6,400 µε under a front bite), far inside the model's bone-forming window of 50,000 µε. The cells come out identical to the unloaded run.</li>
         <li><b>The splinted bridge shares the load.</b> Under a front bite the pressure in the periodontal ligament of 31 falls about tenfold (1,230 to 114 kPa); under chewing on 34 it rises a little on 31 (172 to 303 kPa).</li>
-        <li><b>A pressed ovate pontic is the one option that impairs healing.</b> With the pontics 0.5 or 1 mm into the tissue, empty socket 32 holds 28 % or 14 % new bone at 6 months instead of 58 %, and fibrous tissue stays. This is an upper bound: the whole interference is assumed to reach the socket tissue, while the gingiva and the clot would take up and relax part of it, and the model's thresholds come from cyclic, not sustained, strain.</li>
+        <li><b>It also protects 31 under a maximal bite.</b> With 150 N on 31, its periodontal ligament pressure stays about 0.4 MPa with the bridge; the natural 31 reaches about 4 MPa, with 8 % of the bone around its root above 3,000 µε. Abutment 34 under 300 N: 0.02 % of the bone around its root above 3,000 µε.</li>
+        <li><b>An ovate pontic placed as in practice changes nothing.</b> Seated in the socket mouth about 3 mm below the gingival margin, without pressure, with the clot forming against it (Bakshi 2018, Dylina 1999), it gives healing identical to the unloaded runs. Only pressing the pontics 0.5 to 1 mm into the fresh socket tissue impaired healing in the model (empty socket 32: 28 % or 14 % new bone at 6 months instead of 58 %, with fibrous tissue). Clinicians do not do that, and even then it is an upper bound: the whole interference is assumed to reach the socket tissue, and the model's thresholds come from cyclic, not sustained, strain.</li>
+        <li><b>A check against measurement.</b> Under a 50 N bite the model's strain on the labial cortex of a natural lower incisor (61 to 213 µε) is of the same order as measured in vitro (Asundi and Kishen, 42 to 352 µε).</li>
       </ul>
     </section>
     <section>

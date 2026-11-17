@@ -184,16 +184,19 @@ alone. The header nav and the phone menu link to it as "Dental".
 
 A model comparison on one real, anonymized jaw geometry (not a forecast for a person): two
 extraction sockets (32, 33) over 182 days of the human setting (`dental/README.md`,
-`dental/literature/`), one grafted with β-TCP and one empty, run both ways round, under five
+`dental/literature/`), one grafted with β-TCP and one empty, run both ways round, under six
 loadings: none, the natural teeth, a 7-unit zirconia bridge 34 to 43 whose pontics clear the
-tissue, and that bridge with ovate pontics pressed 0.5 or 1 mm into the tissue. The page has:
+tissue, that bridge with ovate pontics placed in the socket mouths as in practice, and (not
+clinical, kept as upper bounds) the pontics pressed 0.5 or 1 mm into the tissue. The page has:
 - **Scenario:** the loading (a select), which socket holds the graft, and **Compare** (off,
   socket 32, socket 33): the chosen socket twice, empty and grafted under the same loading, in
   two panes with one camera (side by side on a wide stage, stacked on a tall one, as on a phone).
   The charts and the table then show that socket's two arms. The URL can name the starting
   state: `?loading=bridge&graft=32&compare=33&strain=bridge_chew34&day=91&section=md`.
 - **Jaw:** the mandible see-through (opacity slider), the remaining teeth, the bridge (on by
-  default in the bridge and ovate scenarios; near white, slightly translucent) and a **strain
+  default in the bridge and ovate scenarios; cool white, slightly translucent; `bridge_ovate.glb`
+  with the ovate pontics in the ovate scenarios, `bridge.glb` otherwise, each loaded the first
+  time it is shown) and a **strain
   map**: the mandible surface coloured by the largest principal strain of a chosen load case,
   on a log scale from 10 to 3,000 µε with a legend that marks the 1,500-3,000 µε overload band.
   Switching it on makes the jaw opaque; switching it off restores the opacity.
@@ -215,7 +218,9 @@ Data contract (`data/`, the case pipeline's site package, version 2, written out
   Version 1 (no `runs`) still loads: it becomes one unloaded scenario.
 - `runs[]`: `id`, `label`, `arms` (socket id to "empty" or "beta-TCP"), `loading` (text),
   `frames` (per socket), `series`, optional `same_cells_as` (the run gives cell for cell the
-  same healing as that run and names its frame files). The page groups each run with its
+  same healing as that run and names its frame files) and `clinical` (true: placed as in
+  practice; false: an upper bound; shown in the scenario note). Package 2.1 (`version_minor`
+  1) added `ovate_cap` / `ovate_cap_swapped` and `meshes.bridge_ovate`. The page groups each run with its
   `_swapped` twin (`swapped` for `baseline`) into one loading; frames are fetched by file name
   when a scenario first needs them, so files shared by several runs load once.
 - Frames: uint8, shape (n_frames, nz, ny, nx), x fastest; 0 empty (not drawn), 1-5 the
@@ -236,9 +241,10 @@ Data contract (`data/`, the case pipeline's site package, version 2, written out
   `days` and `whole_new_bone`), drawn as a shaded band. The unloaded runs are means of three
   seeds, the loaded ones one seed; the notes say which. Table rows of tissues that stay at zero
   are left out.
-- Size: `dental/` is about 6.5 MB deployed (mandible.glb 2.4 MB, teeth.glb 1.2 MB, bridge.glb
-  1.0 MB, frames 1.4 MB, strain 0.6 MB, series 0.07 MB). The first view loads the meshes and
-  the two baseline frame files (0.28 MB); the rest comes when a scenario or the strain map asks.
+- Size: `dental/` is about 7.5 MB deployed (mandible.glb 2.4 MB, teeth.glb 1.2 MB, bridge.glb
+  and bridge_ovate.glb 1.0 MB each, frames 1.4 MB, strain 0.6 MB, series 0.08 MB). The first
+  view loads the jaw and teeth (3.6 MB) and the two baseline frame files (0.28 MB); the rest
+  comes when a scenario or the strain map asks.
 - Privacy: no images, no names, dates or scan metadata; the package's anonymization note stays
   with the case, outside this repo.
 
