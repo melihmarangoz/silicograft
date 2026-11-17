@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>SilicoGraft Socket View</title>
-<meta name="description" content="A model comparison on a real, anonymized lower jaw: two extraction sockets healing for six months in the SilicoGraft model, with and without beta-TCP graft, with and without a 7-unit bridge. An interactive 3D view.">
+<meta name="description" content="A model comparison on a real, anonymized lower jaw: two extraction sockets healing for six months in the SilicoGraft model, with and without beta-TCP graft, under a 7-unit bridge or with immediate implants. An interactive 3D view.">
 <link rel="icon" href="data:,">
 <link rel="preload" href="../assets/fonts/mona-sans-core.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="../tokens.css">
@@ -19,6 +19,8 @@
   --accent: var(--color-accent); --accent-ink: var(--color-accent-ink); --focus: var(--color-focus);
   /* the two arms (labels, charts): empty = neutral, grafted = coral */
   --arm-empty: oklch(86% 0.025 250); --arm-tcp: oklch(74% 0.14 28);
+  /* the two implant sockets in the implant scenarios (both carry an implant and beta-TCP in the gap) */
+  --impl-a: oklch(84% 0.09 195); --impl-b: oklch(78% 0.11 300);
   /* tissue colours of the dental report figures (dental/tools/analyze_mask_model.py), lifted a little for the dark stage */
   --t-msc: #eda100; --t-fib: #1baf7a; --t-cho: #7d6cf0; --t-bone: #3d8fe6; --t-tcp: #e34948;
   --font-ui: var(--font-body);
@@ -118,6 +120,14 @@ label.check.absent small { font-size: 0.72rem; }
 .scen-note .clin { font-weight: 600; }
 .scen-note .clin.yes { color: var(--color-success); }
 .scen-note .clin.no { color: var(--color-error); }
+.scen-note .same { color: var(--fg); }
+.implant-link { font-size: 0.82rem; }
+/* results card of the implant runs (in the notes) */
+.card { grid-column: 1 / -1; display: grid; gap: 10px; padding: 16px 18px 18px; background: var(--panel); border: 1px solid var(--line);
+  border-left: 3px solid var(--impl-a); scroll-margin-top: 16px; }
+.card h2 { font-size: var(--text-lg); }
+.card .inputs { color: var(--muted); font-size: 0.84rem; }
+.card ul { grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); column-gap: 32px; }
 .slider { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 0.85rem; }
 .slider input { width: 100%; margin: 0; accent-color: var(--accent); }
 .slider output { font-variant-numeric: tabular-nums; color: var(--fg-2); min-width: 4.2ch; text-align: right; }
@@ -138,6 +148,7 @@ table.read tbody tr + tr > * { border-top: 1px solid var(--line); }
 
 /* notes */
 .notes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px 32px; padding-top: 8px; border-top: 1px solid var(--line); }
+.notes > .card { padding-top: 16px; }
 .notes section { display: grid; gap: 8px; align-content: start; }
 .notes h2 { margin: 0; font-size: var(--text-lg); font-weight: var(--display-weight); font-stretch: var(--display-stretch); letter-spacing: var(--tracking-display); }
 .notes p, .notes li { color: var(--fg-2); font-size: 0.9rem; text-wrap: pretty; }
@@ -206,7 +217,7 @@ table.read tbody tr + tr > * { border-top: 1px solid var(--line); }
     <a class="top-btn" href="../">← SilicoGraft</a>
     <div>
       <h1><span class="brand">SilicoGraft </span>Socket View</h1>
-      <p>A model comparison on a real, anonymized jaw geometry, not a forecast for a person: two extraction sockets (lower left lateral incisor 32 and canine 33) heal for six months, with β-TCP graft or without it in the same socket, and with or without a 7-unit bridge (34 to 43) over them. Drag to rotate, scroll or pinch to zoom.</p>
+      <p>A model comparison of treatment options on a real, anonymized jaw geometry, not a forecast for a person: two extraction sockets (lower left lateral incisor 32 and canine 33) heal for six months, with β-TCP graft or without it in the same socket, under a 7-unit bridge (34 to 43) or with immediate implants. Drag to rotate, scroll or pinch to zoom.</p>
     </div>
     <button class="top-btn" id="fullscreen" type="button" title="Full screen (F)" hidden>Full screen</button>
   </header>
@@ -258,6 +269,7 @@ table.read tbody tr + tr > * { border-top: 1px solid var(--line); }
         <div class="field"><span>Compare</span><div class="seg" role="group" aria-label="Show one socket empty and grafted side by side">
           <button type="button" data-compare="off" aria-pressed="true">Off</button><button type="button" data-compare="32" aria-pressed="false">Socket 32</button><button type="button" data-compare="33" aria-pressed="false">Socket 33</button></div></div>
         <p class="note">Compare shows one socket twice under the same loading: empty and with β-TCP.</p>
+        <p class="implant-link" id="implant-link" hidden><a href="#implant-results">Results of the implant runs ↓</a></p>
       </div>
       <div class="group">
         <h2>Camera</h2>
@@ -270,7 +282,8 @@ table.read tbody tr + tr > * { border-top: 1px solid var(--line); }
         <h2>Jaw</h2>
         <label class="slider" for="opacity"><span>Bone opacity</span><input id="opacity" type="range" min="0" max="1" step="0.05" value="0.2"><output id="opacity-out" class="num">20 %</output></label>
         <label class="check"><input type="checkbox" id="show-teeth" checked>Remaining teeth</label>
-        <label class="check" id="bridge-row" hidden><input type="checkbox" id="show-bridge">Bridge 34 to 43 (zirconia)</label>
+        <label class="check" id="implants-row" hidden><input type="checkbox" id="show-implants" checked>Implants (titanium)</label>
+        <label class="check" id="bridge-row" hidden><input type="checkbox" id="show-bridge"><span id="bridge-label">Bridge 34 to 43 (zirconia)</span></label>
         <label class="check" id="strain-row" hidden><input type="checkbox" id="show-strain">Colour the bone by strain</label>
         <div id="strain-controls" hidden>
           <label class="field" for="strain-case"><span>Load case</span><select id="strain-case"></select></label>
@@ -306,8 +319,9 @@ table.read tbody tr + tr > * { border-top: 1px solid var(--line); }
         <table class="read" id="read"></table>
       </div>
       <div class="group">
-        <div class="chart"><h3>New bone, % of the socket</h3><canvas id="chart-nb" aria-label="Chart: new bone over 182 days, sockets 32 and 33"></canvas></div>
-        <div class="chart"><h3>Residual β-TCP, % of the socket</h3><canvas id="chart-rb" aria-label="Chart: residual beta-TCP in socket 33 over 182 days"></canvas></div>
+        <div class="chart"><h3 id="chart-nb-title">New bone, % of the socket</h3><canvas id="chart-nb" aria-label="Chart: new bone over 182 days, sockets 32 and 33"></canvas></div>
+        <div class="chart"><h3 id="chart-rb-title">Residual β-TCP, % of the socket</h3><canvas id="chart-rb" aria-label="Chart: residual beta-TCP over 182 days"></canvas></div>
+        <div class="chart" id="chart-bic-box" hidden><h3>Bone-implant contact, %</h3><canvas id="chart-bic" aria-label="Chart: bone-implant contact over 182 days, implants 32 and 33"></canvas></div>
         <div class="legend" id="legend"></div>
         <p class="note" id="chart-note">Click a chart to jump to that day.</p>
       </div>
@@ -315,10 +329,23 @@ table.read tbody tr + tr > * { border-top: 1px solid var(--line); }
   </div>
 
   <div class="notes">
+    <section class="card" id="implant-results">
+      <h2>Immediate implants: model results</h2>
+      <p class="inputs">Model inputs: implant 32 Ø 3.0 × 9.0 mm, implant 33 Ø 3.75 × 16.6 mm, platform at the crest and tip 3 mm beyond the socket apex; the gap between implant and socket wall is filled with β-TCP. Months 0 to 3 under cover screws, then either the 7-unit bridge on the teeth and both implants or single crowns on the implants.</p>
+      <ul>
+        <li><b>Healing in the gap.</b> New bone at 3 and 6 months: 34 % and 69 % of the gap around implant 32, 30 % and 58 % around implant 33 (without implants the whole sockets reach 58 % and 53 % at 6 months). Bone-implant contact 41 to 45 % at 3 months, 72 to 78 % at 6 months. The loaded runs heal cell for cell like the unloaded one.</li>
+        <li><b>Micromotion.</b> At most 3.6 µm at the implant surface (5 µm under a 150 N clench), against the 50 to 150 µm that a healing implant is taken to tolerate.</li>
+        <li><b>Load sharing with the bridge.</b> Chewing on 34: implant 33 carries 49 % and tooth 34 21 %, and the pressure in the ligament of 34 falls from 676 kPa (bridge without implants) to 400 kPa. A bite on 31 and 41: implants 23 %, teeth 77 %.</li>
+        <li><b>Single crowns.</b> Each implant carries only its own crown, and the natural 31 is not protected: the pressure in its ligament is 1.5 MPa under a bite and 4.7 MPa under a 150 N clench.</li>
+        <li><b>Maximal checks.</b> Bone around the implants at most 2,827 µε (below 3,000), titanium at most 57 MPa, zirconia at most 64 MPa against a limit of 346 MPa.</li>
+      </ul>
+      <p class="inputs">Ligament pressures are 95th percentiles. The strain-map rows of the bridge without implants come from the earlier bridge model, before a fix of the contact between zirconia and bone; the fix changes them by under 1.5 % (ligament of 34: 669 against 676 kPa).</p>
+    </section>
     <section>
       <h2>What is simulated</h2>
       <p>The geometry comes from an anonymized cone-beam CT of a lower jaw. The lower left lateral incisor (32) and canine (33) were removed virtually, which leaves two sockets. One of them is filled with β-TCP granules of 0.5 to 1 mm, about half of its volume (a Cerasorb M-like product, assumed); the other stays empty. Every scenario was run both ways round, so the same socket can be compared grafted and empty. Both heal under a closed soft-tissue cover.</p>
       <p>Loading: none; the daily peak of front bites, canine guidance and chewing through the natural neighbouring teeth; the same through a 7-unit zirconia bridge from 34 to 43, either with pontics that clear the tissue over the sockets or with ovate pontics placed in the socket mouths as in practice. Two further runs press the pontics 0.5 or 1 mm into the fresh socket tissue: not clinical practice, kept as upper bounds.</p>
+      <p>Immediate implants: both sockets get an implant at extraction, with β-TCP in the gap around it; they heal under cover screws, and from month 3 carry either the bridge (on the teeth and both implants) or single crowns.</p>
       <p>Stem cells line the bony wall at day 0. They divide, migrate and turn into fibroblasts, chondrocytes or bone-forming cells by SilicoGraft's agent-based rules, steered by the mechanical stimulus from a finite-element model of the jaw. The granules dissolve and bone grows along them. Each cube is one 0.2 mm voxel of the result.</p>
       <p>The scan's field of view cuts through the rami, so each ramus ends in a flat face. The labial walls of both sockets are thinner than the scan's resolution, so the sockets are open toward the lip.</p>
     </section>
@@ -350,6 +377,7 @@ table.read tbody tr + tr > * { border-top: 1px solid var(--line); }
         <li>Muscles are not modelled, and the jaw is held fixed at the faces where the scan's field of view cuts it.</li>
         <li>The human time scale is set from the literature, not fitted; the virtual core fills later than human biopsy cores, so read the core curves as the slow end.</li>
         <li>The unloaded runs are the mean of three random seeds, the loaded ones a single seed.</li>
+        <li>The implants, crowns and bridge are model designs: their sizes and positions are inputs of the comparison, not a treatment plan.</li>
         <li>Illustrative, not clinical: a model comparison on one anonymized jaw geometry, not a forecast for a person or advice on treatment.</li>
       </ul>
     </section>

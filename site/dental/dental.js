@@ -21,20 +21,26 @@ const TISSUES = {
 };
 const MAXCODE = 8;
 const isGraft = (arm) => /tcp/i.test(arm || "");
-const armName = (arm) => (isGraft(arm) ? "β-TCP" : "empty");
-const armVar = (arm) => (isGraft(arm) ? "var(--arm-tcp)" : "var(--arm-empty)");
+const isImplant = (arm) => /implant/i.test(arm || "");
+const armName = (arm) => (isImplant(arm) ? "implant" : isGraft(arm) ? "β-TCP" : "empty");
+// colour of a column: by arm (empty, beta-TCP); two implant columns are told apart by socket
+const armKey = (arm, sid) => (isImplant(arm) ? (sid === "33" ? "--impl-b" : "--impl-a") : isGraft(arm) ? "--arm-tcp" : "--arm-empty");
+const armVar = (arm, sid) => `var(${armKey(arm, sid)})`;
 // scenario names for run ids (the "_swapped" twin of each has the graft in the other socket)
 const LOADING_NAMES = { baseline: "No load", natural_teeth: "Natural teeth", bridge: "Bridge, pontics clear the tissue",
   ovate_cap: "Bridge, ovate pontic in the socket mouth (clinical)",
+  implants_unloaded: "Healing, no prosthesis", implants_bridge: "Bridge on the teeth and both implants from month 3",
+  implants_crowns: "Single crowns on the implants from month 3",
   ovate05: "Bridge, pontic pressed 0.5 mm into the tissue (not clinical, upper bound)",
   ovate10: "Bridge, pontic pressed 1.0 mm into the tissue (not clinical, upper bound)" };
 const LOADING_SHORT = { baseline: "no load", natural_teeth: "natural teeth", bridge: "bridge", ovate_cap: "bridge, ovate pontics (clinical)",
+  implants_unloaded: "immediate implants, no load", implants_bridge: "immediate implants + bridge", implants_crowns: "immediate implants + single crowns",
   ovate05: "pontics pressed 0.5 mm (upper bound)", ovate10: "pontics pressed 1.0 mm (upper bound)" };
 
 const state = {
   day: 0, playing: false, speed: 14, touchedTime: false,
   vis: { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true },
-  show: { "32": true, "33": true }, teeth: true, bridge: false, opacity: 0.2, opacityBeforeStrain: null,
+  show: { "32": true, "33": true }, teeth: true, bridge: false, implants: true, opacity: 0.2, opacityBeforeStrain: null,
   strain: false, strainCase: null,
   loading: "baseline", graft: "33", compare: "off",
   section: "off", flip: false, pos: { md: 0, bl: 0 },
@@ -80,10 +86,13 @@ const teethMat = new THREE.MeshLambertMaterial({ color: 0xeee5d4, side: THREE.Do
 // zirconia: a cooler white than the natural teeth, glossy, slightly translucent
 const bridgeMat = new THREE.MeshPhongMaterial({ color: 0xe4edf6, specular: 0x5a6470, shininess: 70, transparent: true, opacity: 0.8, side: THREE.FrontSide });
 const jawGroup = new THREE.Group(), teethGroup = new THREE.Group();
-// two bridges: pontics that clear the tissue ("bridge") and ovate pontics in the socket mouths ("bridge_ovate"),
-// each loaded the first time a scenario shows it
-const bridges = { bridge: { group: new THREE.Group(), state: "" }, bridge_ovate: { group: new THREE.Group(), state: "" } };
-scene.add(jawGroup, teethGroup, bridges.bridge.group, bridges.bridge_ovate.group);
+// titanium implants
+const implantMat = new THREE.MeshPhongMaterial({ color: 0x7d8894, specular: 0x9aa2ac, shininess: 90, side: THREE.FrontSide });
+// the prostheses and implants of the scenarios (manifest.meshes), each loaded the first time a scenario shows it:
+// bridge with pontics that clear the tissue, bridge with ovate pontics in the socket mouths, single crowns, implants
+const props = {};
+for (const k of ["bridge", "bridge_ovate", "crowns", "implants"]) { props[k] = { group: new THREE.Group(), state: "" }; props[k].group.visible = false; }
+scene.add(jawGroup, teethGroup, ...Object.values(props).map((P) => P.group));
 const jawBox = new THREE.Box3();
 let jawGeom = null;  // the mandible geometry (its vertex order is the order of surface_strain)
 
@@ -214,20 +223,42 @@ function setupRuns() {
     if (!by.has(k)) by.set(k, { key: k, runs: {} });
     by.get(k).runs[graftedSocket(r) || "none"] = r;
   }
-  scenarios = [...by.values()];
+  // the upper bounds (clinical: false) go last
+  const clin = (s) => Object.values(s.runs).some((r) => r.clinical === false) ? 1 : 0;
+  scenarios = [...by.values()].map((s, i) => ({ ...s, i })).sort((a, b) => clin(a) - clin(b) || a.i - b.i);
 }
 const scenario = () => scenarios.find((s) => s.key === state.loading) || scenarios[0];
 // the run of the current loading with the graft in socket g (falls back to the other twin if there is none)
 function runFor(g) { const s = scenario(); return s.runs[g] || Object.values(s.runs)[0]; }
-const hasBridge = (key) => /bridge|ovate/.test(key);
-// the ovate scenarios show the bridge with ovate pontics when the package has it
-const bridgeKind = (key) => (/ovate/.test(key) && manifest.meshes && manifest.meshes.bridge_ovate ? "bridge_ovate" : "bridge");
-function ensureBridge(kind) {
-  const B = bridges[kind], file = manifest && manifest.meshes && manifest.meshes[kind];
-  if (!file || B.state) return;
-  B.state = "loading";
-  loadGLB(file).then((g) => { addMeshes(g, B.group, [bridgeMat], false); B.state = "ready"; applyJaw(); })
-    .catch((e) => { B.state = "failed"; console.error(e); status(`Could not load the bridge (${e.message}).`); });
+const runHasImplants = (r) => !!(r && (r.implants || Object.values(r.arms || {}).some(isImplant)));
+const scenHasImplants = (key) => { const s = scenarios.find((x) => x.key === key); return !!s && Object.values(s.runs).some(runHasImplants); };
+// the prosthesis of a scenario: the ovate bridge in the ovate scenarios (when the package has it), the bridge, the
+// single crowns (from month 3) or none; and whether it shows implants
+const hasMesh = (k) => !!(manifest && manifest.meshes && manifest.meshes[k]);
+function prosthesis(key) {
+  if (/crowns/.test(key)) return hasMesh("crowns") ? "crowns" : null;
+  if (/ovate/.test(key)) return hasMesh("bridge_ovate") ? "bridge_ovate" : "bridge";
+  if (/bridge/.test(key)) return "bridge";
+  return null;
+}
+const hasBridge = (key) => !!prosthesis(key);
+const CROWNS_FROM = 91;  // the single crowns go on at month 3
+function ensureProp(kind) {
+  const P = props[kind], file = manifest && manifest.meshes && manifest.meshes[kind];
+  if (!file || P.state) return;
+  P.state = "loading";
+  loadGLB(file).then((g) => { addMeshes(g, P.group, [kind === "implants" ? implantMat : bridgeMat], false); P.state = "ready"; applyJaw(); })
+    .catch((e) => { P.state = "failed"; console.error(e); status(`Could not load ${file} (${e.message}).`); });
+}
+// which prosthesis and implant meshes show now (the crowns only from month 3)
+function propVisibility() {
+  const pk = manifest ? prosthesis(state.loading) : null, imp = manifest ? scenHasImplants(state.loading) : false;
+  for (const k in props) {
+    let on = props[k].state === "ready";
+    if (k === "implants") on = on && imp && state.implants;
+    else on = on && state.bridge && k === pk && (k !== "crowns" || state.day >= CROWNS_FROM);
+    props[k].group.visible = on;
+  }
 }
 // What is on screen: panes, each with its sockets ({ G, run, V }). Normal: one pane, both sockets of the current run.
 // Compare: two panes, the chosen socket empty (left or top) and grafted (right or bottom), under the same loading.
@@ -333,7 +364,7 @@ function applySection() {
     section.cutPlane.set(new THREE.Vector3(-sgn * ax.x, -sgn * ax.y, -sgn * ax.z), sgn * at);
   }
   const planes = on ? [section.cutPlane, ...section.slab[state.section === "md" ? "md" : "bl"]] : [];
-  for (const m of [jawFront, jawBack, teethMat, bridgeMat]) { m.clippingPlanes = planes; m.clipIntersection = true; m.needsUpdate = true; }
+  for (const m of [jawFront, jawBack, teethMat, bridgeMat, implantMat]) { m.clippingPlanes = planes; m.clipIntersection = true; m.needsUpdate = true; }
   markAllDirty();
   document.querySelectorAll("[data-section]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.section === state.section));
   $("section-controls").hidden = !on;
@@ -418,7 +449,7 @@ function paneOverlays() {
   const wide = R[1][0] > 0;
   box.innerHTML = P.map((p, i) => {
     const c = p.cols[0], [x, y, w, h] = R[i];
-    return `<div class="pane-label" style="--c:${armVar(c.arm)};left:${x + w / 2}px;top:${y + h - 34}px">Socket ${c.sid} · ${armName(c.arm)}</div>`;
+    return `<div class="pane-label" style="--c:${armVar(c.arm, c.sid)};left:${x + w / 2}px;top:${y + h - 34}px">Socket ${c.sid} · ${armName(c.arm)}</div>`;
   }).join("") + (wide ? `<div class="pane-rule" style="left:${R[1][0] - 0.5}px;top:0;bottom:0;width:1px"></div>`
     : `<div class="pane-rule" style="top:${R[1][1] - 0.5}px;left:0;right:0;height:1px"></div>`);
 }
@@ -431,7 +462,7 @@ function placeTags(P, R) {
       const key = `${pi}:${c.sid}`; used.add(key);
       let el = tagEls.get(key);
       if (!el) { el = document.createElement("div"); el.className = "tag"; $("tags").appendChild(el); tagEls.set(key, el); }
-      el.style.setProperty("--c", armVar(c.arm));
+      el.style.setProperty("--c", armVar(c.arm, c.sid));
       el.innerHTML = `<b>${c.sid}</b>${armName(c.arm)}`;
       // anchored under the socket's apex, clear of the crowns and the bridge's pontics
       v.set(c.G.center.x, c.G.box.min.y - 0.8, c.G.center.z); v.project(camera);
@@ -453,6 +484,7 @@ function placeTags(P, R) {
   for (const t of shown) t.el.style.transform = `translate(${t.x.toFixed(1)}px, ${t.y.toFixed(1)}px) translate(-50%, 0)`;
 }
 function render() {
+  propVisibility();
   const P = view(), R = paneRects(P.length), H = stage.clientHeight;
   for (const V of vsets.values()) V.mesh.visible = false;
   renderer.setScissorTest(P.length > 1);
@@ -579,7 +611,7 @@ function normSeries(raw) {
     if (!o) continue;
     const W = o.whole || {}, C = o.core || {};
     const e = { days: arr(o.days), nb: arr(W.new_bone), rb: arr(W.residual_graft), msc: arr(W.stem_cells), soft: arr(W.soft_tissue),
-      cart: arr(W.cartilage), clot: arr(W.clot_or_marrow), cnb: arr(C.new_bone), crb: arr(C.residual_graft), bands: {} };
+      cart: arr(W.cartilage), clot: arr(W.clot_or_marrow), cnb: arr(C.new_bone), crb: arr(C.residual_graft), bic: arr(o.bone_implant_contact), bands: {} };
     const fast = raw.bands && raw.bands["x2.5"] && raw.bands["x2.5"][G.id], slow = raw.bands && raw.bands["x5"] && raw.bands["x5"][G.id];
     if (fast && slow && fast.whole_new_bone && slow.whole_new_bone)
       e.bands.nb = [{ days: arr(fast.days), v: arr(fast.whole_new_bone) }, { days: arr(slow.days), v: arr(slow.whole_new_bone) }];
@@ -612,14 +644,16 @@ function chartCols() {
 const fmt = (x) => x == null || isNaN(x) ? "–" : `${x.toFixed(1)}`;
 function readout(d) {
   const cs = chartCols(), cmp = state.compare !== "off";
-  $("read-title").textContent = cmp ? `Day ${d}, % of socket ${state.compare}` : `Day ${d}, % of the socket`;
+  const imp = cs.some((c) => isImplant(c.arm));
+  $("read-title").textContent = cmp ? `Day ${d}, % of socket ${state.compare}` : imp ? `Day ${d}, % of the gap around the implant` : `Day ${d}, % of the socket`;
   if (!cs.some((c) => c.e)) { $("read").innerHTML = ""; return; }
   const rows = [["New bone", "nb", false], ["virtual core", "cnb", true], ["β-TCP", "rb", false], ["virtual core", "crb", true],
-    ["Stem cells", "msc", false], ["Fibrous tissue", "soft", false], ["Cartilage", "cart", false], ["Clot or marrow", "clot", false]];
+    ["Stem cells", "msc", false], ["Fibrous tissue", "soft", false], ["Cartilage", "cart", false], ["Clot or marrow", "clot", false],
+    ["Bone-implant contact", "bic", false]];
   const head = `<thead><tr><th></th>${cs.map((c) => `<th scope="col">${c.sid} · ${armName(c.arm)}</th>`).join("")}</tr></thead>`;
   // a tissue that never forms in these runs (all zero) gets no row
   const used = (k) => cs.some((c) => { const a = c.e && c.e[k]; return a && a.some((v) => v > 0.05); });
-  const body = rows.filter(([, k]) => used(k) || k === "nb" || k === "cnb").map(([name, k, sub]) =>
+  const body = rows.filter(([, k]) => used(k) || k === "nb").map(([name, k, sub]) =>
     `<tr><th scope="row" class="${sub ? "sub" : ""}">${name}</th>${cs.map((c) => {
       const graftless = (k === "rb" || k === "crb") && !isGraft(c.arm);
       return `<td>${graftless ? "–" : fmt(valueAt(c.e, k, d))}</td>`;
@@ -629,9 +663,13 @@ function readout(d) {
 let chartT = 0;
 function drawCharts(force) {
   const now = performance.now(); if (!force && now - chartT < 40) return; chartT = now;
-  const cs = chartCols();
+  const cs = chartCols(), imp = cs.some((c) => isImplant(c.arm)), bic = cs.some((c) => c.e && c.e.bic);
+  $("chart-nb-title").textContent = imp ? "New bone, % of the gap around the implant" : "New bone, % of the socket";
+  $("chart-rb-title").textContent = imp ? "Residual β-TCP, % of the gap" : "Residual β-TCP, % of the socket";
+  $("chart-bic-box").hidden = !bic;
   chart("chart-nb", "nb", "cnb", cs, 60);
   chart("chart-rb", "rb", "crb", cs.filter((c) => isGraft(c.arm)), 60);
+  if (bic) chart("chart-bic", "bic", null, cs.filter((c) => c.e && c.e.bic), 80);
 }
 function chart(id, k, kc, cs, ymin) {
   const c = $(id), dpr = window.devicePixelRatio || 1, w = c.clientWidth, h = c.clientHeight;
@@ -655,7 +693,7 @@ function chart(id, k, kc, cs, ymin) {
   for (let m = 0; m <= 6; m++) { const d = Math.min(D, m * 30.44); x.fillText(m === 0 ? "0" : `${m} mo`, Math.min(X(d), w - R - 12), h - 4); }
   cs.forEach((q, n) => {
     const e = q.e; if (!e) return;
-    const col = css(isGraft(q.arm) ? "--arm-tcp" : "--arm-empty");
+    const col = css(armKey(q.arm, q.sid));
     // time-scale band (whole socket at x2.5 and x5 instead of x3.5), when the series has one; each curve has its own days
     const band = e.bands && e.bands[k];
     if (band) {
@@ -688,9 +726,11 @@ function chart(id, k, kc, cs, ymin) {
 function legend() {
   const line = (col, dash) => `<svg viewBox="0 0 22 10" aria-hidden="true"><path d="M1 5h20" style="stroke:${col}" stroke-width="2" ${dash ? 'stroke-dasharray="4 3"' : ""}/></svg>`;
   const fg = "var(--fg-2)", cs = chartCols();
-  let h = cs.map((c) => `<span>${line(armVar(c.arm))}${c.sid} · ${armName(c.arm)}</span>`).join("");
-  h += `<span>${line(fg)}whole socket</span><span>${line(fg, true)}virtual core</span>`;
-  h += `<span style="grid-column:1/-1"><svg viewBox="0 0 22 10" aria-hidden="true"><rect x="7" y="0.5" width="8" height="9" style="fill:none;stroke:${fg}"/></svg>human biopsy cores, 3 and 6 months</span>`;
+  const imp = cs.some((c) => isImplant(c.arm));
+  let h = cs.map((c) => `<span>${line(armVar(c.arm, c.sid))}${c.sid} · ${armName(c.arm)}</span>`).join("");
+  if (cs.some((c) => c.e && c.e.cnb)) h += `<span>${line(fg)}whole socket</span><span>${line(fg, true)}virtual core</span>`;
+  else if (imp) h += `<span style="grid-column:1/-1">${line(fg)}the gap between implant and socket wall (no virtual core: the implant fills it)</span>`;
+  if (cs.some((c) => c.lit && (c.lit.nb || c.lit.rb))) h += `<span style="grid-column:1/-1"><svg viewBox="0 0 22 10" aria-hidden="true"><rect x="7" y="0.5" width="8" height="9" style="fill:none;stroke:${fg}"/></svg>human biopsy cores, 3 and 6 months</span>`;
   if (cs.some((c) => c.e && Object.keys(c.e.bands).length)) h += `<span style="grid-column:1/-1"><svg viewBox="0 0 22 10" aria-hidden="true"><rect x="1" y="1" width="20" height="8" style="fill:${fg}" opacity="0.25"/></svg>whole socket at time scale ×2.5 to ×5</span>`;
   $("legend").innerHTML = h;
 }
@@ -785,12 +825,16 @@ function strainSetup() {
   const groups = [...new Set(meta.cases.map((c) => c.model))];
   $("strain-case").innerHTML = groups.map((g) => `<optgroup label="${g[0].toUpperCase() + g.slice(1)}">${meta.cases.filter((c) => c.model === g)
     .map((c) => `<option value="${c.id}">${c.load.split(",")[0].replace(/^./, (m) => m.toUpperCase())}</option>`).join("")}</optgroup>`).join("");
-  $("strain-note").textContent = [meta.support, meta.note].filter(Boolean).map((t) => t.replace(/^./, (m) => m.toUpperCase())).join(". ") + ".";
+  $("strain-note").textContent = [meta.support, meta.note].filter(Boolean).map((t) => t.replace(/^./, (m) => m.toUpperCase())).join(". ") + "."
+    + (meta.cases.some((c) => /^implants_/.test(c.id)) ? " The rows with the bridge alone come from the earlier bridge model, before a fix of the contact between zirconia and bone; the fix changes them by under 1.5 % (pressure in the ligament of 34: 669 against 676 kPa)." : "");
   strainLegend();
 }
-// the load case that fits the scenario: chewing on 34 with the bridge in the bridge scenarios, without it otherwise
+// the load case that fits the scenario: chewing on 34 in the scenario's own model (implants with the bridge or with
+// single crowns, the bridge, natural teeth)
 function defaultStrainCase() {
-  const cases = manifest.surface_strain.cases, want = hasBridge(state.loading) ? "bridge_chew34" : "nobridge_chew34";
+  const cases = manifest.surface_strain.cases, k = state.loading;
+  const want = /^implants_bridge/.test(k) ? "implants_bridge_impl_chew34" : /^implants_crowns/.test(k) ? "implants_crowns_impl_chew34"
+    : hasBridge(k) && !/^implants/.test(k) ? "bridge_chew34" : "nobridge_chew34";
   return (cases.find((c) => c.id === want) || cases[0]).id;
 }
 
@@ -813,6 +857,7 @@ document.querySelectorAll("[data-camera]").forEach((b) => b.addEventListener("cl
 $("opacity").addEventListener("input", (e) => { state.opacity = +e.target.value; state.opacityBeforeStrain = null; applyJaw(); });
 $("show-teeth").addEventListener("change", (e) => { state.teeth = e.target.checked; applyJaw(); });
 $("show-bridge").addEventListener("change", (e) => { state.bridge = e.target.checked; applyJaw(); });
+$("show-implants").addEventListener("change", (e) => { state.implants = e.target.checked; applyJaw(); });
 $("show-strain").addEventListener("change", (e) => {
   state.strain = e.target.checked;
   // the colours read best on an opaque jaw; the opacity comes back when the map is switched off
@@ -842,10 +887,15 @@ function applyJaw() {
   jawGroup.visible = o > 0.01;
   jawGroup.children.forEach((me) => { if (me.material === jawBack) me.visible = !solid; });
   teethGroup.visible = state.teeth;
-  const kind = manifest ? bridgeKind(state.loading) : "bridge";
-  if (state.bridge && manifest) ensureBridge(kind);
-  for (const k in bridges) bridges[k].group.visible = state.bridge && k === kind && bridges[k].state === "ready";
-  $("show-bridge").checked = state.bridge;
+  if (manifest) {
+    const pk = prosthesis(state.loading), imp = scenHasImplants(state.loading);
+    if (state.bridge && pk) ensureProp(pk);
+    if (state.implants && imp) ensureProp("implants");
+    $("bridge-row").hidden = !pk; $("implants-row").hidden = !imp;
+    $("bridge-label").textContent = pk === "crowns" ? "Single crowns on the implants (zirconia, from month 3)" : "Bridge 34 to 43 (zirconia)";
+  }
+  propVisibility();
+  $("show-bridge").checked = state.bridge; $("show-implants").checked = state.implants;
   requestRender();
 }
 // a tissue with no voxel in any frame on screen keeps its toggle, dimmed and last, with a short note
@@ -872,40 +922,56 @@ function tissueToggles() {
   }));
 }
 function scenarioSetup() {
-  $("loading-sel").innerHTML = scenarios.map((s) => `<option value="${s.key}">${LOADING_NAMES[s.key] || s.key}</option>`).join("");
+  const group = (s) => (Object.values(s.runs).some((r) => r.clinical === false) ? "Upper bounds, not clinical practice"
+    : scenHasImplants(s.key) ? "Immediate implants, β-TCP in the gaps" : "Sockets without implants");
+  const groups = [...new Set(scenarios.map(group))];
+  $("loading-sel").innerHTML = groups.length > 1
+    ? groups.map((g) => `<optgroup label="${g}">${scenarios.filter((s) => group(s) === g).map((s) => `<option value="${s.key}">${LOADING_NAMES[s.key] || s.key}</option>`).join("")}</optgroup>`).join("")
+    : scenarios.map((s) => `<option value="${s.key}">${LOADING_NAMES[s.key] || s.key}</option>`).join("");
   const twins = scenarios.some((s) => Object.keys(s.runs).length > 1);
   document.querySelectorAll("[data-graft]").forEach((b) => { b.disabled = !twins; });
   document.querySelectorAll("[data-compare]").forEach((b) => { if (b.dataset.compare !== "off") b.disabled = !twins; });
 }
-let lastBridgeness = null;
+let lastStrainDefault = null;
 // after a change of loading, graft socket or compare: the controls, labels, notes, charts and the voxel sets to load
 function applyScenario() {
   if (!scenarios.some((s) => s.key === state.loading)) state.loading = scenarios[0].key;
   $("loading-sel").value = state.loading;
-  const r = runFor(state.graft), cmp = state.compare !== "off";
+  // a scenario without a swapped twin (the implants: both sockets alike) has no graft switch and no compare
+  const twins = Object.keys(scenario().runs).length > 1;
+  if (!twins) state.compare = "off";
+  const r = runFor(state.graft), cmp = state.compare !== "off", imp = scenHasImplants(state.loading);
   const note = $("loading-note");
   note.textContent = cmp ? `Socket ${state.compare}, empty and with β-TCP; loading: ${r.loading === "none" ? "none" : r.loading}.`
     : `${r.label ? r.label[0].toUpperCase() + r.label.slice(1) : ""}${r.loading && r.loading !== "none" ? `. Loading: ${r.loading}` : ""}.`;
+  // runs[].same_cells_as: the loads leave every cell as in that run, so the animation is that run's
+  if (r.same_cells_as) {
+    const twin = runs.find((x) => x.id === r.same_cells_as), name = twin ? (LOADING_NAMES[loadingKey(twin)] || twin.id).toLowerCase() : r.same_cells_as;
+    const sc = document.createElement("span"); sc.className = "same";
+    sc.textContent = ` The healing is cell for cell the same as in "${name}": these loads do not change it, so the cubes are that run's; what differs is ${prosthesis(state.loading) ? "the prosthesis and " : ""}the loads (strain map).`;
+    note.append(sc);
+  }
   // runs[].clinical: whether the scenario is done this way in practice, or an upper bound
   if (typeof r.clinical === "boolean") {
     const b = document.createElement("strong"); b.className = r.clinical ? "clin yes" : "clin no";
     b.textContent = r.clinical ? "Clinical: placed as in practice. " : "Not clinical practice: an upper bound. ";
     note.prepend(b);
   }
-  document.querySelectorAll("[data-graft]").forEach((b) => { b.setAttribute("aria-pressed", b.dataset.graft === state.graft); if (cmp) b.disabled = true; else b.disabled = !scenarios.some((s) => Object.keys(s.runs).length > 1); });
-  document.querySelectorAll("[data-compare]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.compare === state.compare));
+  document.querySelectorAll("[data-graft]").forEach((b) => { b.setAttribute("aria-pressed", !imp && b.dataset.graft === state.graft); b.disabled = cmp || !twins; });
+  document.querySelectorAll("[data-compare]").forEach((b) => { b.setAttribute("aria-pressed", b.dataset.compare === state.compare); if (b.dataset.compare !== "off") b.disabled = !twins; });
+  $("implant-link").hidden = !imp;
   $("sockets-group").hidden = cmp;
   for (const G of geoms) {
     const arm = r.arms[G.id];
     if ($(`lab-${G.id}`)) $(`lab-${G.id}`).textContent = `${G.id} · ${armName(arm)}`;
-    if ($(`sw-${G.id}`)) $(`sw-${G.id}`).style.background = armVar(arm);
+    if ($(`sw-${G.id}`)) $(`sw-${G.id}`).style.background = armVar(arm, G.id);
   }
   $("scen-badge").textContent = cmp ? `${LOADING_SHORT[state.loading] || state.loading} · socket ${state.compare}, empty vs β-TCP`
-    : `${LOADING_SHORT[state.loading] || state.loading} · β-TCP in ${state.graft}`;
+    : imp ? `${LOADING_SHORT[state.loading] || state.loading} · β-TCP in the gaps` : `${LOADING_SHORT[state.loading] || state.loading} · β-TCP in ${state.graft}`;
   applyJaw();
-  // a strain map on screen follows the scenario's model (with or without the bridge) when that changes
-  if (state.strain && manifest.surface_strain && lastBridgeness !== hasBridge(state.loading)) { state.strainCase = defaultStrainCase(); $("strain-case").value = state.strainCase; applyStrain(); }
-  lastBridgeness = hasBridge(state.loading);
+  // a strain map on screen follows the scenario's model (natural teeth, bridge, implants) when that changes
+  if (state.strain && manifest.surface_strain && lastStrainDefault !== defaultStrainCase()) { state.strainCase = defaultStrainCase(); $("strain-case").value = state.strainCase; applyStrain(); }
+  lastStrainDefault = manifest.surface_strain ? defaultStrainCase() : null;
   for (const c of columns()) c.V.dirty = true;   // also starts loading the frames of the columns shown
   paneOverlays(); onFrames(); legend(); seedsNote(); drawCharts(true);
 }
@@ -988,7 +1054,6 @@ ticks(phone.matches); applyJaw(); requestAnimationFrame(loop);
     applyScenario();
     // the jaw first, then the frames (applyScenario has already asked for those of the scenario shown)
     const meshes = manifest.meshes || {};
-    if (meshes.bridge) $("bridge-row").hidden = false;
     const [jaw, teeth] = await Promise.all([meshes.mandible ? loadGLB(meshes.mandible) : null,
       meshes.teeth ? loadGLB(meshes.teeth).catch(() => null) : null]);
     if (jaw) jawGeom = addMeshes(jaw, jawGroup, [jawBack, jawFront], true)[0] || null;
