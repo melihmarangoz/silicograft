@@ -1,5 +1,5 @@
 {
- "version": 1,
+ "version": 2,
  "units": "mm",
  "frame": "x = patient left, y = superior, z = anterior; origin = centroid of the mandible surface",
  "frame_days": [
@@ -75,8 +75,212 @@
  ],
  "meshes": {
   "mandible": "mandible.glb",
-  "teeth": "teeth.glb"
+  "teeth": "teeth.glb",
+  "bridge": "bridge.glb"
  },
  "series": "series.json",
- "voxel_rule": "each 0.2 mm voxel holds 2x2x2 lattice sites of 0.1 mm; inside the socket if at least 4 of its 8 sites are socket sites (else 255); drawn if at least 40 % of its socket sites hold a cell or granule (else 0), as the most frequent such code, ties to new bone > granule > stem cell > fibroblast > chondrocyte; the voxels show about 4-8 points more new bone than the 0.1 mm lattice, series.json has the exact values"
+ "voxel_rule": "each 0.2 mm voxel holds 2x2x2 lattice sites of 0.1 mm; inside the socket if at least 4 of its 8 sites are socket sites (else 255); drawn if at least 40 % of its socket sites hold a cell or granule (else 0), as the most frequent such code, ties to new bone > granule > stem cell > fibroblast > chondrocyte; the voxels show about 4-8 points more new bone than the 0.1 mm lattice, series.json has the exact values",
+ "surface_strain": {
+  "file": "mandible_strain.bin.gz",
+  "dtype": "float16",
+  "shape": [
+   7,
+   49979
+  ],
+  "order": "case-major (C order)",
+  "units": "microstrain",
+  "vertices": "the vertices of mandible.glb, in their order",
+  "quantity": "largest absolute principal strain of the nearest bone element of the jaw model, one load case per row",
+  "cases": [
+   {
+    "id": "bridge_canine33",
+    "model": "with the bridge",
+    "load": "canine guidance on unit 33 (left excursion), 25 N, 45 degrees lingual-apical"
+   },
+   {
+    "id": "bridge_canine43",
+    "model": "with the bridge",
+    "load": "canine guidance on 43 (right excursion), 25 N, 45 degrees lingual-apical"
+   },
+   {
+    "id": "bridge_chew34",
+    "model": "with the bridge",
+    "load": "chewing on 34, 120 N along its axis"
+   },
+   {
+    "id": "bridge_incisal",
+    "model": "with the bridge",
+    "load": "bite on 31 and 41, 25 N each, on the labial incisal third, 30 degrees lingual-apical to the tooth axis"
+   },
+   {
+    "id": "nobridge_canine43",
+    "model": "natural teeth, no bridge",
+    "load": "canine guidance on 43 (right excursion), 25 N, 45 degrees lingual-apical"
+   },
+   {
+    "id": "nobridge_chew34",
+    "model": "natural teeth, no bridge",
+    "load": "chewing on 34, 120 N along its axis"
+   },
+   {
+    "id": "nobridge_incisal",
+    "model": "natural teeth, no bridge",
+    "load": "bite on 31 and 41, 25 N each, on the labial incisal third, 30 degrees lingual-apical to the tooth axis"
+   }
+  ],
+  "support": "the jaw is held where the field of view of the scan cuts it (both sides); muscles are not modelled",
+  "note": "functional (daily) loads; maximum biting is about 3x (front teeth) to 2.5x (34) these values"
+ },
+ "runs": [
+  {
+   "id": "baseline",
+   "label": "socket 32 empty, socket 33 beta-TCP, healing without mechanical load",
+   "arms": {
+    "32": "empty",
+    "33": "beta-TCP"
+   },
+   "loading": "none",
+   "frames": {
+    "32": "s32_frames.bin.gz",
+    "33": "s33_frames.bin.gz"
+   },
+   "series": "series.json"
+  },
+  {
+   "id": "swapped",
+   "label": "socket 32 beta-TCP, socket 33 empty, healing without mechanical load",
+   "arms": {
+    "32": "beta-TCP",
+    "33": "empty"
+   },
+   "loading": "none",
+   "frames": {
+    "32": "swapped_s32_frames.bin.gz",
+    "33": "swapped_s33_frames.bin.gz"
+   },
+   "series": "series_swapped.json"
+  },
+  {
+   "id": "natural_teeth",
+   "label": "socket 32 empty, socket 33 beta-TCP, loaded through the natural neighbouring teeth (no bridge)",
+   "arms": {
+    "32": "empty",
+    "33": "beta-TCP"
+   },
+   "loading": "daily peak of: bite on 31 and 41 (25 N each), canine guidance on 43 (25 N), chewing on 34 (120 N)",
+   "frames": {
+    "32": "s32_frames.bin.gz",
+    "33": "s33_frames.bin.gz"
+   },
+   "series": "series_natural_teeth.json",
+   "same_cells_as": "baseline"
+  },
+  {
+   "id": "natural_teeth_swapped",
+   "label": "socket 32 beta-TCP, socket 33 empty, loaded through the natural neighbouring teeth (no bridge)",
+   "arms": {
+    "32": "beta-TCP",
+    "33": "empty"
+   },
+   "loading": "daily peak of: bite on 31 and 41 (25 N each), canine guidance on 43 (25 N), chewing on 34 (120 N)",
+   "frames": {
+    "32": "swapped_s32_frames.bin.gz",
+    "33": "swapped_s33_frames.bin.gz"
+   },
+   "series": "series_natural_teeth_swapped.json",
+   "same_cells_as": "swapped"
+  },
+  {
+   "id": "bridge",
+   "label": "socket 32 empty, socket 33 beta-TCP, loaded through the bridge; the pontics clear the soft tissue",
+   "arms": {
+    "32": "empty",
+    "33": "beta-TCP"
+   },
+   "loading": "daily peak of: bite on 31 and 41 (25 N each), canine guidance on 33 and on 43 (25 N), chewing on 34 (120 N)",
+   "frames": {
+    "32": "s32_frames.bin.gz",
+    "33": "s33_frames.bin.gz"
+   },
+   "series": "series_bridge.json",
+   "same_cells_as": "baseline"
+  },
+  {
+   "id": "bridge_swapped",
+   "label": "socket 32 beta-TCP, socket 33 empty, loaded through the bridge; the pontics clear the soft tissue",
+   "arms": {
+    "32": "beta-TCP",
+    "33": "empty"
+   },
+   "loading": "daily peak of: bite on 31 and 41 (25 N each), canine guidance on 33 and on 43 (25 N), chewing on 34 (120 N)",
+   "frames": {
+    "32": "swapped_s32_frames.bin.gz",
+    "33": "swapped_s33_frames.bin.gz"
+   },
+   "series": "series_bridge_swapped.json",
+   "same_cells_as": "swapped"
+  },
+  {
+   "id": "ovate05",
+   "label": "socket 32 empty, socket 33 beta-TCP, bridge with ovate pontics pressed 0.5 mm into the tissue over both sockets",
+   "arms": {
+    "32": "empty",
+    "33": "beta-TCP"
+   },
+   "loading": "the bridge loads plus a sustained 0.5 mm interference of both pontics, all of it reaching the socket tissue (upper bound)",
+   "frames": {
+    "32": "ovate05_s32_frames.bin.gz",
+    "33": "ovate05_s33_frames.bin.gz"
+   },
+   "series": "series_ovate05.json"
+  },
+  {
+   "id": "ovate05_swapped",
+   "label": "socket 32 beta-TCP, socket 33 empty, bridge with ovate pontics pressed 0.5 mm into the tissue over both sockets",
+   "arms": {
+    "32": "beta-TCP",
+    "33": "empty"
+   },
+   "loading": "the bridge loads plus a sustained 0.5 mm interference of both pontics, all of it reaching the socket tissue (upper bound)",
+   "frames": {
+    "32": "ovate05_swapped_s32_frames.bin.gz",
+    "33": "ovate05_swapped_s33_frames.bin.gz"
+   },
+   "series": "series_ovate05_swapped.json"
+  },
+  {
+   "id": "ovate10",
+   "label": "socket 32 empty, socket 33 beta-TCP, bridge with ovate pontics pressed 1 mm into the tissue over both sockets",
+   "arms": {
+    "32": "empty",
+    "33": "beta-TCP"
+   },
+   "loading": "the bridge loads plus a sustained 1 mm interference of both pontics, all of it reaching the socket tissue (upper bound)",
+   "frames": {
+    "32": "ovate10_s32_frames.bin.gz",
+    "33": "ovate10_s33_frames.bin.gz"
+   },
+   "series": "series_ovate10.json"
+  },
+  {
+   "id": "ovate10_swapped",
+   "label": "socket 32 beta-TCP, socket 33 empty, bridge with ovate pontics pressed 1 mm into the tissue over both sockets",
+   "arms": {
+    "32": "beta-TCP",
+    "33": "empty"
+   },
+   "loading": "the bridge loads plus a sustained 1 mm interference of both pontics, all of it reaching the socket tissue (upper bound)",
+   "frames": {
+    "32": "ovate10_swapped_s32_frames.bin.gz",
+    "33": "ovate10_swapped_s33_frames.bin.gz"
+   },
+   "series": "series_ovate10_swapped.json"
+  }
+ ],
+ "new_in_v2": [
+  "meshes.bridge: the zirconia bridge 34-33-32-31-41-42-43, same frame as the jaw",
+  "surface_strain: per-vertex strain on mandible.glb for each load case",
+  "runs: further simulations; each has frames per socket (same origin and dims as sockets[]) and its own series file; the first entry is the version-1 simulation",
+  "runs[].same_cells_as: the run gives cell for cell the same healing as that run, so it reuses its frames"
+ ]
 }
