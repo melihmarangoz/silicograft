@@ -1,5 +1,6 @@
-// SilicoGraft Socket View: two extraction sockets (32 empty, 33 beta-TCP) in a lower jaw, six months of simulated
-// healing. Data contract: data/manifest.json (site/DEPLOY.md, "The dental viewer"). three.js r147 (global THREE) is loaded by
+// SilicoGraft Socket View: two extraction sockets (32, 33) in an anonymized lower jaw, six months of simulated healing,
+// grafted with beta-TCP or empty, under several loadings (none, natural teeth, a 7-unit bridge, ovate pontics).
+// Data contract: data/manifest.json (site/DEPLOY.md, "The dental viewer"). three.js r147 (global THREE) is loaded by
 // index.html from ../vendor/three-0.147.0/.
 "use strict";
 (() => {
@@ -7,34 +8,39 @@ const $ = (id) => document.getElementById(id);
 const DATA = "data/";
 const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const query = new URLSearchParams(location.search);
 
 // Tissue codes of the frames (manifest "codes"): colour, cube size (fraction of the voxel) and label.
 // Bone and graft fill their voxel; cells are drawn smaller so the tissue around them stays readable.
 const TISSUES = {
-  1: { key: "msc", name: "Stem cell", color: "#eda100", size: 0.55, cssVar: "--t-msc" },
-  2: { key: "fib", name: "Fibroblast", color: "#1baf7a", size: 0.8, cssVar: "--t-fib" },
-  3: { key: "cho", name: "Chondrocyte", color: "#7d6cf0", size: 0.8, cssVar: "--t-cho" },
-  4: { key: "bone", name: "New bone", color: "#3d8fe6", size: 0.96, cssVar: "--t-bone" },
-  5: { key: "tcp", name: "β-TCP granule", color: "#e34948", size: 0.96, cssVar: "--t-tcp" },
+  1: { name: "Stem cell", color: "#eda100", size: 0.55, cssVar: "--t-msc" },
+  2: { name: "Fibroblast", color: "#1baf7a", size: 0.8, cssVar: "--t-fib" },
+  3: { name: "Chondrocyte", color: "#7d6cf0", size: 0.8, cssVar: "--t-cho" },
+  4: { name: "New bone", color: "#3d8fe6", size: 0.96, cssVar: "--t-bone" },
+  5: { name: "β-TCP granule", color: "#e34948", size: 0.96, cssVar: "--t-tcp" },
 };
 const MAXCODE = 8;
-const SOCKET_LABEL = { "32": "empty", "33": "β-TCP" };
-// human biopsy expectations (central core) at 3 and 6 months, used only when series.json brings none
-// (the human socket parameters report in dental/literature/, section 0)
-const LIT_FALLBACK = {
-  "32": { nb: [{ day: 91, low: 25, high: 45, mid: 35 }, { day: 182, low: 40, high: 60, mid: 50 }] },
-  "33": { nb: [{ day: 91, low: 15, high: 30, mid: 22 }, { day: 182, low: 25, high: 45, mid: 35 }],
-          rb: [{ day: 91, low: 8, high: 30, mid: 18 }, { day: 182, low: 2, high: 20, mid: 10 }] },
-};
+const isGraft = (arm) => /tcp/i.test(arm || "");
+const armName = (arm) => (isGraft(arm) ? "β-TCP" : "empty");
+const armVar = (arm) => (isGraft(arm) ? "var(--arm-tcp)" : "var(--arm-empty)");
+// scenario names for run ids (the "_swapped" twin of each has the graft in the other socket)
+const LOADING_NAMES = { baseline: "No load", natural_teeth: "Natural teeth", bridge: "Bridge, pontics clear the tissue",
+  ovate05: "Bridge, ovate pontics 0.5 mm into the tissue", ovate10: "Bridge, ovate pontics 1 mm into the tissue" };
+const LOADING_SHORT = { baseline: "no load", natural_teeth: "natural teeth", bridge: "bridge", ovate05: "ovate pontics 0.5 mm", ovate10: "ovate pontics 1 mm" };
 
 const state = {
   day: 0, playing: false, speed: 14, touchedTime: false,
   vis: { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true },
-  show: { "32": true, "33": true }, teeth: true, opacity: 0.2,
+  show: { "32": true, "33": true }, teeth: true, bridge: false, opacity: 0.2, opacityBeforeStrain: null,
+  strain: false, strainCase: null,
+  loading: "baseline", graft: "33", compare: "off",
   section: "off", flip: false, pos: { md: 0, bl: 0 },
 };
-let manifest = null, FD = [0], NF = 1, series = null;
-const sockets = [];          // per socket: geometry, frames, instanced mesh
+let manifest = null, FD = [0], NF = 1;
+const geoms = [];            // socket geometry (manifest.sockets): id, dims, origin, box
+const vsets = new Map();     // frames file -> voxel set (frames, instanced mesh), loaded on demand
+const seriesCache = new Map();  // series file -> normalized series (or a promise while loading)
+let runs = [], scenarios = [];  // runs from the manifest; scenarios = loading key -> { graft socket id -> run }
 let dirty = true;
 const requestRender = () => { dirty = true; };
 
@@ -67,12 +73,16 @@ controls.addEventListener("start", () => { tween = null; });
 // jaw: bone is drawn twice (back faces, then front faces) so the see-through shell sorts correctly
 const jawFront = new THREE.MeshLambertMaterial({ color: 0xd9ccb0, transparent: true, opacity: 0.2, depthWrite: false, side: THREE.FrontSide });
 const jawBack = new THREE.MeshLambertMaterial({ color: 0xb9ab90, transparent: true, opacity: 0.2, depthWrite: false, side: THREE.BackSide });
-const teethMat = new THREE.MeshLambertMaterial({ color: 0xf2ede3, side: THREE.DoubleSide });
-const jawGroup = new THREE.Group(), teethGroup = new THREE.Group();
-scene.add(jawGroup, teethGroup);
+const teethMat = new THREE.MeshLambertMaterial({ color: 0xeee5d4, side: THREE.DoubleSide });
+// zirconia: a cooler white than the natural teeth, glossy, slightly translucent
+const bridgeMat = new THREE.MeshPhongMaterial({ color: 0xe4edf6, specular: 0x5a6470, shininess: 70, transparent: true, opacity: 0.8, side: THREE.FrontSide });
+const jawGroup = new THREE.Group(), teethGroup = new THREE.Group(), bridgeGroup = new THREE.Group();
+bridgeGroup.visible = false;
+scene.add(jawGroup, teethGroup, bridgeGroup);
 const jawBox = new THREE.Box3();
+let jawGeom = null;  // the mandible geometry (its vertex order is the order of surface_strain)
 
-// ---------------------------------------------------------------- voxels (instanced cubes, one mesh per socket)
+// ---------------------------------------------------------------- voxels (instanced cubes, one mesh per frames file)
 const U = {
   uT: { value: 0 }, uVox: { value: 0.2 },
   uVis: { value: new Array(MAXCODE).fill(0) }, uSize: { value: new Array(MAXCODE).fill(0) },
@@ -115,27 +125,35 @@ function tissueUniforms() {
 }
 tissueUniforms();
 
-function makeSocket(m) {
-  const [nx, ny, nz] = m.dims, nvox = nx * ny * nz;
-  const S = { id: String(m.id), arm: m.arm, nx, ny, nz, nvox, vox: m.voxel || 0.2, origin: m.origin, file: m.frames,
-    frames: null, loaded: 0, inside: null, f0: -1, f1: -1, dirty: true };
-  S.box = new THREE.Box3(new THREE.Vector3(...m.origin), new THREE.Vector3(m.origin[0] + nx * S.vox, m.origin[1] + ny * S.vox, m.origin[2] + nz * S.vox));
-  S.center = S.box.getCenter(new THREE.Vector3());
-  S.top = new THREE.Vector3(S.center.x, S.box.max.y, S.center.z);
+function makeGeom(m) {
+  const [nx, ny, nz] = m.dims, vox = m.voxel || 0.2;
+  const G = { id: String(m.id), nx, ny, nz, nvox: nx * ny * nz, vox, origin: m.origin };
+  G.box = new THREE.Box3(new THREE.Vector3(...m.origin), new THREE.Vector3(m.origin[0] + nx * vox, m.origin[1] + ny * vox, m.origin[2] + nz * vox));
+  G.center = G.box.getCenter(new THREE.Vector3());
+  G.top = new THREE.Vector3(G.center.x, G.box.max.y, G.center.z);
+  return G;
+}
+const geomOf = (id) => geoms.find((g) => g.id === id);
+// a voxel set: one frames file of one socket; its mesh is shared by every run that uses the file
+function vset(file, G) {
+  let V = vsets.get(file);
+  if (V) return V;
   const geo = new THREE.InstancedBufferGeometry();
   geo.index = cube.index; geo.setAttribute("position", cube.attributes.position); geo.setAttribute("normal", cube.attributes.normal);
   geo.instanceCount = 0;
-  S.geo = geo;
-  S.mesh = new THREE.Mesh(geo, voxelMat); S.mesh.frustumCulled = false; S.mesh.visible = false;
-  scene.add(S.mesh);
-  return S;
+  V = { file, G, frames: null, loaded: 0, inside: null, f0: -1, f1: -1, dirty: true, geo, codes: null, promise: null };
+  V.mesh = new THREE.Mesh(geo, voxelMat); V.mesh.frustumCulled = false; V.mesh.visible = false;
+  scene.add(V.mesh);
+  vsets.set(file, V);
+  V.promise = loadFrames(V).catch((e) => { console.error(e); status(`Could not load ${file}: ${e.message}`); });
+  return V;
 }
 // the socket's own voxels (not 255) are taken from frame 0; their centres and whether all six neighbours lie in the box
-function indexSocket(S) {
-  const f = S.frames, n = S.nvox, { nx, ny, nz } = S;
+function indexSet(V) {
+  const f = V.frames, { nx, ny, nz, nvox: n } = V.G;
   let N = 0; for (let v = 0; v < n; v++) if (f[v] !== 255) N++;
   const inside = new Uint32Array(N), px = new Float32Array(N), py = new Float32Array(N), pz = new Float32Array(N), interior = new Uint8Array(N);
-  const [ox, oy, oz] = S.origin, h = S.vox;
+  const [ox, oy, oz] = V.G.origin, h = V.G.vox;
   let j = 0;
   for (let k = 0, v = 0; k < nz; k++) for (let y = 0; y < ny; y++) for (let i = 0; i < nx; i++, v++) {
     if (f[v] === 255) continue;
@@ -143,39 +161,76 @@ function indexSocket(S) {
     interior[j] = i > 0 && i < nx - 1 && y > 0 && y < ny - 1 && k > 0 && k < nz - 1 ? 1 : 0;
     j++;
   }
-  Object.assign(S, { inside, px, py, pz, interior, clip: new Uint8Array(N), solid: new Uint8Array(n) });
-  S.aPos = new THREE.InstancedBufferAttribute(new Float32Array(N * 3), 3); S.aPos.setUsage(THREE.DynamicDrawUsage);
-  S.aCode = new THREE.InstancedBufferAttribute(new Uint8Array(N * 2), 2); S.aCode.setUsage(THREE.DynamicDrawUsage);
-  S.geo.setAttribute("aPos", S.aPos); S.geo.setAttribute("aCode", S.aCode);
-  S.mesh.visible = state.show[S.id];
+  Object.assign(V, { inside, px, py, pz, interior, clip: new Uint8Array(N), solid: new Uint8Array(n) });
+  V.aPos = new THREE.InstancedBufferAttribute(new Float32Array(N * 3), 3); V.aPos.setUsage(THREE.DynamicDrawUsage);
+  V.aCode = new THREE.InstancedBufferAttribute(new Uint8Array(N * 2), 2); V.aCode.setUsage(THREE.DynamicDrawUsage);
+  V.geo.setAttribute("aPos", V.aPos); V.geo.setAttribute("aCode", V.aCode);
 }
 // Fill the instance buffers for the current pair of frames: a voxel is drawn when its tissue is shown in either frame,
 // it is not cut away by the section, and not hidden on all six sides by solid (bone or graft) voxels.
-function rebuild(S) {
-  if (!S.inside) return;
-  const n = S.nvox, nx = S.nx, nxy = S.nx * S.ny, N = S.inside.length;
-  const A = S.frames.subarray(S.f0 * n, S.f0 * n + n), B = S.frames.subarray(S.f1 * n, S.f1 * n + n);
-  const solid = S.solid, clip = S.clip, cut = section.active;
+function rebuild(V) {
+  if (!V.inside) return;
+  const n = V.G.nvox, nx = V.G.nx, nxy = V.G.nx * V.G.ny, N = V.inside.length;
+  const A = V.frames.subarray(V.f0 * n, V.f0 * n + n), B = V.frames.subarray(V.f1 * n, V.f1 * n + n);
+  const solid = V.solid, clip = V.clip, cut = section.active;
   const [qx, qy, qz] = section.normal, q0 = section.offset;
   for (let j = 0; j < N; j++) {
-    const v = S.inside[j], a = A[v], b = B[v];
-    const c = cut && (qx * S.px[j] + qy * S.py[j] + qz * S.pz[j] > q0) ? 1 : 0;
+    const v = V.inside[j], a = A[v], b = B[v];
+    const c = cut && (qx * V.px[j] + qy * V.py[j] + qz * V.pz[j] > q0) ? 1 : 0;
     clip[j] = c; solid[v] = !c && SOLID[a] && SOLID[b] ? 1 : 0;
   }
-  const P = S.aPos.array, C = S.aCode.array;
+  const P = V.aPos.array, C = V.aCode.array;
   let m = 0;
   for (let j = 0; j < N; j++) {
     if (clip[j]) continue;
-    const v = S.inside[j], a = A[v], b = B[v];
+    const v = V.inside[j], a = A[v], b = B[v];
     if (!DRAW[a] && !DRAW[b]) continue;
-    if (solid[v] && S.interior[j] && solid[v - 1] && solid[v + 1] && solid[v - nx] && solid[v + nx] && solid[v - nxy] && solid[v + nxy]) continue;
-    P[3 * m] = S.px[j]; P[3 * m + 1] = S.py[j]; P[3 * m + 2] = S.pz[j];
+    if (solid[v] && V.interior[j] && solid[v - 1] && solid[v + 1] && solid[v - nx] && solid[v + nx] && solid[v - nxy] && solid[v + nxy]) continue;
+    P[3 * m] = V.px[j]; P[3 * m + 1] = V.py[j]; P[3 * m + 2] = V.pz[j];
     C[2 * m] = a < MAXCODE ? a : 0; C[2 * m + 1] = b < MAXCODE ? b : 0; m++;
   }
-  S.geo.instanceCount = m;
-  S.aPos.needsUpdate = true; S.aCode.needsUpdate = true;
-  S.drawn = m; S.dirty = false;
+  V.geo.instanceCount = m;
+  V.aPos.needsUpdate = true; V.aCode.needsUpdate = true;
+  V.dirty = false;
 }
+function markAllDirty() { for (const V of vsets.values()) V.dirty = true; requestRender(); }
+
+// ---------------------------------------------------------------- runs, scenarios and the view
+// key of a run: its loading (the "_swapped" twin shares it); the grafted socket tells the twins apart
+const loadingKey = (r) => (r.id === "swapped" ? "baseline" : r.id.replace(/_swapped$/, ""));
+const graftedSocket = (r) => Object.keys(r.arms).find((k) => isGraft(r.arms[k]));
+function setupRuns() {
+  runs = manifest.runs && manifest.runs.length ? manifest.runs
+    : [{ id: "baseline", label: "", loading: "none", arms: Object.fromEntries(manifest.sockets.map((s) => [String(s.id), s.arm])),
+      frames: Object.fromEntries(manifest.sockets.map((s) => [String(s.id), s.frames])), series: manifest.series }];
+  const by = new Map();
+  for (const r of runs) {
+    const k = loadingKey(r);
+    if (!by.has(k)) by.set(k, { key: k, runs: {} });
+    by.get(k).runs[graftedSocket(r) || "none"] = r;
+  }
+  scenarios = [...by.values()];
+}
+const scenario = () => scenarios.find((s) => s.key === state.loading) || scenarios[0];
+// the run of the current loading with the graft in socket g (falls back to the other twin if there is none)
+function runFor(g) { const s = scenario(); return s.runs[g] || Object.values(s.runs)[0]; }
+const hasBridge = (key) => /bridge|ovate/.test(key);
+// What is on screen: panes, each with its sockets ({ G, run, V }). Normal: one pane, both sockets of the current run.
+// Compare: two panes, the chosen socket empty (left or top) and grafted (right or bottom), under the same loading.
+function view() {
+  if (!scenarios.length || !geoms.length) return [];
+  if (state.compare !== "off") {
+    const sid = state.compare, other = geoms.map((g) => g.id).find((id) => id !== sid);
+    return [runFor(other), runFor(sid)].map((r) => ({ cols: [col(sid, r)] }));
+  }
+  const r = runFor(state.graft);
+  return [{ cols: geoms.map((g) => col(g.id, r)) }];
+}
+function col(sid, run) {
+  const G = geomOf(sid);
+  return { sid, G, run, arm: run.arms[sid], V: vset(run.frames[sid], G) };
+}
+const columns = () => view().flatMap((p) => p.cols);
 
 // ---------------------------------------------------------------- time
 function framePair(d, loaded) {
@@ -187,10 +242,10 @@ function framePair(d, loaded) {
 }
 function applyTime() {
   let t = 0;
-  for (const S of sockets) {
-    if (!S.loaded) continue;
-    const [i, j, tt] = framePair(state.day, S.loaded);
-    if (i !== S.f0 || j !== S.f1) { S.f0 = i; S.f1 = j; S.dirty = true; }
+  for (const c of columns()) {
+    const V = c.V; if (!V.loaded) continue;
+    const [i, j, tt] = framePair(state.day, V.loaded);
+    if (i !== V.f0 || j !== V.f1) { V.f0 = i; V.f1 = j; V.dirty = true; }
     t = tt;
   }
   U.uT.value = t;
@@ -216,8 +271,16 @@ function setPlaying(v) {
 // perpendicular to it, pointing labially (away from the jaw's centroid, which is the origin), UP is superior.
 const section = { active: false, normal: [0, 0, 0], offset: 0, MD: new THREE.Vector3(1, 0, 0), BL: new THREE.Vector3(0, 0, 1), UP: new THREE.Vector3(0, 1, 0),
   ref: { md: 0, bl: 0 }, range: { md: [-3, 3], bl: [-3, 3] }, slab: { md: [], bl: [] }, cutPlane: new THREE.Plane() };
+function ext1(G, ax) {
+  let lo = Infinity, hi = -Infinity;
+  for (let c = 0; c < 8; c++) {
+    const p = new THREE.Vector3(c & 1 ? G.box.max.x : G.box.min.x, c & 2 ? G.box.max.y : G.box.min.y, c & 4 ? G.box.max.z : G.box.min.z);
+    const d = p.dot(ax); lo = Math.min(lo, d); hi = Math.max(hi, d);
+  }
+  return [lo, hi];
+}
 function sectionFrame() {
-  const a = sockets.find((s) => s.id === "32") || sockets[0], b = sockets.find((s) => s.id === "33") || sockets[sockets.length - 1];
+  const a = geomOf("32") || geoms[0], b = geomOf("33") || geoms[geoms.length - 1];
   const md = b.center.clone().sub(a.center); md.y = 0;
   if (md.lengthSq() < 1e-6) md.set(1, 0, 0);
   md.normalize();
@@ -225,34 +288,18 @@ function sectionFrame() {
   const mid = a.center.clone().add(b.center).multiplyScalar(0.5); mid.y = 0;
   if (bl.dot(mid) < 0) bl.negate();
   section.MD.copy(md); section.BL.copy(bl);
-  // extents of the socket boxes along each axis
-  const ext = (ax) => {
-    let lo = Infinity, hi = -Infinity;
-    for (const S of sockets) for (let c = 0; c < 8; c++) {
-      const p = new THREE.Vector3(c & 1 ? S.box.max.x : S.box.min.x, c & 2 ? S.box.max.y : S.box.min.y, c & 4 ? S.box.max.z : S.box.min.z);
-      const d = p.dot(ax); lo = Math.min(lo, d); hi = Math.max(hi, d);
-    }
-    return [lo, hi];
-  };
+  const ext = (ax) => { let lo = Infinity, hi = -Infinity; for (const G of geoms) { const e = ext1(G, ax); lo = Math.min(lo, e[0]); hi = Math.max(hi, e[1]); } return [lo, hi]; };
   const eMD = ext(md), eBL = ext(bl), eUP = ext(section.UP);
   section.ref.bl = mid.dot(bl);
   section.ref.md = a.center.dot(md);
   section.range.bl = [eBL[0] - section.ref.bl, eBL[1] - section.ref.bl];
   section.range.md = [eMD[0] - section.ref.md, eMD[1] - section.ref.md];
-  section.socketMD = sockets.map((S) => { const e = ext1(S, md); return { id: S.id, lo: e[0] - section.ref.md, hi: e[1] - section.ref.md, c: S.center.dot(md) - section.ref.md }; });
-  // the slab the jaw and teeth are cut in (clipIntersection: only what lies beyond the cut AND inside the slab goes).
+  section.socketMD = geoms.map((G) => { const e = ext1(G, md); return { id: G.id, lo: e[0] - section.ref.md, hi: e[1] - section.ref.md, c: G.center.dot(md) - section.ref.md }; });
+  // the slab the jaw, teeth and bridge are cut in (clipIntersection: only what lies beyond the cut AND inside the slab goes).
   // Along the cut's own axis the slab is open, so on the bucco-lingual cut the front teeth in the line of sight go too.
   const lim = (ax, lo, hi) => [new THREE.Plane(ax.clone(), -hi), new THREE.Plane(ax.clone().negate(), lo)];
-  const up = lim(section.UP, eUP[0] - 5, eUP[1] + 14);
+  const up = lim(section.UP, eUP[0] - 5, eUP[1] + 16);
   section.slab = { md: [...lim(md, eMD[0] - 4, eMD[1] + 4), ...up], bl: [...lim(bl, eBL[0] - 8, eBL[1] + 8), ...up] };
-}
-function ext1(S, ax) {
-  let lo = Infinity, hi = -Infinity;
-  for (let c = 0; c < 8; c++) {
-    const p = new THREE.Vector3(c & 1 ? S.box.max.x : S.box.min.x, c & 2 ? S.box.max.y : S.box.min.y, c & 4 ? S.box.max.z : S.box.min.z);
-    const d = p.dot(ax); lo = Math.min(lo, d); hi = Math.max(hi, d);
-  }
-  return [lo, hi];
 }
 // the side that is cut away: labial for the mesio-distal plane, mesial for the bucco-lingual one ("flip" swaps it)
 function removedDir() {
@@ -272,9 +319,8 @@ function applySection() {
     section.cutPlane.set(new THREE.Vector3(-sgn * ax.x, -sgn * ax.y, -sgn * ax.z), sgn * at);
   }
   const planes = on ? [section.cutPlane, ...section.slab[state.section === "md" ? "md" : "bl"]] : [];
-  for (const m of [jawFront, jawBack, teethMat]) { m.clippingPlanes = planes; m.clipIntersection = true; m.needsUpdate = true; }
-  for (const S of sockets) S.dirty = true;
-  // panel
+  for (const m of [jawFront, jawBack, teethMat, bridgeMat]) { m.clippingPlanes = planes; m.clipIntersection = true; m.needsUpdate = true; }
+  markAllDirty();
   document.querySelectorAll("[data-section]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.section === state.section));
   $("section-controls").hidden = !on;
   if (on) {
@@ -290,7 +336,6 @@ function applySection() {
     }
     $("section-flip").textContent = k === "md" ? (state.flip ? "Cut the labial side" : "Cut the lingual side") : (state.flip ? "Cut the mesial side" : "Cut the distal side");
   }
-  requestRender();
 }
 function sectionLabel() {
   const k = state.section, p = state.pos[k];
@@ -301,19 +346,21 @@ function sectionLabel() {
 
 // ---------------------------------------------------------------- camera presets
 let tween = null;
+function paneAspect() { const r = paneRects(view().length)[0]; return r[2] / r[3]; }
 function fitDistance(r) {
-  const v = THREE.MathUtils.degToRad(camera.fov), h = 2 * Math.atan(Math.tan(v / 2) * camera.aspect);
+  const v = THREE.MathUtils.degToRad(camera.fov), h = 2 * Math.atan(Math.tan(v / 2) * paneAspect());
   return r / Math.sin(Math.min(v, h) / 2);
 }
 function cameraTo(name, instant) {
-  if (!sockets.length) return;
+  if (!geoms.length) return;
   let target, dir, r;
   if (name === "jaw" && !jawBox.isEmpty()) {
     target = jawBox.getCenter(new THREE.Vector3());
     r = jawBox.getSize(new THREE.Vector3()).length() / 2 * 0.92;
     dir = section.BL.clone().add(section.UP.clone().multiplyScalar(0.42)).normalize();  // facing the sockets' labial side
   } else {
-    const all = new THREE.Box3(); sockets.forEach((S) => all.union(S.box));
+    const all = new THREE.Box3();
+    (state.compare !== "off" ? [geomOf(state.compare)] : geoms).forEach((G) => all.union(G.box));
     target = all.getCenter(new THREE.Vector3());
     r = all.getSize(new THREE.Vector3()).length() / 2 * 1.25 + 4;  // some jaw and the neighbouring teeth around the sockets
     dir = state.section !== "off" ? removedDir().add(section.UP.clone().multiplyScalar(0.18)).normalize()
@@ -336,40 +383,78 @@ function stepTween(now) {
 }
 
 // ---------------------------------------------------------------- render loop
+// pane rectangles in CSS pixels from the top left: two panes side by side on a wide stage, stacked on a tall one
+function paneRects(n) {
+  const w = stage.clientWidth || 1, h = stage.clientHeight || 1;
+  if (n < 2) return [[0, 0, w, h]];
+  return w >= h ? [[0, 0, w / 2, h], [w / 2, 0, w / 2, h]] : [[0, 0, w, h / 2], [0, h / 2, w, h / 2]];
+}
 function resize() {
   const w = stage.clientWidth, h = stage.clientHeight;
   if (!w || !h) return;
   renderer.setSize(w, h, false);
-  camera.aspect = w / h; camera.updateProjectionMatrix();
+  paneOverlays();
   requestRender();
 }
 new ResizeObserver(resize).observe(stage);
-const tagEls = {};
-function placeTags() {
-  const w = stage.clientWidth, h = stage.clientHeight, v = new THREE.Vector3(), shown = [];
-  for (const S of sockets) {
-    let el = tagEls[S.id];
-    if (!el) {
-      el = document.createElement("div"); el.className = "tag";
-      el.style.setProperty("--c", `var(--s${S.id}, var(--accent))`);
-      el.innerHTML = `<b>${S.id}</b>${SOCKET_LABEL[S.id] || S.arm}`;
-      $("tags").appendChild(el); tagEls[S.id] = el;
+// pane labels and the rule between the panes (compare mode)
+function paneOverlays() {
+  const P = view(), R = paneRects(P.length), box = $("panes");
+  if (P.length < 2) { box.innerHTML = ""; return; }
+  const wide = R[1][0] > 0;
+  box.innerHTML = P.map((p, i) => {
+    const c = p.cols[0], [x, y, w, h] = R[i];
+    return `<div class="pane-label" style="--c:${armVar(c.arm)};left:${x + w / 2}px;top:${y + h - 34}px">Socket ${c.sid} · ${armName(c.arm)}</div>`;
+  }).join("") + (wide ? `<div class="pane-rule" style="left:${R[1][0] - 0.5}px;top:0;bottom:0;width:1px"></div>`
+    : `<div class="pane-rule" style="top:${R[1][1] - 0.5}px;left:0;right:0;height:1px"></div>`);
+}
+const tagEls = new Map();
+function placeTags(P, R) {
+  const v = new THREE.Vector3(), shown = [], used = new Set();
+  P.forEach((p, pi) => {
+    const [x0, y0, w, h] = R[pi];
+    for (const c of p.cols) {
+      const key = `${pi}:${c.sid}`; used.add(key);
+      let el = tagEls.get(key);
+      if (!el) { el = document.createElement("div"); el.className = "tag"; $("tags").appendChild(el); tagEls.set(key, el); }
+      el.style.setProperty("--c", armVar(c.arm));
+      el.innerHTML = `<b>${c.sid}</b>${armName(c.arm)}`;
+      // anchored under the socket's apex, clear of the crowns and the bridge's pontics
+      v.set(c.G.center.x, c.G.box.min.y - 0.8, c.G.center.z); v.project(camera);
+      // the tag goes when the whole socket is cut away (every corner of its box beyond the plane)
+      const [qx, qy, qz] = section.normal, b0 = c.G.box.min, b1 = c.G.box.max;
+      const cutAway = section.active && Math.min(qx * b0.x, qx * b1.x) + Math.min(qy * b0.y, qy * b1.y) + Math.min(qz * b0.z, qz * b1.z) > section.offset;
+      const ok = (P.length > 1 || state.show[c.sid]) && !cutAway && v.z < 1 && Math.abs(v.x) < 1.1 && Math.abs(v.y) < 1.1;
+      el.hidden = !ok;
+      if (ok) shown.push({ el, pi, x: x0 + (v.x + 1) / 2 * w, y: y0 + (1 - v.y) / 2 * h, w: el.offsetWidth });
     }
-    v.copy(S.top); v.y += 1.2; v.project(camera);
-    // the tag goes when the whole socket is cut away (every corner of its box beyond the plane)
-    const [qx, qy, qz] = section.normal, b0 = S.box.min, b1 = S.box.max;
-    const cutAway = section.active && Math.min(qx * b0.x, qx * b1.x) + Math.min(qy * b0.y, qy * b1.y) + Math.min(qz * b0.z, qz * b1.z) > section.offset;
-    const ok = state.show[S.id] && !cutAway && v.z < 1 && Math.abs(v.x) < 1.1 && Math.abs(v.y) < 1.1;
-    el.hidden = !ok;
-    if (ok) shown.push({ el, x: (v.x + 1) / 2 * w, y: (1 - v.y) / 2 * h, w: el.offsetWidth });
-  }
-  // two tags that would overlap move apart sideways
-  shown.sort((a, b) => a.x - b.x);
+  });
+  for (const [k, el] of tagEls) if (!used.has(k)) el.hidden = true;
+  // two tags of a pane that would overlap move apart sideways
+  shown.sort((a, b) => a.pi - b.pi || a.x - b.x);
   for (let i = 1; i < shown.length; i++) {
     const a = shown[i - 1], b = shown[i], need = (a.w + b.w) / 2 + 6 - (b.x - a.x);
-    if (need > 0 && Math.abs(a.y - b.y) < 26) { a.x -= need / 2; b.x += need / 2; }
+    if (a.pi === b.pi && need > 0 && Math.abs(a.y - b.y) < 26) { a.x -= need / 2; b.x += need / 2; }
   }
-  for (const t of shown) t.el.style.transform = `translate(${t.x.toFixed(1)}px, ${t.y.toFixed(1)}px) translate(-50%, -100%)`;
+  for (const t of shown) t.el.style.transform = `translate(${t.x.toFixed(1)}px, ${t.y.toFixed(1)}px) translate(-50%, 0)`;
+}
+function render() {
+  const P = view(), R = paneRects(P.length), H = stage.clientHeight;
+  for (const V of vsets.values()) V.mesh.visible = false;
+  renderer.setScissorTest(P.length > 1);
+  P.forEach((p, i) => {
+    const [x, y, w, h] = R[i];
+    for (const V of vsets.values()) V.mesh.visible = false;
+    for (const c of p.cols) {
+      const on = !!c.V.inside && (P.length > 1 || state.show[c.sid]);
+      c.V.mesh.visible = on;
+      if (on && c.V.dirty) rebuild(c.V);
+    }
+    renderer.setViewport(x, H - y - h, w, h); renderer.setScissor(x, H - y - h, w, h);
+    camera.aspect = w / h; camera.updateProjectionMatrix();
+    renderer.render(scene, camera);
+  });
+  placeTags(P, R);
 }
 let lastTs = 0, slow = 0;
 function loop(ts) {
@@ -387,9 +472,7 @@ function loop(ts) {
   if (controls.update()) dirty = true;
   if (!dirty) return;
   dirty = false;
-  for (const S of sockets) { S.mesh.visible = !!S.inside && state.show[S.id]; if (S.dirty && S.mesh.visible) rebuild(S); }
-  renderer.render(scene, camera);
-  placeTags();
+  render();
 }
 
 // ---------------------------------------------------------------- data
@@ -402,24 +485,26 @@ async function getJSON(f) {
 function loadGLB(f) {
   return new Promise((ok, fail) => new THREE.GLTFLoader().load(DATA + f, ok, undefined, (e) => fail(new Error(`${f}: ${e.message || e}`))));
 }
-function addMeshes(gltf, group, mats) {
+function addMeshes(gltf, group, mats, box) {
+  const out = [];
   gltf.scene.updateMatrixWorld(true);
   gltf.scene.traverse((o) => {
     if (!o.isMesh) return;
     const g = o.geometry.clone(); g.applyMatrix4(o.matrixWorld);
     if (!g.attributes.normal) g.computeVertexNormals();
-    g.computeBoundingBox(); jawBox.union(g.boundingBox);
+    g.computeBoundingBox(); if (box) jawBox.union(g.boundingBox);
     mats.forEach((m, i) => { const me = new THREE.Mesh(g, m); me.renderOrder = 2 + i; group.add(me); });
+    out.push(g);
   });
+  return out;
 }
-// frames: (n_frames, nz, ny, nx) uint8, x fastest; streamed, so day 0 shows before the whole file is in
-async function loadFrames(S, onFrame) {
-  const total = NF * S.nvox;
-  const r = await fetch(DATA + S.file);
-  if (!r.ok) throw new Error(`${S.file}: HTTP ${r.status}`);
+// a stream of the file's bytes; a .gz file (GitHub Pages serves it as is) is unpacked, unless the server already did
+async function openStream(file) {
+  const r = await fetch(DATA + file);
+  if (!r.ok) throw new Error(`${file}: HTTP ${r.status}`);
   let stream = r.body;
-  if (/\.gz$/.test(S.file) && stream && stream.getReader) {
-    // a gzipped file (GitHub Pages serves it as is); a server that already unpacked it sends no gzip magic
+  if (!stream || !stream.getReader) return { buf: new Uint8Array(await r.arrayBuffer()) };
+  if (/\.gz$/.test(file)) {
     const rd0 = stream.getReader(), first = await rd0.read();
     const head = first.value || new Uint8Array(0), gz = head[0] === 0x1f && head[1] === 0x8b;
     stream = new ReadableStream({
@@ -427,31 +512,47 @@ async function loadFrames(S, onFrame) {
       async pull(c) { const { done, value } = await rd0.read(); if (done) c.close(); else c.enqueue(value); },
     });
     if (gz) {
-      if (!("DecompressionStream" in window)) throw new Error("this browser cannot unpack the compressed frames");
+      if (!("DecompressionStream" in window)) throw new Error("this browser cannot unpack the compressed data");
       stream = stream.pipeThrough(new DecompressionStream("gzip"));
     }
   }
-  S.frames = new Uint8Array(total);
+  return { stream };
+}
+// frames: (n_frames, nz, ny, nx) uint8, x fastest; streamed, so day 0 shows before the whole file is in
+async function loadFrames(V) {
+  const total = NF * V.G.nvox, n = V.G.nvox;
+  V.frames = new Uint8Array(total);
+  const src = await openStream(V.file);
   let got = 0;
-  if (!stream || !stream.getReader) {
-    const b = new Uint8Array(await r.arrayBuffer()); S.frames.set(b.subarray(0, total)); got = b.length;
-  } else {
-    const rd = stream.getReader();
+  const progress = () => {
+    const nf = Math.min(NF, Math.floor(got / n));
+    if (nf > V.loaded) { V.loaded = nf; if (!V.inside) indexSet(V); onFrames(); }
+  };
+  if (src.buf) { V.frames.set(src.buf.subarray(0, total)); got = src.buf.length; progress(); }
+  else {
+    const rd = src.stream.getReader();
     for (;;) {
       const { done, value } = await rd.read();
       if (done) break;
       const take = Math.min(value.length, total - got);
-      if (take > 0) S.frames.set(value.subarray(0, take), got);
+      if (take > 0) V.frames.set(value.subarray(0, take), got);
       got += value.length;
-      const nf = Math.min(NF, Math.floor(got / S.nvox));
-      if (nf > S.loaded) { S.loaded = nf; onFrame(S); }
+      progress();
     }
   }
-  if (got !== total) throw new Error(`${S.file}: ${got} bytes, expected ${total} (${NF} frames of ${S.nx} × ${S.ny} × ${S.nz})`);
-  S.loaded = NF; onFrame(S);
+  if (got !== total) throw new Error(`${V.file}: ${got} bytes, expected ${total} (${NF} frames of ${V.G.nx} × ${V.G.ny} × ${V.G.nz})`);
+  V.loaded = NF;
+  V.codes = new Uint8Array(256); for (let i = 0; i < total; i++) V.codes[V.frames[i]] = 1;
+  onFrames();
+}
+function onFrames() {
+  const cs = columns(), n = Math.min(...cs.map((c) => c.V.loaded));
+  status(n < NF ? `Loading the simulation: ${n} of ${NF} frames` : "");
+  if (n >= NF) markAbsentTissues();
+  applyTime();
 }
 
-// series.json (the case pipeline's format): per socket "days", "whole" {new_bone, residual_graft, stem_cells, soft_tissue,
+// series (the case pipeline's format): per socket "days", "whole" {new_bone, residual_graft, stem_cells, soft_tissue,
 // cartilage, clot_or_marrow; sum 100}, "core" {new_bone, residual_graft}, "expected" {core_new_bone, core_residual_graft:
 // [{day, value, low, high}]}; root "bands" {"x2.5"|"x5": {id: {days, whole_new_bone}}}. Normalized to
 // { s: { id: { days, nb, rb, msc, soft, cart, clot, cnb, crb, bands: { nb: [faster, slower] } } }, lit: { id: { nb, rb } } }
@@ -459,20 +560,27 @@ function normSeries(raw) {
   const out = { s: {}, lit: {}, seeds: raw.seeds, framesSeed: raw.frames_seed };
   const root = raw.sockets || {};
   const arr = (a) => (Array.isArray(a) ? a.map(Number) : null);
-  for (const S of sockets) {
-    const o = root[S.id];
+  for (const G of geoms) {
+    const o = root[G.id];
     if (!o) continue;
     const W = o.whole || {}, C = o.core || {};
     const e = { days: arr(o.days), nb: arr(W.new_bone), rb: arr(W.residual_graft), msc: arr(W.stem_cells), soft: arr(W.soft_tissue),
       cart: arr(W.cartilage), clot: arr(W.clot_or_marrow), cnb: arr(C.new_bone), crb: arr(C.residual_graft), bands: {} };
-    const fast = raw.bands && raw.bands["x2.5"] && raw.bands["x2.5"][S.id], slow = raw.bands && raw.bands["x5"] && raw.bands["x5"][S.id];
+    const fast = raw.bands && raw.bands["x2.5"] && raw.bands["x2.5"][G.id], slow = raw.bands && raw.bands["x5"] && raw.bands["x5"][G.id];
     if (fast && slow && fast.whole_new_bone && slow.whole_new_bone)
       e.bands.nb = [{ days: arr(fast.days), v: arr(fast.whole_new_bone) }, { days: arr(slow.days), v: arr(slow.whole_new_bone) }];
-    out.s[S.id] = e;
+    out.s[G.id] = e;
     const X = o.expected || {}, fix = (a) => (Array.isArray(a) ? a.map((q) => ({ day: +q.day, low: +q.low, high: +q.high, mid: q.value != null ? +q.value : null })) : null);
-    out.lit[S.id] = { nb: fix(X.core_new_bone) || (LIT_FALLBACK[S.id] || {}).nb || null, rb: fix(X.core_residual_graft) || (LIT_FALLBACK[S.id] || {}).rb || null };
+    out.lit[G.id] = { nb: fix(X.core_new_bone), rb: fix(X.core_residual_graft) };
   }
   return out;
+}
+function seriesFor(file) {
+  const s = seriesCache.get(file);
+  if (s && !s.then) return s;
+  if (!s) seriesCache.set(file, getJSON(file).then((raw) => { seriesCache.set(file, normSeries(raw)); legend(); readout(Math.floor(state.day)); drawCharts(true); seedsNote(); })
+    .catch((e) => { seriesCache.delete(file); $("chart-note").textContent = `The charts could not load (${e.message}).`; }));
+  return null;
 }
 function valueAt(e, k, d) {
   const a = e && e[k], days = e && e.days;
@@ -481,44 +589,48 @@ function valueAt(e, k, d) {
   while (lo < hi) { const m = (lo + hi + 1) >> 1; if (days[m] <= d) lo = m; else hi = m - 1; }
   return a[lo];
 }
+// chart and table columns: per column the socket, its arm and its series entry
+function chartCols() {
+  return columns().map((c) => { const S = seriesFor(c.run.series); return { ...c, e: S && S.s[c.sid], lit: S && S.lit[c.sid] }; });
+}
 
 // ---------------------------------------------------------------- readout and charts
 const fmt = (x) => x == null || isNaN(x) ? "–" : `${x.toFixed(1)}`;
 function readout(d) {
-  $("read-title").textContent = `Day ${d}, % of the socket`;
-  if (!series) { $("read").innerHTML = ""; return; }
-  const ids = sockets.map((S) => S.id);
+  const cs = chartCols(), cmp = state.compare !== "off";
+  $("read-title").textContent = cmp ? `Day ${d}, % of socket ${state.compare}` : `Day ${d}, % of the socket`;
+  if (!cs.some((c) => c.e)) { $("read").innerHTML = ""; return; }
   const rows = [["New bone", "nb", false], ["virtual core", "cnb", true], ["β-TCP", "rb", false], ["virtual core", "crb", true],
     ["Stem cells", "msc", false], ["Fibrous tissue", "soft", false], ["Cartilage", "cart", false], ["Clot or marrow", "clot", false]];
-  const head = `<thead><tr><th></th>${ids.map((id) => `<th scope="col">${id} · ${SOCKET_LABEL[id] || ""}</th>`).join("")}</tr></thead>`;
-  // a tissue that never forms in this run (all zero in both sockets) gets no row
-  const used = (k) => ids.some((id) => { const a = series.s[id] && series.s[id][k]; return a && a.some((v) => v > 0.05); });
-  const body = rows.filter(([, k]) => used(k) || (k === "nb" || k === "cnb")).map(([name, k, sub]) =>
-    `<tr><th scope="row" class="${sub ? "sub" : ""}">${name}</th>${ids.map((id) => {
-      const e = series.s[id]; const graftless = (k === "rb" || k === "crb") && /empty/i.test(sockets.find((S) => S.id === id).arm || "");
-      return `<td>${graftless ? "–" : fmt(valueAt(e, k, d))}</td>`;
+  const head = `<thead><tr><th></th>${cs.map((c) => `<th scope="col">${c.sid} · ${armName(c.arm)}</th>`).join("")}</tr></thead>`;
+  // a tissue that never forms in these runs (all zero) gets no row
+  const used = (k) => cs.some((c) => { const a = c.e && c.e[k]; return a && a.some((v) => v > 0.05); });
+  const body = rows.filter(([, k]) => used(k) || k === "nb" || k === "cnb").map(([name, k, sub]) =>
+    `<tr><th scope="row" class="${sub ? "sub" : ""}">${name}</th>${cs.map((c) => {
+      const graftless = (k === "rb" || k === "crb") && !isGraft(c.arm);
+      return `<td>${graftless ? "–" : fmt(valueAt(c.e, k, d))}</td>`;
     }).join("")}</tr>`).join("");
   $("read").innerHTML = head + `<tbody>${body}</tbody>`;
 }
 let chartT = 0;
 function drawCharts(force) {
   const now = performance.now(); if (!force && now - chartT < 40) return; chartT = now;
-  if (!series) return;
-  chart("chart-nb", "nb", "cnb", sockets.map((S) => S.id), 60);
-  chart("chart-rb", "rb", "crb", sockets.filter((S) => !/empty/i.test(S.arm || "")).map((S) => S.id), 60);
+  const cs = chartCols();
+  chart("chart-nb", "nb", "cnb", cs, 60);
+  chart("chart-rb", "rb", "crb", cs.filter((c) => isGraft(c.arm)), 60);
 }
-function chart(id, k, kc, ids, ymin) {
+function chart(id, k, kc, cs, ymin) {
   const c = $(id), dpr = window.devicePixelRatio || 1, w = c.clientWidth, h = c.clientHeight;
   if (!w || !h) return;
   if (c.width !== Math.round(w * dpr) || c.height !== Math.round(h * dpr)) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); }
   const x = c.getContext("2d"); x.setTransform(dpr, 0, 0, dpr, 0, 0); x.clearRect(0, 0, w, h);
   const D = FD[NF - 1] || 182;
   let ymax = ymin;
-  for (const sid of ids) {
-    const e = series.s[sid]; if (!e) continue;
+  for (const q of cs) {
+    const e = q.e; if (!e) continue;
     for (const kk of [k, kc]) if (e[kk]) for (const v of e[kk]) ymax = Math.max(ymax, v);
     if (e.bands && e.bands[k]) for (const b of e.bands[k]) for (const v of b.v) ymax = Math.max(ymax, v);
-    const lit = series.lit[sid] && series.lit[sid][k]; if (lit) for (const L0 of lit) ymax = Math.max(ymax, L0.high);
+    const lit = q.lit && q.lit[k]; if (lit) for (const L0 of lit) ymax = Math.max(ymax, L0.high);
   }
   ymax = Math.min(100, Math.ceil(ymax / 20) * 20);
   const L = 30, R = 10, T = 6, B = 18, X = (d) => L + (w - L - R) * d / D, Y = (v) => T + (h - T - B) * (1 - v / ymax);
@@ -527,10 +639,10 @@ function chart(id, k, kc, ids, ymin) {
   for (let v = 0; v <= ymax; v += 20) { x.beginPath(); x.moveTo(L, Math.round(Y(v)) + 0.5); x.lineTo(w - R, Math.round(Y(v)) + 0.5); x.stroke(); x.textAlign = "right"; x.fillText(v, L - 5, Y(v) + 4); }
   x.textAlign = "center";
   for (let m = 0; m <= 6; m++) { const d = Math.min(D, m * 30.44); x.fillText(m === 0 ? "0" : `${m} mo`, Math.min(X(d), w - R - 12), h - 4); }
-  ids.forEach((sid, n) => {
-    const e = series.s[sid]; if (!e) return;
-    const col = css(`--s${sid}`) || css("--accent");
-    // time-scale band (whole socket at x2.5 and x5 instead of x3.5), when the package has one; each curve has its own days
+  cs.forEach((q, n) => {
+    const e = q.e; if (!e) return;
+    const col = css(isGraft(q.arm) ? "--arm-tcp" : "--arm-empty");
+    // time-scale band (whole socket at x2.5 and x5 instead of x3.5), when the series has one; each curve has its own days
     const band = e.bands && e.bands[k];
     if (band) {
       const [f, sl] = band;
@@ -539,10 +651,10 @@ function chart(id, k, kc, ids, ymin) {
       for (let i = sl.days.length - 1; i >= 0; i--) x.lineTo(X(sl.days[i]), Y(sl.v[i]));
       x.closePath(); x.fill(); x.globalAlpha = 1;
     }
-    // literature boxes (human biopsy cores, 3 and 6 months), side by side when both sockets have one
-    const lit = series.lit[sid] && series.lit[sid][k];
+    // literature boxes (human biopsy cores, 3 and 6 months), side by side when both columns have one
+    const lit = q.lit && q.lit[k];
     if (lit) for (const L0 of lit) {
-      const off = ids.length > 1 ? (n === 0 ? -1 : 1) * 4.5 : 0; let cx = X(Math.min(D - 8, L0.day)) + off * (w - L - R) / D;
+      const off = cs.length > 1 ? (n === 0 ? -1 : 1) * 4.5 : 0; let cx = X(Math.min(D - 8, L0.day)) + off * (w - L - R) / D;
       const bw = Math.max(6, 7 * (w - L - R) / D);
       cx = Math.min(cx, w - R - bw / 2);
       x.fillStyle = col; x.globalAlpha = 0.16; x.fillRect(cx - bw / 2, Y(L0.high), bw, Y(L0.low) - Y(L0.high)); x.globalAlpha = 1;
@@ -561,12 +673,19 @@ function chart(id, k, kc, ids, ymin) {
 }
 function legend() {
   const line = (col, dash) => `<svg viewBox="0 0 22 10" aria-hidden="true"><path d="M1 5h20" style="stroke:${col}" stroke-width="2" ${dash ? 'stroke-dasharray="4 3"' : ""}/></svg>`;
-  const fg = "var(--fg-2)";
-  let h = sockets.map((S) => `<span>${line(`var(--s${S.id}, var(--accent))`)}${S.id} · ${SOCKET_LABEL[S.id] || S.arm}</span>`).join("");
+  const fg = "var(--fg-2)", cs = chartCols();
+  let h = cs.map((c) => `<span>${line(armVar(c.arm))}${c.sid} · ${armName(c.arm)}</span>`).join("");
   h += `<span>${line(fg)}whole socket</span><span>${line(fg, true)}virtual core</span>`;
   h += `<span style="grid-column:1/-1"><svg viewBox="0 0 22 10" aria-hidden="true"><rect x="7" y="0.5" width="8" height="9" style="fill:none;stroke:${fg}"/></svg>human biopsy cores, 3 and 6 months</span>`;
-  if (series && Object.values(series.s).some((e) => e && Object.keys(e.bands).length)) h += `<span style="grid-column:1/-1"><svg viewBox="0 0 22 10" aria-hidden="true"><rect x="1" y="1" width="20" height="8" style="fill:${fg}" opacity="0.25"/></svg>whole socket at time scale ×2.5 to ×5</span>`;
+  if (cs.some((c) => c.e && Object.keys(c.e.bands).length)) h += `<span style="grid-column:1/-1"><svg viewBox="0 0 22 10" aria-hidden="true"><rect x="1" y="1" width="20" height="8" style="fill:${fg}" opacity="0.25"/></svg>whole socket at time scale ×2.5 to ×5</span>`;
   $("legend").innerHTML = h;
+}
+function seedsNote() {
+  const S = seriesFor(runFor(state.graft).series);
+  if (!S || !S.seeds) { $("seeds").textContent = ""; return; }
+  $("seeds").textContent = S.seeds > 1
+    ? `In this scenario the charts and the table are the mean of ${S.seeds} runs with different random seeds; the cubes show one of them${S.framesSeed ? ` (seed ${S.framesSeed})` : ""}.`
+    : `This scenario was run with one random seed${S.framesSeed ? ` (seed ${S.framesSeed})` : ""}; the charts, the table and the cubes all come from it.`;
 }
 for (const id of ["chart-nb", "chart-rb"]) {
   const c = $(id); let down = false;
@@ -581,6 +700,85 @@ for (const id of ["chart-nb", "chart-rb"]) {
   c.addEventListener("pointercancel", () => { down = false; });
 }
 new ResizeObserver(() => drawCharts(true)).observe($("chart-nb"));
+
+// ---------------------------------------------------------------- strain map on the jaw surface
+// log colour scale 10-3,000 µε; the stops are placed in log space (0 = 10 µε, 1 = 3,000 µε)
+const S_LO = 10, S_HI = 3000, BAND = [1500, 3000];
+const STOPS = [[10, "#4a5a9a"], [30, "#3d88b3"], [100, "#38b2a3"], [300, "#9fd06a"], [1000, "#f3c74a"], [1500, "#f08a3e"], [3000, "#d8344f"]]
+  .map(([v, c]) => [Math.log10(v / S_LO) / Math.log10(S_HI / S_LO), new THREE.Color(c)]);
+const logPos = (v) => Math.max(0, Math.min(1, Math.log10(Math.max(v, S_LO) / S_LO) / Math.log10(S_HI / S_LO)));
+function strainColor(v, out) {
+  const t = logPos(v);
+  let i = 1; while (i < STOPS.length - 1 && STOPS[i][0] < t) i++;
+  const [t0, c0] = STOPS[i - 1], [t1, c1] = STOPS[i];
+  return out.copy(c0).lerp(c1, Math.max(0, Math.min(1, (t - t0) / (t1 - t0))));
+}
+let strainData = null, strainPromise = null;
+// float16 -> float32
+function half(h) {
+  const s = h & 0x8000 ? -1 : 1, e = (h >> 10) & 0x1f, f = h & 0x3ff;
+  if (e === 0) return s * f * 5.960464477539063e-8;
+  if (e === 31) return f ? NaN : s * Infinity;
+  return s * (1 + f / 1024) * Math.pow(2, e - 15);
+}
+async function loadStrain() {
+  const meta = manifest.surface_strain, [nc, nv] = meta.shape;
+  const src = await openStream(meta.file);
+  let bytes;
+  if (src.buf) bytes = src.buf;
+  else bytes = new Uint8Array(await new Response(src.stream).arrayBuffer());
+  if (bytes.length !== nc * nv * 2) throw new Error(`${meta.file}: ${bytes.length} bytes, expected ${nc * nv * 2}`);
+  const u16 = new Uint16Array(bytes.buffer, bytes.byteOffset, nc * nv), out = new Float32Array(nc * nv);
+  for (let i = 0; i < out.length; i++) out[i] = half(u16[i]);
+  strainData = { nc, nv, values: out };
+}
+async function applyStrain() {
+  const on = state.strain && jawGeom;
+  $("strain-controls").hidden = !state.strain; $("strain-legend").hidden = !on;
+  if (on && !strainData) {
+    if (!strainPromise) strainPromise = loadStrain().catch((e) => { strainPromise = null; $("strain-note").textContent = `The strain data could not load (${e.message}).`; });
+    status("Loading the strain map…"); await strainPromise; status("");
+    if (!strainData) return;
+  }
+  if (on && strainData.nv !== jawGeom.attributes.position.count) { $("strain-note").textContent = "The strain data does not match the jaw mesh."; return; }
+  for (const m of [jawFront, jawBack]) { m.vertexColors = !!on; m.color.set(on ? 0xffffff : (m === jawFront ? 0xd9ccb0 : 0xb9ab90)); m.needsUpdate = true; }
+  if (on) {
+    const cases = manifest.surface_strain.cases, ci = Math.max(0, cases.findIndex((c) => c.id === state.strainCase));
+    const vals = strainData.values.subarray(ci * strainData.nv, (ci + 1) * strainData.nv);
+    let attr = jawGeom.attributes.color;
+    if (!attr) { attr = new THREE.BufferAttribute(new Float32Array(strainData.nv * 3), 3); jawGeom.setAttribute("color", attr); }
+    const c = new THREE.Color();
+    for (let i = 0; i < strainData.nv; i++) { strainColor(vals[i], c); attr.setXYZ(i, c.r, c.g, c.b); }
+    attr.needsUpdate = true;
+    let mx = 0; for (const v of vals) if (v > mx) mx = v;
+    const cs = cases[ci];
+    $("sl-case").textContent = `${cs.model[0].toUpperCase() + cs.model.slice(1)}: ${cs.load}. Highest value ${Math.round(mx).toLocaleString("en-US")} µε.`;
+  }
+  requestRender();
+}
+function strainLegend() {
+  const grad = STOPS.map(([t, c]) => `#${c.getHexString()} ${(t * 100).toFixed(1)}%`).join(", ");
+  $("sl-bar").style.background = `linear-gradient(90deg, ${grad})`;
+  const b0 = logPos(BAND[0]) * 100, b1 = logPos(BAND[1]) * 100;
+  Object.assign($("sl-band").style, { left: `${b0}%`, width: `${b1 - b0}%` });
+  $("sl-band").title = "About 1,500 to 3,000 µε: the band where bone starts to be overloaded (Frost's mechanostat)";
+  $("sl-ticks").innerHTML = [10, 30, 100, 300, 1000, 3000].map((v) => `<span style="left:${(logPos(v) * 100).toFixed(1)}%">${v >= 1000 ? `${v / 1000}k` : v}</span>`).join("");
+}
+function strainSetup() {
+  const meta = manifest.surface_strain;
+  if (!meta || !meta.cases || !meta.cases.length) return;
+  $("strain-row").hidden = false;
+  const groups = [...new Set(meta.cases.map((c) => c.model))];
+  $("strain-case").innerHTML = groups.map((g) => `<optgroup label="${g[0].toUpperCase() + g.slice(1)}">${meta.cases.filter((c) => c.model === g)
+    .map((c) => `<option value="${c.id}">${c.load.split(",")[0].replace(/^./, (m) => m.toUpperCase())}</option>`).join("")}</optgroup>`).join("");
+  $("strain-note").textContent = [meta.support, meta.note].filter(Boolean).map((t) => t.replace(/^./, (m) => m.toUpperCase())).join(". ") + ".";
+  strainLegend();
+}
+// the load case that fits the scenario: chewing on 34 with the bridge in the bridge scenarios, without it otherwise
+function defaultStrainCase() {
+  const cases = manifest.surface_strain.cases, want = hasBridge(state.loading) ? "bridge_chew34" : "nobridge_chew34";
+  return (cases.find((c) => c.id === want) || cases[0]).id;
+}
 
 // ---------------------------------------------------------------- controls
 function ticks(short) {
@@ -598,15 +796,30 @@ document.addEventListener("keydown", (e) => {
   if (e.code === "Space" && !["INPUT", "SELECT", "BUTTON", "TEXTAREA"].includes(tag)) { e.preventDefault(); state.touchedTime = true; setPlaying(!state.playing); }
 });
 document.querySelectorAll("[data-camera]").forEach((b) => b.addEventListener("click", () => cameraTo(b.dataset.camera)));
-$("opacity").addEventListener("input", (e) => { state.opacity = +e.target.value; applyJaw(); });
+$("opacity").addEventListener("input", (e) => { state.opacity = +e.target.value; state.opacityBeforeStrain = null; applyJaw(); });
 $("show-teeth").addEventListener("change", (e) => { state.teeth = e.target.checked; applyJaw(); });
-for (const id of ["32", "33"]) $(`show-${id}`).addEventListener("change", (e) => { state.show[id] = e.target.checked; for (const S of sockets) S.dirty = true; requestRender(); });
+$("show-bridge").addEventListener("change", (e) => { state.bridge = e.target.checked; applyJaw(); });
+$("show-strain").addEventListener("change", (e) => {
+  state.strain = e.target.checked;
+  // the colours read best on an opaque jaw; the opacity comes back when the map is switched off
+  if (state.strain) { if (!state.strainCase) state.strainCase = defaultStrainCase(); $("strain-case").value = state.strainCase; state.opacityBeforeStrain = state.opacity; state.opacity = 1; }
+  else if (state.opacityBeforeStrain != null) { state.opacity = state.opacityBeforeStrain; state.opacityBeforeStrain = null; }
+  $("opacity").value = state.opacity; applyJaw(); applyStrain();
+});
+$("strain-case").addEventListener("change", (e) => { state.strainCase = e.target.value; applyStrain(); });
+for (const id of ["32", "33"]) $(`show-${id}`).addEventListener("change", (e) => { state.show[id] = e.target.checked; requestRender(); });
 document.querySelectorAll("[data-section]").forEach((b) => b.addEventListener("click", () => {
   const was = state.section; state.section = b.dataset.section; if (state.section !== was) state.flip = false; applySection();
   if (state.section !== was) cameraTo("sockets");
 }));
 $("section-pos").addEventListener("input", (e) => { state.pos[state.section] = +e.target.value; applySection(); });
 $("section-flip").addEventListener("click", () => { state.flip = !state.flip; applySection(); cameraTo("sockets"); });
+$("loading-sel").addEventListener("change", (e) => { state.loading = e.target.value; state.bridge = hasBridge(state.loading); applyScenario(); });
+document.querySelectorAll("[data-graft]").forEach((b) => b.addEventListener("click", () => { state.graft = b.dataset.graft; applyScenario(); }));
+document.querySelectorAll("[data-compare]").forEach((b) => b.addEventListener("click", () => {
+  const was = state.compare; state.compare = b.dataset.compare; applyScenario();
+  if (was !== state.compare) cameraTo(state.compare === "off" ? "jaw" : "sockets");
+}));
 function applyJaw() {
   const o = state.opacity;
   $("opacity-out").textContent = `${Math.round(o * 100)} %`;
@@ -615,27 +828,63 @@ function applyJaw() {
   jawGroup.visible = o > 0.01;
   jawGroup.children.forEach((me) => { if (me.material === jawBack) me.visible = !solid; });
   teethGroup.visible = state.teeth;
+  bridgeGroup.visible = state.bridge && bridgeGroup.children.length > 0;
+  $("show-bridge").checked = state.bridge;
   requestRender();
 }
-// a tissue with no voxel in any frame keeps its toggle, dimmed and last, with a short note
+// a tissue with no voxel in any frame on screen keeps its toggle, dimmed and last, with a short note
 function markAbsentTissues() {
   const seen = new Uint8Array(256);
-  for (const S of sockets) if (S.frames) for (let i = 0; i < S.frames.length; i++) seen[S.frames[i]] = 1;
+  for (const c of columns()) if (c.V.codes) for (let i = 0; i < 256; i++) seen[i] |= c.V.codes[i];
   const box = $("tissues");
   box.querySelectorAll("input[data-code]").forEach((i) => {
-    if (seen[+i.dataset.code]) return;
-    const l = i.closest("label"); l.classList.add("absent"); l.title = "No voxel holds this tissue in this run";
-    l.insertAdjacentHTML("beforeend", ' <small>(none in this run)</small>'); box.appendChild(l);
+    const l = i.closest("label"), absent = !seen[+i.dataset.code];
+    l.classList.toggle("absent", absent); l.title = absent ? "No voxel holds this tissue in the runs shown" : "";
+    const sm = l.querySelector("small");
+    if (absent && !sm) l.insertAdjacentHTML("beforeend", " <small>(none in these runs)</small>");
+    if (!absent && sm) sm.remove();
   });
+  [...box.children].sort((a, b) => (a.classList.contains("absent") - b.classList.contains("absent")) || (+a.dataset.order - +b.dataset.order)).forEach((l) => box.appendChild(l));
 }
 function tissueToggles() {
   const codes = manifest && manifest.codes ? Object.keys(manifest.codes).map(Number).filter((c) => TISSUES[c]) : Object.keys(TISSUES).map(Number);
   const ORDER = [4, 5, 1, 2, 3];  // bone and graft first, then the cells
   codes.sort((a, b) => (ORDER.indexOf(a) + 1 || 99) - (ORDER.indexOf(b) + 1 || 99));
-  $("tissues").innerHTML = codes.map((c) => `<label class="check"><input type="checkbox" data-code="${c}" checked><i class="swatch" style="background:var(${TISSUES[c].cssVar})"></i>${TISSUES[c].name}</label>`).join("");
+  $("tissues").innerHTML = codes.map((c, i) => `<label class="check" data-order="${i}"><input type="checkbox" data-code="${c}" checked><i class="swatch" style="background:var(${TISSUES[c].cssVar})"></i>${TISSUES[c].name}</label>`).join("");
   $("tissues").querySelectorAll("input").forEach((i) => i.addEventListener("change", () => {
-    state.vis[+i.dataset.code] = i.checked; tissueUniforms(); for (const S of sockets) S.dirty = true; requestRender();
+    state.vis[+i.dataset.code] = i.checked; tissueUniforms(); markAllDirty();
   }));
+}
+function scenarioSetup() {
+  $("loading-sel").innerHTML = scenarios.map((s) => `<option value="${s.key}">${LOADING_NAMES[s.key] || s.key}</option>`).join("");
+  const twins = scenarios.some((s) => Object.keys(s.runs).length > 1);
+  document.querySelectorAll("[data-graft]").forEach((b) => { b.disabled = !twins; });
+  document.querySelectorAll("[data-compare]").forEach((b) => { if (b.dataset.compare !== "off") b.disabled = !twins; });
+}
+let lastBridgeness = null;
+// after a change of loading, graft socket or compare: the controls, labels, notes, charts and the voxel sets to load
+function applyScenario() {
+  if (!scenarios.some((s) => s.key === state.loading)) state.loading = scenarios[0].key;
+  $("loading-sel").value = state.loading;
+  const r = runFor(state.graft), cmp = state.compare !== "off";
+  $("loading-note").textContent = cmp ? `Socket ${state.compare}, empty and with β-TCP; loading: ${r.loading === "none" ? "none" : r.loading}.`
+    : `${r.label ? r.label[0].toUpperCase() + r.label.slice(1) : ""}${r.loading && r.loading !== "none" ? `. Loading: ${r.loading}` : ""}.`;
+  document.querySelectorAll("[data-graft]").forEach((b) => { b.setAttribute("aria-pressed", b.dataset.graft === state.graft); if (cmp) b.disabled = true; else b.disabled = !scenarios.some((s) => Object.keys(s.runs).length > 1); });
+  document.querySelectorAll("[data-compare]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.compare === state.compare));
+  $("sockets-group").hidden = cmp;
+  for (const G of geoms) {
+    const arm = r.arms[G.id];
+    if ($(`lab-${G.id}`)) $(`lab-${G.id}`).textContent = `${G.id} · ${armName(arm)}`;
+    if ($(`sw-${G.id}`)) $(`sw-${G.id}`).style.background = armVar(arm);
+  }
+  $("scen-badge").textContent = cmp ? `${LOADING_SHORT[state.loading] || state.loading} · socket ${state.compare}, empty vs β-TCP`
+    : `${LOADING_SHORT[state.loading] || state.loading} · β-TCP in ${state.graft}`;
+  applyJaw();
+  // a strain map on screen follows the scenario's model (with or without the bridge) when that changes
+  if (state.strain && manifest.surface_strain && lastBridgeness !== hasBridge(state.loading)) { state.strainCase = defaultStrainCase(); $("strain-case").value = state.strainCase; applyStrain(); }
+  lastBridgeness = hasBridge(state.loading);
+  for (const c of columns()) c.V.dirty = true;   // also starts loading the frames of the columns shown
+  paneOverlays(); onFrames(); legend(); seedsNote(); drawCharts(true);
 }
 
 // ---------------------------------------------------------------- top bar, full screen
@@ -692,42 +941,43 @@ handle.addEventListener("click", () => { if (dragged) { dragged = false; return;
 layout();
 
 // ---------------------------------------------------------------- start
-ticks(phone.matches); applyJaw(); applyTime(); requestAnimationFrame(loop);
+// The URL may name the starting state, e.g. ?loading=bridge&graft=32&compare=33&strain=bridge_chew34&day=91&section=md
+ticks(phone.matches); applyJaw(); requestAnimationFrame(loop);
 (async () => {
   try {
     manifest = await getJSON("manifest.json");
-    if (manifest.version !== 1) throw new Error(`manifest version ${manifest.version}`);
+    if (![1, 2].includes(manifest.version)) throw new Error(`manifest version ${manifest.version}`);
     FD = manifest.frame_days; NF = FD.length;
     $("day").max = FD[NF - 1]; ticks(phone.matches);
-    for (const m of manifest.sockets) sockets.push(makeSocket(m));
-    U.uVox.value = sockets[0].vox;
+    for (const m of manifest.sockets) geoms.push(makeGeom(m));
+    U.uVox.value = geoms[0].vox;
+    setupRuns(); scenarioSetup();
+    if (query.has("loading")) state.loading = query.get("loading");
+    if (["32", "33"].includes(query.get("graft"))) state.graft = query.get("graft");
+    if (["32", "33"].includes(query.get("compare"))) state.compare = query.get("compare");
+    if (["md", "bl"].includes(query.get("section"))) state.section = query.get("section");
+    if (query.has("day")) { state.day = Math.max(0, Math.min(FD[NF - 1], +query.get("day") || 0)); state.touchedTime = true; }
+    state.bridge = hasBridge(state.loading);
     sectionFrame(); applySection(); tissueToggles();
     if (manifest.setting) $("setting").textContent = `Run setting: ${manifest.setting}.`;
     if (manifest.voxel_rule) { $("voxel-rule").textContent = manifest.voxel_rule.replace(/^./, (c) => c.toUpperCase()) + "."; $("voxel-rule-box").hidden = false; }
-    getJSON(manifest.series).then((raw) => {
-      series = normSeries(raw); legend(); readout(Math.floor(state.day)); drawCharts(true);
-      if (series.seeds) $("seeds").textContent = `The charts and the table are the mean of ${series.seeds} runs with different random seeds; the cubes show one of them${series.framesSeed ? ` (seed ${series.framesSeed})` : ""}.`;
-    })
-      .catch((e) => { $("chart-note").textContent = `The charts could not load (${e.message}).`; });
-    legend();
-    // the jaw first, then the frames
+    if (manifest.surface_strain) strainSetup();
+    applyScenario();
+    // the jaw first, then the frames (applyScenario has already asked for those of the scenario shown)
     const meshes = manifest.meshes || {};
-    const [jaw, teeth] = await Promise.all([meshes.mandible ? loadGLB(meshes.mandible) : null, meshes.teeth ? loadGLB(meshes.teeth).catch(() => null) : null]);
-    if (jaw) addMeshes(jaw, jawGroup, [jawBack, jawFront]);
-    if (teeth) addMeshes(teeth, teethGroup, [teethMat]);
-    applyJaw(); resize(); cameraTo("jaw", true);
+    const [jaw, teeth, bridge] = await Promise.all([meshes.mandible ? loadGLB(meshes.mandible) : null,
+      meshes.teeth ? loadGLB(meshes.teeth).catch(() => null) : null, meshes.bridge ? loadGLB(meshes.bridge).catch(() => null) : null]);
+    if (jaw) jawGeom = addMeshes(jaw, jawGroup, [jawBack, jawFront], true)[0] || null;
+    if (teeth) addMeshes(teeth, teethGroup, [teethMat], true);
+    if (bridge) { addMeshes(bridge, bridgeGroup, [bridgeMat], false); $("bridge-row").hidden = false; }
+    applyJaw(); resize(); cameraTo(state.compare !== "off" || state.section !== "off" ? "sockets" : "jaw", true);
     $("loading").hidden = true;
-    let done = 0;
-    status(`Loading the simulation: 0 of ${NF} frames`);
-    const onFrame = (S) => {
-      if (!S.inside && S.loaded >= 1) indexSocket(S);
-      applyTime();
-      const n = Math.min(...sockets.map((s) => s.loaded));
-      if (n < NF) status(`Loading the simulation: ${n} of ${NF} frames`);
-    };
-    await Promise.all(sockets.map((S) => loadFrames(S, onFrame).then(() => { done++; })));
-    status("");
-    markAbsentTissues();
+    if (query.has("strain") && manifest.surface_strain) {
+      const id = query.get("strain"), ok = manifest.surface_strain.cases.some((c) => c.id === id);
+      state.strainCase = ok ? id : defaultStrainCase(); $("show-strain").checked = true; $("show-strain").dispatchEvent(new Event("change"));
+    }
+    await Promise.all(columns().map((c) => c.V.promise));
+    onFrames();
     if (!state.touchedTime && !reducedMotion) { state.day = 0; applyTime(); setPlaying(true); }
   } catch (e) {
     console.error(e);
