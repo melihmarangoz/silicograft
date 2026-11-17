@@ -19,8 +19,13 @@ clot formed against, moving with the bridge (the field must then come from a mod
 socket tissue are joined).
 The output holds one *STEP per --step, each ending with *EL PRINT, ELSET=SOCKET / S, E (as the C++ reader expects).
 
+Implants (--implants implants.json: list of {"platform": [x, y, z], "axis": unit vector towards the tip, "length",
+"radius"} in the block frame): socket-model nodes inside an implant follow the field in every step, i.e. they move
+with the implant of the larger model (rigid next to the tissue), and the tissue elements around it are strained by the
+implant's motion relative to the bone (micromotion).
+
 usage: submodel_bc.py --template model_template.inp --field fields.npz --offset ox oy oz --sockets sockets.json
-                      --step ... [--step ...] --out bc.inp
+                      --step ... [--step ...] [--implants implants.json] --out bc.inp
 """
 import argparse, json
 import numpy as np
@@ -30,6 +35,7 @@ p.add_argument("--template", required=True); p.add_argument("--field", required=
 p.add_argument("--offset", type=float, nargs=3, default=[0, 0, 0]); p.add_argument("--sockets", required=True)
 p.add_argument("--step", action="append", required=True); p.add_argument("--out", required=True)
 p.add_argument("--crest-depth", type=float, default=1.5, help="pressure faces within this depth (mm) below the crest")
+p.add_argument("--implants", help="implant cylinders (block frame); nodes inside follow the field in every step")
 a = p.parse_args()
 
 nodes, elems, cur = {}, {}, None
@@ -109,6 +115,15 @@ for e, (es, cn) in elems.items():
                 n_ = cn[k_]
                 if n_ not in nonsock: press_nodes[n_] = best[1]
 print(f"{len(press)} coronal socket faces for pressure loads, {len(press_nodes)} of their nodes free of bone and tooth")
+imp_ids = np.zeros(0, int)
+if a.implants:
+    inside = np.zeros(len(ids), bool)
+    for im in json.load(open(a.implants)):
+        p0 = np.array(im["platform"]); ax_ = np.array(im["axis"]) / np.linalg.norm(im["axis"])
+        t = (X - p0) @ ax_; r = np.linalg.norm((X - p0) - t[:, None] * ax_, axis=1)
+        inside |= (t >= -1e-6) & (t <= im["length"] + 1e-6) & (r <= im["radius"] + 1e-6)
+    imp_ids = ids[inside & ~cut]
+    print(f"{int(inside.sum())} nodes inside implants ({len(imp_ids)} not on the cut faces) follow the field")
 pn_ids = np.array(sorted(press_nodes)); pn_ax = np.array([press_nodes[n] for n in pn_ids]) if len(pn_ids) else np.zeros((0, 3))
 pn_cut = np.isin(pn_ids, ids[cut]); pn_ids, pn_ax = pn_ids[~pn_cut], pn_ax[~pn_cut]
 
@@ -132,6 +147,10 @@ with open(a.out, "w") as f:
         f.write("*STEP\n*STATIC\n1., 1., 1e-05, 1.\n*BOUNDARY\n")
         for nid_, uu in zip(ids[cut], u):
             for d in range(3): f.write(f"{nid_}, {d + 1}, {d + 1}, {uu[d]:.6e}\n")
+        if len(imp_ids) and cw:
+            ui = disp(cw, np.array([nodes[n] for n in imp_ids]))
+            for nid_, uu in zip(imp_ids, ui):
+                for d in range(3): f.write(f"{nid_}, {d + 1}, {d + 1}, {uu[d]:.6e}\n")
         if dl or tie:
             ud = disp(cw, np.array([nodes[n] for n in pn_ids])) + dl * pn_ax
             for nid_, uu in zip(pn_ids, ud):

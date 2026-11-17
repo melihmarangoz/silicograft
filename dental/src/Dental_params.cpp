@@ -39,6 +39,10 @@ bool Load_params(const char* file)
 		{"iterations", [](istringstream& s) { s >> P.iterations; }},
 		{"native_E", [](istringstream& s) { s >> P.native_E; }},
 		{"bc_file", [](istringstream& s) { s >> P.bc_file; }},
+		{"bc_file2", [](istringstream& s) { s >> P.bc_file2; }},
+		{"bc_switch_day", [](istringstream& s) { s >> P.bc_switch_day; }},
+		{"implant_E", [](istringstream& s) { s >> P.implant_E; }},
+		{"implant_nu", [](istringstream& s) { s >> P.implant_nu; }},
 		{"native_nu", [](istringstream& s) { s >> P.native_nu; }},
 		{"raw_daily", [](istringstream& s) { s >> P.raw_daily; }},
 		{"granule_fraction", [](istringstream& s) { s >> P.granule_fraction; }},
@@ -95,6 +99,8 @@ bool Load_params(const char* file)
 	  << "\ntime_scale " << P.time_scale << "\ntcp_k2 " << P.tcp_k2 << "\ntcp_k_switch " << P.tcp_k_switch << "\niterations " << P.iterations << "\nnative_E " << P.native_E
 	  << "\nnative_nu " << P.native_nu << "\n";
 	if (!P.bc_file.empty()) o << "bc_file " << P.bc_file << "\n";
+	if (!P.bc_file2.empty()) o << "bc_file2 " << P.bc_file2 << "\nbc_switch_day " << P.bc_switch_day << "\n";
+	o << "implant_E " << P.implant_E << "\nimplant_nu " << P.implant_nu << "\n";
 	if (P.iterations < 1 || P.iterations > NUMBER_ITERATIONS) {
 		cerr << "ERROR: iterations must be 1.." << NUMBER_ITERATIONS << " (build with -DNUMBER_ITERATIONS_OVERRIDE=N for more)" << endl;
 		return false;

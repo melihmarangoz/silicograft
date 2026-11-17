@@ -37,6 +37,7 @@ bool Update_model(char lattice[LATTICE_X][LATTICE_Y][LATTICE_Z], float Young_mod
     float number_MSC,number_chondrocytes,number_fibroblasts,number_mature_osteoblasts;
     float number_granule; // [DENTAL] beta-TCP granule points
     float number_native;  // [DENTAL] native bone points inside a socket element (models from masks)
+    float number_implant; // [DENTAL] implant points: left out of the tissue mixture
     int count;
     int count2;
     int first_element = 1; // first element in callus
@@ -82,7 +83,7 @@ bool Update_model(char lattice[LATTICE_X][LATTICE_Y][LATTICE_Z], float Young_mod
         {
          
             number_MSC=number_chondrocytes=number_fibroblasts=number_mature_osteoblasts=0;
-            number_granule=0; number_native=0; // [DENTAL]
+            number_granule=0; number_native=0; number_implant=0; // [DENTAL]
     
             for (i=imin;i<imax;i++)
             {
@@ -109,6 +110,9 @@ bool Update_model(char lattice[LATTICE_X][LATTICE_Y][LATTICE_Z], float Young_mod
                                 case LATTICE_GRANULE: // [DENTAL]
                                     number_granule=number_granule+1.0;
                                     break;
+                                case LATTICE_IMPLANT: // [DENTAL]
+                                    number_implant=number_implant+1.0;
+                                    break;
                                 case LATTICE_BONE: // [DENTAL]
                                     number_native=number_native+1.0;
                                     break;
@@ -119,21 +123,30 @@ bool Update_model(char lattice[LATTICE_X][LATTICE_Y][LATTICE_Z], float Young_mod
             } //end for
             
          
-        // [DENTAL] modulus of the non-bone (soft) part of the element, for the soft-phase stimulus (Read_stimulus)
-        {
-            const float soft = total - number_mature_osteoblasts - number_granule - number_native; // [DENTAL] granules, native bone are not soft tissue
-            E_soft_phase[elem] = soft > 0 ? (number_chondrocytes*10.0f + number_fibroblasts*2.0f
-                + (soft - number_chondrocytes - number_fibroblasts)*0.2f) / soft : 0.2f;
+        // [DENTAL] implant points are left out of the mixture: the element stands for the tissue around the implant
+        // (the implant's own nodes are moved with it by bc_file); an element that is all implant gets implant_E
+        const float total_all = total;
+        total = total - number_implant;
+        if (total <= 0.0f) {
+            E_soft_phase[elem] = 0.2f;
+            Young_modulus_prop[elem][t_prop] = P.implant_E; Poison_ratio_prop[elem][t_prop] = P.implant_nu;
+        } else {
+            // [DENTAL] modulus of the non-bone (soft) part of the element, for the soft-phase stimulus (Read_stimulus)
+            {
+                const float soft = total - number_mature_osteoblasts - number_granule - number_native; // [DENTAL] granules, native bone are not soft tissue
+                E_soft_phase[elem] = soft > 0 ? (number_chondrocytes*10.0f + number_fibroblasts*2.0f
+                    + (soft - number_chondrocytes - number_fibroblasts)*0.2f) / soft : 0.2f;
+            }
+            // [DENTAL] granule points enter the mixture with the beta-TCP modulus (P.tcp_E, P.tcp_nu); without granules
+            // the expressions are the upstream ones
+            Young_modulus_prop[elem][t_prop]=(number_chondrocytes*10.0/total)+(number_fibroblasts*2.0/total)
+    			+(number_mature_osteoblasts*17000.0/total)+(number_granule*P.tcp_E/total)+(number_native*P.native_E/total)
+    			+((total-number_fibroblasts-number_mature_osteoblasts-number_chondrocytes-number_granule-number_native)*0.2/total); 
+            Poison_ratio_prop[elem][t_prop]=(number_chondrocytes*0.167/total)+(number_fibroblasts*0.167/total)
+    			+(number_mature_osteoblasts*0.3/total)+(number_granule*P.tcp_nu/total)+(number_native*P.native_nu/total)
+    			+((total-number_fibroblasts-number_chondrocytes-number_mature_osteoblasts-number_granule-number_native)*0.167/total);
         }
-        // [DENTAL] granule points enter the mixture with the beta-TCP modulus (P.tcp_E, P.tcp_nu); without granules
-        // the expressions are the upstream ones
-        Young_modulus_prop[elem][t_prop]=(number_chondrocytes*10.0/total)+(number_fibroblasts*2.0/total)
-			+(number_mature_osteoblasts*17000.0/total)+(number_granule*P.tcp_E/total)+(number_native*P.native_E/total)
-			+((total-number_fibroblasts-number_mature_osteoblasts-number_chondrocytes-number_granule-number_native)*0.2/total); 
-        Poison_ratio_prop[elem][t_prop]=(number_chondrocytes*0.167/total)+(number_fibroblasts*0.167/total)
-			+(number_mature_osteoblasts*0.3/total)+(number_granule*P.tcp_nu/total)+(number_native*P.native_nu/total)
-			+((total-number_fibroblasts-number_chondrocytes-number_mature_osteoblasts-number_granule-number_native)*0.167/total);
-
+        total = total_all;
         i=t_prop;         
         count=0;
         while (i>=0 && count<10)
@@ -200,10 +213,12 @@ bool Write_ccx_input(const float* Young_mod_elem, const float* Poison_rat_elem)
 			myfile << v[n] << ((n + 1) % 16 && n + 1 < v.size() ? ", " : "\n");
 		myfile << "*SOLID SECTION, ELSET=SOCKET_" << g << ", MATERIAL=material_" << g << "\n";
 	}
-	if (!P.bc_file.empty()) {
+	// [DENTAL] bc_file2 from real day bc_switch_day on (day at the end of the current iteration)
+	const std::string& bcf = (!P.bc_file2.empty() && (g_iter + 1) * P.time_scale > P.bc_switch_day) ? P.bc_file2 : P.bc_file;
+	if (!bcf.empty()) {
 		// [DENTAL] load steps from a file (each step must request *EL PRINT, ELSET=SOCKET / S, E)
-		if (!fs::exists(P.bc_file)) { cerr << "ERROR: bc_file " << P.bc_file << " missing." << endl; return false; }
-		myfile << "**\n** STEPS from " << P.bc_file << "\n*INCLUDE, INPUT=" << P.bc_file << "\n";
+		if (!fs::exists(bcf)) { cerr << "ERROR: bc file " << bcf << " missing." << endl; return false; }
+		myfile << "**\n** STEPS from " << bcf << "\n*INCLUDE, INPUT=" << bcf << "\n";
 	}
 	else {
 		const double ux = -P.farfield_strain * BLOCK_LENGTH_X; // [DENTAL] runtime parameter

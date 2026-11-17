@@ -22,7 +22,7 @@ build = os.path.abspath(a.build)
 os.makedirs(a.out, exist_ok=True)
 LINK = ["mechanobio", "model_template.inp", "node_file.txt", "element_file.txt", "model_info.h",
         "lattice_init.raw", "mesh_summary.json", "run.sh", "build_info.txt",
-        "zone_map.raw", "zone_names.txt", "graft_mask.raw", "socket_map.raw"]  # the last four only if the build has them
+        "zone_map.raw", "zone_names.txt", "graft_mask.raw", "socket_map.raw", "implant_mask.raw"]  # the last five only if the build has them
 rows = list(csv.DictReader(open(a.sets)))
 
 

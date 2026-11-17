@@ -26,9 +26,10 @@ constexpr int ACTIVITY_MAX = 15; // latency period of 15 days [DENTAL] default o
 constexpr char LATTICE_BONE = 11;  // native alveolar bone (socket wall)
 constexpr char LATTICE_COVER = 14; // soft-tissue cover over the socket opening (closed flap)
 constexpr char LATTICE_GRANULE = 12; // [DENTAL] beta-TCP granule (upstream: scaffold)
+constexpr char LATTICE_IMPLANT = 13; // [DENTAL] implant (titanium): occupied, guiding (osteoconductive), not a cell source
 // [DENTAL] a socket point holds cells or graft; native bone and cover points inside socket elements (possible in
 // models built from segmentation masks, SG_INIT_DECIDES) are not socket points
-inline bool is_socket_point(char c) { return c != LATTICE_BONE && c != LATTICE_COVER; }
+inline bool is_socket_point(char c) { return c != LATTICE_BONE && c != LATTICE_COVER && c != LATTICE_IMPLANT; }
 
 // [DENTAL] day-0 cell source: MSCs in a lining of LINING_VOXELS lattice points along the bony socket wall
 // (PDL remnants and wall marrow openings), SEED_FRACTION of those points, chosen with a fixed pattern seed so
@@ -54,6 +55,10 @@ inline bool is_socket_point(char c) { return c != LATTICE_BONE && c != LATTICE_C
 // The values used are written to params_used.txt.
 struct Params {
 	double farfield_strain = FARFIELD_STRAIN; // far-field mesio-distal strain on the bone block
+	std::string bc_file2;          // second load-step file, used from real day bc_switch_day on (e.g. an implant loaded at 3 months)
+	double bc_switch_day = 1e9;
+	double implant_E = 110000.0;   // implant (implant_mask.raw) modulus and Poisson ratio, MPa (titanium)
+	double implant_nu = 0.34;
 	std::string bc_file;           // CalculiX include with the load step(s), replacing the far-field step (e.g. displacements
 	                               // of the block's cut faces from a larger model, pressures); several steps: per element
 	                               // the step farthest outside the bone window sets the stimulus (daily peak envelope)

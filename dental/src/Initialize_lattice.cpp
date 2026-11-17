@@ -59,6 +59,21 @@ bool Initialize_lattice(char initial_lattice[LATTICE_X][LATTICE_Y][LATTICE_Z], s
                     }
                 }
             }
+    // [DENTAL] optional implant_mask.raw: implant points (titanium) are set before granules and seeding; they are
+    // occupied, guide like other surfaces, are not a cell source and are not socket points in any statistics
+    {
+        ifstream im("implant_mask.raw", ios::binary);
+        if (im) {
+            vector<unsigned char> imask((size_t)LATTICE_X * LATTICE_Y * LATTICE_Z, 0);
+            if (!im.read(reinterpret_cast<char*>(imask.data()), imask.size())) { cerr << "ERROR: implant_mask.raw has the wrong size." << endl; return false; }
+            long n_impl = 0; size_t q = 0;
+            for (int i = 0; i < LATTICE_X; i++)
+                for (int j = 0; j < LATTICE_Y; j++)
+                    for (int k = 0; k < LATTICE_Z; k++, q++)
+                        if (imask[q]) { initial_lattice[i][j][k] = LATTICE_IMPLANT; n_impl++; }
+            cout << "  Implant points: " << n_impl << endl;
+        }
+    }
     // [DENTAL] beta-TCP granules (if any) take socket points before the seeding
     Place_granules(initial_lattice, lattice_point_element);
     // seeding of the wall lining
