@@ -182,40 +182,63 @@ A page of the site itself (no copy step in the workflow, no artifact version): `
 `../vendor/three-0.147.0/` and Mona Sans through `../tokens.css`, so `build_site.py` leaves it
 alone. The header nav and the phone menu link to it as "Dental".
 
-It shows two extraction sockets of one anonymized lower jaw, 32 left empty and 33 grafted with
-β-TCP, over 182 days of the human setting (`dental/README.md`, `dental/literature/`): the jaw
-see-through with an opacity slider, the remaining teeth, each socket's tissue as 0.2 mm cubes
-(instanced; a cube hidden on all six sides by bone or graft is not drawn), a day slider with
-play, toggles per tissue and socket, a section plane (mesio-distal or bucco-lingual, moved
-through the sockets; the jaw and teeth are cut only inside a slab around the sockets), the
-cameras "Whole jaw" and "Sockets", a readout and two charts (new bone and residual graft, whole
-socket and virtual core, with the human biopsy ranges at 3 and 6 months). Phones get the stage
-full screen and the rest in a bottom sheet, as in the callus viewer.
+A model comparison on one real, anonymized jaw geometry (not a forecast for a person): two
+extraction sockets (32, 33) over 182 days of the human setting (`dental/README.md`,
+`dental/literature/`), one grafted with β-TCP and one empty, run both ways round, under five
+loadings: none, the natural teeth, a 7-unit zirconia bridge 34 to 43 whose pontics clear the
+tissue, and that bridge with ovate pontics pressed 0.5 or 1 mm into the tissue. The page has:
+- **Scenario:** the loading (a select), which socket holds the graft, and **Compare** (off,
+  socket 32, socket 33): the chosen socket twice, empty and grafted under the same loading, in
+  two panes with one camera (side by side on a wide stage, stacked on a tall one, as on a phone).
+  The charts and the table then show that socket's two arms. The URL can name the starting
+  state: `?loading=bridge&graft=32&compare=33&strain=bridge_chew34&day=91&section=md`.
+- **Jaw:** the mandible see-through (opacity slider), the remaining teeth, the bridge (on by
+  default in the bridge and ovate scenarios; near white, slightly translucent) and a **strain
+  map**: the mandible surface coloured by the largest principal strain of a chosen load case,
+  on a log scale from 10 to 3,000 µε with a legend that marks the 1,500-3,000 µε overload band.
+  Switching it on makes the jaw opaque; switching it off restores the opacity.
+- Each socket's tissue as 0.2 mm cubes (instanced; a cube hidden on all six sides by bone or
+  graft is not drawn), a day slider with play, toggles per tissue and socket, a section plane
+  (mesio-distal or bucco-lingual; the jaw, teeth and bridge are cut only inside a slab around
+  the sockets), the cameras "Whole jaw" and "Sockets", a readout and two charts (new bone and
+  residual graft, whole socket and virtual core, with the human biopsy ranges at 3 and 6
+  months), and notes: what is simulated, what the model shows, the human setting, limitations.
+- Phones get the stage full screen and the rest in a bottom sheet, as in the callus viewer.
 
-Data contract (`data/`, written by the case's own pipeline outside this repo):
-- `manifest.json`: `version` 1, `units` "mm", `frame` (x = patient left, y = superior,
+Data contract (`data/`, the case pipeline's site package, version 2, written outside this repo):
+- `manifest.json`: `version` 2, `units` "mm", `frame` (x = patient left, y = superior,
   z = anterior; origin = centroid of the mandible surface), `frame_days` (0, 7, ..., 182),
-  `setting` (one line, shown under "The human setting"), `codes` (1 stem cell, 2 fibroblast,
-  3 chondrocyte, 4 new bone, 5 β-TCP granule), `sockets` (each `id`, `arm`, `origin` = the
-  display-frame corner of voxel (0,0,0), `dims` [nx, ny, nz], `voxel` 0.2, `frames` file),
-  `meshes` (`mandible`, `teeth`: GLB in the same frame, mm) and `series`.
-  `voxel_rule` (how a 0.2 mm cube is drawn from the 0.1 mm lattice) is shown under the notes.
+  `setting`, `codes` (1 stem cell, 2 fibroblast, 3 chondrocyte, 4 new bone, 5 β-TCP granule),
+  `sockets` (each `id`, `arm`, `origin` = the display-frame corner of voxel (0,0,0), `dims`
+  [nx, ny, nz], `voxel` 0.2, `frames`), `meshes` (`mandible`, `teeth`, `bridge`: GLB in the
+  same frame, mm), `series`, `voxel_rule` (shown under the notes), `surface_strain` and `runs`.
+  Version 1 (no `runs`) still loads: it becomes one unloaded scenario.
+- `runs[]`: `id`, `label`, `arms` (socket id to "empty" or "beta-TCP"), `loading` (text),
+  `frames` (per socket), `series`, optional `same_cells_as` (the run gives cell for cell the
+  same healing as that run and names its frame files). The page groups each run with its
+  `_swapped` twin (`swapped` for `baseline`) into one loading; frames are fetched by file name
+  when a scenario first needs them, so files shared by several runs load once.
 - Frames: uint8, shape (n_frames, nz, ny, nx), x fastest; 0 empty (not drawn), 1-5 the
-  codes, 255 outside the socket (taken from frame 0). They are committed gzipped
-  (`s32_frames.bin.gz`, `s33_frames.bin.gz`; `gzip -9 -n`, with the names in the manifest
-  changed to match): GitHub Pages does not compress `.bin`, and gzip cuts the two files from
-  3.5 MB to 0.28 MB. The page streams them through DecompressionStream, so day 0 shows before
-  the files are complete; a plain `.bin` name works too. A code that never occurs (fibroblast
-  and chondrocyte in the current run) keeps its toggle, dimmed and marked "none in this run".
-- `series.json`: `seeds`, `frames_seed`, `setting`, `definitions`; per socket (`sockets.32`,
-  `sockets.33`) `days` (0 to 182 in 3.5-day steps), `whole` (`new_bone`, `residual_graft`,
-  `stem_cells`, `soft_tissue`, `cartilage`, `clot_or_marrow`, % summing to 100), `core`
-  (`new_bone`, `residual_graft`) and `expected` (`core_new_bone`, `core_residual_graft`: the
-  literature boxes, `{day, value, low, high}`); `bands` (`x2.5`, `x5`: per socket `days` and
-  `whole_new_bone`), drawn as a shaded band. Means of the seeds; the cubes show `frames_seed`.
-  Table rows of tissues that stay at zero are left out.
-- Size: `dental/` is 3.8 MB deployed (mandible.glb 2.4 MB, teeth.glb 1.2 MB, frames 0.28 MB).
-  The page itself loads nothing else but three.js, its two example scripts and the fonts.
+  codes, 255 outside the socket (taken from frame 0). Committed gzipped (`gzip -9 -n`, the
+  manifest names changed to `.gz`): GitHub Pages does not compress `.bin`, and gzip cuts the
+  twelve frame files from 21 MB to 1.4 MB. The page streams them through DecompressionStream,
+  so day 0 shows before a file is complete; a plain `.bin` name works too. A code that never
+  occurs in the runs shown keeps its toggle, dimmed and marked "none in these runs".
+- `surface_strain`: `file` (float16, shape [cases, vertices], case-major; committed as
+  `mandible_strain.bin.gz`, 0.6 MB), `units` microstrain, one value per vertex of
+  `mandible.glb` in its order, and `cases` (`id`, `model`, `load`), `support`, `note` (shown
+  under the load case select). Loaded only when the strain map is first switched on.
+- Series files (one per run): `seeds`, `frames_seed`; per socket (`sockets.32`, `sockets.33`)
+  `days` (0 to 182 in 3.5-day steps), `whole` (`new_bone`, `residual_graft`, `stem_cells`,
+  `soft_tissue`, `cartilage`, `clot_or_marrow`, % summing to 100), `core` (`new_bone`,
+  `residual_graft`) and `expected` (`core_new_bone`, `core_residual_graft`: the literature
+  boxes, `{day, value, low, high}`); in `series.json` also `bands` (`x2.5`, `x5`: per socket
+  `days` and `whole_new_bone`), drawn as a shaded band. The unloaded runs are means of three
+  seeds, the loaded ones one seed; the notes say which. Table rows of tissues that stay at zero
+  are left out.
+- Size: `dental/` is about 6.5 MB deployed (mandible.glb 2.4 MB, teeth.glb 1.2 MB, bridge.glb
+  1.0 MB, frames 1.4 MB, strain 0.6 MB, series 0.07 MB). The first view loads the meshes and
+  the two baseline frame files (0.28 MB); the rest comes when a scenario or the strain map asks.
 - Privacy: no images, no names, dates or scan metadata; the package's anonymization note stays
   with the case, outside this repo.
 
