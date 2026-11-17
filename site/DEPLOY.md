@@ -187,11 +187,17 @@ extraction sockets (32, 33) over 182 days of the human setting (`dental/README.m
 `dental/literature/`), one grafted with β-TCP and one empty, run both ways round, under six
 loadings: none, the natural teeth, a 7-unit zirconia bridge 34 to 43 whose pontics clear the
 tissue, that bridge with ovate pontics placed in the socket mouths as in practice, and (not
-clinical, kept as upper bounds) the pontics pressed 0.5 or 1 mm into the tissue. The page has:
-- **Scenario:** the loading (a select), which socket holds the graft, and **Compare** (off,
+clinical, kept as upper bounds) the pontics pressed 0.5 or 1 mm into the tissue. Package 2.2
+adds immediate implants in both sockets (β-TCP in the gaps): healing without a prosthesis, then
+from month 3 the bridge on the teeth and both implants, or single crowns. The page has:
+- **Scenario:** the loading (a select in three groups: sockets without implants, immediate
+  implants, upper bounds), which socket holds the graft, and **Compare** (off,
   socket 32, socket 33): the chosen socket twice, empty and grafted under the same loading, in
   two panes with one camera (side by side on a wide stage, stacked on a tall one, as on a phone).
-  The charts and the table then show that socket's two arms. The URL can name the starting
+  The charts and the table then show that socket's two arms. The implant scenarios have no
+  swapped twin, so the graft switch and Compare are off there. A run with `same_cells_as` says
+  in its note that its cells are those of that run (the loads change nothing), instead of
+  posing as a different animation. The URL can name the starting
   state: `?loading=bridge&graft=32&compare=33&strain=bridge_chew34&day=91&section=md`.
 - **Jaw:** the mandible see-through (opacity slider), the remaining teeth, the bridge (on by
   default in the bridge and ovate scenarios; cool white, slightly translucent; `bridge_ovate.glb`
@@ -199,7 +205,10 @@ clinical, kept as upper bounds) the pontics pressed 0.5 or 1 mm into the tissue.
   time it is shown) and a **strain
   map**: the mandible surface coloured by the largest principal strain of a chosen load case,
   on a log scale from 10 to 3,000 µε with a legend that marks the 1,500-3,000 µε overload band.
-  Switching it on makes the jaw opaque; switching it off restores the opacity.
+  Switching it on makes the jaw opaque; switching it off restores the opacity. The implant
+  scenarios add the implants (titanium) and their prosthesis: the bridge, or single crowns that
+  appear at day 91; the charts and table then refer to the gap around each implant and add
+  bone-implant contact (a third chart). A results card of the implant runs heads the notes.
 - Each socket's tissue as 0.2 mm cubes (instanced; a cube hidden on all six sides by bone or
   graft is not drawn), a day slider with play, toggles per tissue and socket, a section plane
   (mesio-distal or bucco-lingual; the jaw, teeth and bridge are cut only inside a slab around
@@ -218,9 +227,12 @@ Data contract (`data/`, the case pipeline's site package, version 2, written out
   Version 1 (no `runs`) still loads: it becomes one unloaded scenario.
 - `runs[]`: `id`, `label`, `arms` (socket id to "empty" or "beta-TCP"), `loading` (text),
   `frames` (per socket), `series`, optional `same_cells_as` (the run gives cell for cell the
-  same healing as that run and names its frame files) and `clinical` (true: placed as in
-  practice; false: an upper bound; shown in the scenario note). Package 2.1 (`version_minor`
-  1) added `ovate_cap` / `ovate_cap_swapped` and `meshes.bridge_ovate`. The page groups each run with its
+  same healing as that run and names its frame files), `clinical` (true: placed as in
+  practice; false: an upper bound; shown in the scenario note) and `implants` (true: implant
+  runs; their frames show the gap, implant voxels are 255). Package 2.1 (`version_minor` 1)
+  added `ovate_cap` / `ovate_cap_swapped` and `meshes.bridge_ovate`; package 2.2 added
+  `implants_unloaded`, `implants_bridge`, `implants_crowns`, `meshes.implants`, `meshes.crowns`
+  and ten strain rows (17 in all). The page groups each run with its
   `_swapped` twin (`swapped` for `baseline`) into one loading; frames are fetched by file name
   when a scenario first needs them, so files shared by several runs load once.
 - Frames: uint8, shape (n_frames, nz, ny, nx), x fastest; 0 empty (not drawn), 1-5 the
@@ -237,14 +249,16 @@ Data contract (`data/`, the case pipeline's site package, version 2, written out
   `days` (0 to 182 in 3.5-day steps), `whole` (`new_bone`, `residual_graft`, `stem_cells`,
   `soft_tissue`, `cartilage`, `clot_or_marrow`, % summing to 100), `core` (`new_bone`,
   `residual_graft`) and `expected` (`core_new_bone`, `core_residual_graft`: the literature
-  boxes, `{day, value, low, high}`); in `series.json` also `bands` (`x2.5`, `x5`: per socket
+  boxes, `{day, value, low, high}`); implant series have no `core` and no `expected` (the
+  implant fills the virtual core) but `bone_implant_contact` per day; in `series.json` also `bands` (`x2.5`, `x5`: per socket
   `days` and `whole_new_bone`), drawn as a shaded band. The unloaded runs are means of three
   seeds, the loaded ones one seed; the notes say which. Table rows of tissues that stay at zero
   are left out.
-- Size: `dental/` is about 7.5 MB deployed (mandible.glb 2.4 MB, teeth.glb 1.2 MB, bridge.glb
-  and bridge_ovate.glb 1.0 MB each, frames 1.4 MB, strain 0.6 MB, series 0.08 MB). The first
-  view loads the jaw and teeth (3.6 MB) and the two baseline frame files (0.28 MB); the rest
-  comes when a scenario or the strain map asks.
+- Size: `dental/` is about 9.3 MB deployed (mandible.glb 2.4 MB, teeth.glb 1.2 MB, bridge.glb
+  and bridge_ovate.glb 1.0 MB each, crowns.glb 0.5 MB, implants.glb 0.3 MB, frames 1.6 MB,
+  strain 1.5 MB for 17 rows, series 0.1 MB). The first view loads the jaw and teeth (3.6 MB)
+  and the two baseline frame files (0.28 MB); the rest comes when a scenario or the strain map
+  asks.
 - Privacy: no images, no names, dates or scan metadata; the package's anonymization note stays
   with the case, outside this repo.
 
