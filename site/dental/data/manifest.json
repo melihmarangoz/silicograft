@@ -77,7 +77,9 @@
   "mandible": "mandible.glb",
   "teeth": "teeth.glb",
   "bridge": "bridge.glb",
-  "bridge_ovate": "bridge_ovate.glb"
+  "bridge_ovate": "bridge_ovate.glb",
+  "implants": "implants.glb",
+  "crowns": "crowns.glb"
  },
  "series": "series.json",
  "voxel_rule": "each 0.2 mm voxel holds 2x2x2 lattice sites of 0.1 mm; inside the socket if at least 4 of its 8 sites are socket sites (else 255); drawn if at least 40 % of its socket sites hold a cell or granule (else 0), as the most frequent such code, ties to new bone > granule > stem cell > fibroblast > chondrocyte; the voxels show about 4-8 points more new bone than the 0.1 mm lattice, series.json has the exact values",
@@ -85,7 +87,7 @@
   "file": "mandible_strain.bin.gz",
   "dtype": "float16",
   "shape": [
-   7,
+   17,
    49979
   ],
   "order": "case-major (C order)",
@@ -127,6 +129,56 @@
     "id": "nobridge_incisal",
     "model": "natural teeth, no bridge",
     "load": "bite on 31 and 41, 25 N each, on the labial incisal third, 30 degrees lingual-apical to the tooth axis"
+   },
+   {
+    "id": "implants_bridge_impl_incisal",
+    "model": "bridge on 34, 31, 41-43 and the implants in 32 and 33",
+    "load": "bite on 31 and 41, 25 N each, on the labial incisal third, 30 degrees lingual-apical to the tooth axis"
+   },
+   {
+    "id": "implants_bridge_impl_incisal32",
+    "model": "bridge on 34, 31, 41-43 and the implants in 32 and 33",
+    "load": "bite on the 32 unit, 25 N, 30 degrees lingual-apical"
+   },
+   {
+    "id": "implants_bridge_impl_canine33",
+    "model": "bridge on 34, 31, 41-43 and the implants in 32 and 33",
+    "load": "canine guidance on unit 33 (left excursion), 25 N, 45 degrees lingual-apical"
+   },
+   {
+    "id": "implants_bridge_impl_canine43",
+    "model": "bridge on 34, 31, 41-43 and the implants in 32 and 33",
+    "load": "canine guidance on 43 (right excursion), 25 N, 45 degrees lingual-apical"
+   },
+   {
+    "id": "implants_bridge_impl_chew34",
+    "model": "bridge on 34, 31, 41-43 and the implants in 32 and 33",
+    "load": "chewing on 34, 120 N along its axis"
+   },
+   {
+    "id": "implants_crowns_impl_incisal",
+    "model": "single crowns on the implants in 32 and 33, natural teeth",
+    "load": "bite on 31 and 41, 25 N each, on the labial incisal third, 30 degrees lingual-apical to the tooth axis"
+   },
+   {
+    "id": "implants_crowns_impl_incisal32",
+    "model": "single crowns on the implants in 32 and 33, natural teeth",
+    "load": "bite on the 32 unit, 25 N, 30 degrees lingual-apical"
+   },
+   {
+    "id": "implants_crowns_impl_canine33",
+    "model": "single crowns on the implants in 32 and 33, natural teeth",
+    "load": "canine guidance on unit 33 (left excursion), 25 N, 45 degrees lingual-apical"
+   },
+   {
+    "id": "implants_crowns_impl_canine43",
+    "model": "single crowns on the implants in 32 and 33, natural teeth",
+    "load": "canine guidance on 43 (right excursion), 25 N, 45 degrees lingual-apical"
+   },
+   {
+    "id": "implants_crowns_impl_chew34",
+    "model": "single crowns on the implants in 32 and 33, natural teeth",
+    "load": "chewing on 34, 120 N along its axis"
    }
   ],
   "support": "the jaw is held where the field of view of the scan cuts it (both sides); muscles are not modelled",
@@ -312,6 +364,56 @@
    },
    "series": "series_ovate10_swapped.json",
    "clinical": false
+  },
+  {
+   "id": "implants_unloaded",
+   "label": "immediate implants in 32 (3.0 mm) and 33 (3.75 mm), beta-TCP in the gaps, healing without mechanical load",
+   "arms": {
+    "32": "implant, beta-TCP gap",
+    "33": "implant, beta-TCP gap"
+   },
+   "loading": "none (implants under cover screws, no prosthesis)",
+   "frames": {
+    "32": "implants_unloaded_s32_frames.bin.gz",
+    "33": "implants_unloaded_s33_frames.bin.gz"
+   },
+   "series": "series_implants_unloaded.json",
+   "clinical": true,
+   "implants": true
+  },
+  {
+   "id": "implants_bridge",
+   "label": "immediate implants in 32 and 33; months 0-3 a provisional bridge on 34, 31, 41-43 spans them; from month 3 the 7-unit bridge rests on the teeth and both implants",
+   "arms": {
+    "32": "implant, beta-TCP gap",
+    "33": "implant, beta-TCP gap"
+   },
+   "loading": "months 0-3: daily peak of bite on 31 and 41 (25 N each), canine guidance on 33 and 43 (25 N), chewing on 34 (120 N) through the provisional bridge; from day 91 the same plus a bite on 32 (25 N), with the bridge fixed to the implants",
+   "frames": {
+    "32": "implants_unloaded_s32_frames.bin.gz",
+    "33": "implants_unloaded_s33_frames.bin.gz"
+   },
+   "series": "series_implants_bridge.json",
+   "clinical": true,
+   "implants": true,
+   "same_cells_as": "implants_unloaded"
+  },
+  {
+   "id": "implants_crowns",
+   "label": "immediate implants in 32 and 33 with single crowns from month 3; the natural teeth are left as they are",
+   "arms": {
+    "32": "implant, beta-TCP gap",
+    "33": "implant, beta-TCP gap"
+   },
+   "loading": "months 0-3: bite on the natural 31 and 41 (25 N each), canine guidance on 43 (25 N), chewing on 34 (120 N); from day 91 also a bite on the 32 crown (25 N) and canine guidance on the 33 crown (25 N)",
+   "frames": {
+    "32": "implants_unloaded_s32_frames.bin.gz",
+    "33": "implants_unloaded_s33_frames.bin.gz"
+   },
+   "series": "series_implants_crowns.json",
+   "clinical": true,
+   "implants": true,
+   "same_cells_as": "implants_unloaded"
   }
  ],
  "new_in_v2": [
@@ -320,11 +422,17 @@
   "runs: further simulations; each has frames per socket (same origin and dims as sockets[]) and its own series file; the first entry is the version-1 simulation",
   "runs[].same_cells_as: the run gives cell for cell the same healing as that run, so it reuses its frames"
  ],
- "version_minor": 1,
+ "version_minor": 2,
  "changes_in_2_1": [
   "runs ovate_cap and ovate_cap_swapped: ovate pontics as placed into fresh sockets, occupying the socket mouth down to the crest with no pressure; the clot forms against them and they move with the bridge",
   "meshes.bridge_ovate: the bridge with those ovate pontics, same frame as the jaw",
   "runs ovate05*, ovate10*: relabelled; pressing a pontic 0.5-1 mm into a fresh socket is not clinical practice, these are upper bounds",
   "runs[].clinical: true for the clinically placed variants, false for the upper bounds"
+ ],
+ "changes_in_2_2": [
+  "meshes.implants: the two immediate implants (32: 3.0 mm wide, 9.0 mm long; 33: 3.75 mm wide, 16.6 mm long; platform at the crest, tip 3 mm beyond the socket apex), same frame as the jaw",
+  "meshes.crowns: single crowns on the two implants (scenario without bridge)",
+  "runs implants_unloaded, implants_bridge, implants_crowns (runs[].implants = true): the frames show the gap between implant and socket wall (implant voxels are 255); their series give the gap and bone_implant_contact (no virtual core: the implant fills it)",
+  "surface_strain: rows appended for the loaded implant cases from month 3 (bridge on teeth and implants; single crowns on the implants)"
  ]
 }
